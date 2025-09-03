@@ -1,1 +1,27 @@
 @import "tailwindcss";
+.shining-text {
+  display: inline-block;
+  background: linear-gradient(
+    90deg,
+    #facc15 0%,
+    #f472b6 30%,
+    #818cf8 50%,
+    #f472b6 100%,
+    /* #facc15 0% */
+  );
+  background-size: 200% auto;
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+  animation: shine 10s linear infinite;
+  animation-delay: 2s; /* <-- wait 2 seconds before starting */
+}
+
+@keyframes shine {
+  0% {
+    background-position: -200% center;
+  }
+  100% {
+    background-position: 200% center;
+  }
+}
