@@ -4,6 +4,7 @@ import { MESSAGES } from "../utils/constants";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { sendOTP } from "../utils/mailer";
+import { response } from "express";
 
 
 export class AuthService{
@@ -59,24 +60,35 @@ export class AuthService{
     }
 
 
-async verifyOtp(email: string, otp: string) {
+async verifyOtp(email: string, otp: string, type:string) {
   const user = await this.userRepo.findByEmail(email);
   if (!user) throw new Error("User not found");
 
-  if (user.isVerified) throw new Error("Already verified");
   if (user.otpCode !== otp || new Date() > user.otpExpiry!)
     throw new Error("Invalid or expired OTP");
 
-  user.isVerified = true;
-  user.otpCode = undefined;
-  user.otpExpiry = undefined;
-  await user.save();
+    if(type==="signup"){
+      if (user.isVerified) throw new Error("Already verified");
+      user.isVerified = true;
+      user.otpCode = undefined;
+      user.otpExpiry = undefined;
+      await user.save();
 
-  const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, {
-    expiresIn: "1h",
-  });
+    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, {
+      expiresIn: "1h",
+    });
 
-  return { user, token };
+    return { user, token };
+    }
+  
+    if(type==="forgot"){
+      user.otpCode = undefined;
+      user.otpExpiry = undefined;
+      await user.save();
+      return { success: true };
+    } 
+  
+    throw new Error("Invalid verification type");
 }
 
     async login(email:string,password:string){
@@ -97,4 +109,27 @@ async verifyOtp(email: string, otp: string) {
 
         return {user,token};
     }
+
+
+    async resendOtp(email: string) {
+        try {
+            const user = await this.userRepo.findByEmail(email);
+            if (!user) throw new Error("User not found");
+
+            if (user.isVerified) throw new Error("User already verified");
+
+            const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); 
+            const newExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+            user.otpExpiry = newExpiry;
+            user.otpCode = otpCode;
+            user.save();
+
+            await sendOTP(user.email,otpCode);
+            return { message: "OTP resent successfully" };
+        } catch (error) {
+            return false;
+        }
+    }
+
 }

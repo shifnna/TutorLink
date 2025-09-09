@@ -87,6 +87,15 @@ const Login: React.FC = () => {
             onChange={handleChange}
             value={formData.password}
           />
+          {/* Forgot password link */}
+          <div className="flex justify-center">
+            <a
+              href="/forgot-password"
+              className="text-center text-gray-200  hover:underline"
+            >
+              Forgot Password?
+            </a>
+          </div>          
           <Button
             type="submit"
             className="rounded-full bg-gradient-to-r from-indigo-500 to-pink-500 text-white py-4 font-bold hover:scale-105 hover:shadow-lg transition"

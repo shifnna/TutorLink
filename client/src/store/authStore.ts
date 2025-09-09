@@ -20,9 +20,13 @@ interface AuthState {
     confirmPassword: string
   ) => Promise<any>;
 
-  verifyOtp: (email: string, otp: string) => Promise<any>;
+  verifyOtp: (email: string, otp: string, type: string) => Promise<any>;
+
+  resendOtp: (email: string) => Promise<any>;
 
   login: (email: string, password: string) => Promise<any>;
+
+  requestPasswordReset : (email:string) => Promise<any>;
 
   logout: () => void;
 }
@@ -59,11 +63,11 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  verifyOtp: async (email: string, otp: string) => {
+  verifyOtp: async (email: string, otp: string, type: string) => {
   try {
     set({ isLoading: true, error: null });
-    const response = await authRepository.verifyOtp({ email, otp });
-    set({ user: response.user, isAuthenticated: true, isLoading: false });
+    const response = await authRepository.verifyOtp({ email, otp, type });
+    set({ user: response.user, isAuthenticated: type==="signup", isLoading: false });
     return response;
   } catch (error: any) {
     set({ isLoading: false, error: error.response?.data?.error || "OTP failed" });
@@ -71,6 +75,20 @@ export const useAuthStore = create<AuthState>((set) => ({
   }
   },
 
+  resendOtp: async (email:string) => {
+    try {
+      set({ isLoading: true, error: null });
+      const response =  await authRepository.resendOtp({email});
+      set({ isLoading: false });
+      return response;
+    } catch (error) {
+      set({
+      isLoading: false,
+      error: error.response?.data?.error || "Resend OTP failed",
+    });
+    throw error;
+    }
+  },
 
   login: async (email, password) => {
     try {
@@ -89,6 +107,15 @@ export const useAuthStore = create<AuthState>((set) => ({
         isLoading: false,
         error: error.response?.data?.error || "Login failed",
       });
+      throw error;
+    }
+  },
+
+  requestPasswordReset: async (email:string) => {
+    try {
+      const response = await authRepository.resendOtp({email});
+      return response
+    } catch (error) {
       throw error;
     }
   },

@@ -57,7 +57,7 @@ const Signup: React.FC = () => {
         formData.confirmPassword
       );
       toast.success("OTP sent to your email 📩");
-      navigate(`/verify-otp?email=${response.email}`);
+      navigate(`/verify-otp?email=${response.email}&type=signup`);
       
     } catch (error: any) {
       toast.error(error?.message || "Signup failed ❌");

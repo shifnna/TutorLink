@@ -6,7 +6,8 @@ const userRepo = new UserRepository();
 const authService = new AuthService(userRepo);
 
 export class AuthController{
-   static async signup(req:Request,res:Response):Promise<void>{
+
+  static async signup(req:Request,res:Response):Promise<void>{
       try {
         const {name,email,password,confirmPassword} = req.body;
         const result = await authService.signup(name,email,password,confirmPassword);
@@ -33,24 +34,34 @@ export class AuthController{
       } catch (error:any) {
         res.status(400).json({error:error.message});
       }
-   }
+    }
 
   
-  static async logout(req: Request, res: Response) {
-    res.clearCookie("token");
-    res.status(200).json({ message: "Logged out successfully" });
-  }
+    static async logout(req: Request, res: Response) {
+      res.clearCookie("token");
+      res.status(200).json({ message: "Logged out successfully" });
+    }
 
 
-  static async verifyOtp(req: Request, res: Response): Promise<void> {
-  try {
-    const { email, otp } = req.body;
-    const result = await authService.verifyOtp(email, otp);
-    res.status(200).json(result);
-  } catch (error: any) {
-    res.status(400).json({ error: error.message });
-  }
-}
+    static async verifyOtp(req: Request, res: Response): Promise<void> {
+      try {
+      const { email, otp, type } = req.body;
+      const result = await authService.verifyOtp(email, otp, type);
+      res.status(200).json(result);
+      } catch (error: any) {
+      res.status(400).json({ error: error.message });
+      }
+    }
+
+    static async resendOtp(req: Request, res: Response): Promise<void> {
+      try {
+      const { email } = req.body;
+      const result = await authService.resendOtp(email);
+      res.status(200).json(result);
+      } catch (error: any) {
+      res.status(400).json({ error: error.message });
+      }
+    }
 
 
 }

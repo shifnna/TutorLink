@@ -23,9 +23,13 @@ export const authRepository = {
     return response.data; 
   },
 
-  verifyOtp: async (data: { email: string; otp: string }) => {
+  verifyOtp: async (data: { email: string; otp: string, type:string }) => {
   const response = await axiosClient.post("/api/auth/verify-otp", data)
   return response.data;
   },
 
+  resendOtp: async (data: { email: string; }) => { //same for send otp to reset pass
+  const response = await axiosClient.post("/api/auth/resend-otp", data)
+  return response.data;
+  },
 };
