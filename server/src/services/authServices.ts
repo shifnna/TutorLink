@@ -110,7 +110,6 @@ export class AuthService{
 
 
     async resendOtp(email: string, type:string) {
-        try {
             const user = await this.userRepo.findByEmail(email);
             if (!user) throw new Error("User not found");
 
@@ -127,9 +126,6 @@ export class AuthService{
 
             await sendOTP(user.email,otpCode);
             return { message: "OTP resent successfully" };
-        } catch (error) {
-            return false;
-        }
     }
 
     

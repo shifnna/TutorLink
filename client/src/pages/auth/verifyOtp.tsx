@@ -52,7 +52,7 @@ export const VerifyOtp: React.FC = () => {
         navigate(`/reset-password?email=${email}`);
       }
     } catch (err: any) {
-      toast.error(err?.message || "Verification failed ❌");
+      toast.error(err.response?.data.error || "Verification failed ❌");
     }
   }
 
