@@ -5,7 +5,6 @@ import { toast, Toaster } from "react-hot-toast";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { FaGraduationCap } from "react-icons/fa";
-import Signup from "./signup";
 
 export const VerifyOtp: React.FC = () => {
   const [otp, setOtp] = useState<string[]>(Array(6).fill("")); // 6 boxes
@@ -44,7 +43,7 @@ export const VerifyOtp: React.FC = () => {
       return;
     }
     try {
-      await verifyOtp(email, enteredOtp, type); //dont need to save the user again here as signup
+      await verifyOtp(email, enteredOtp, type);
       if(type === "signup"){
         toast.success("Account verified 🎉");
         navigate("/login");
@@ -60,7 +59,7 @@ export const VerifyOtp: React.FC = () => {
   async function handleResendOtp(e: React.FormEvent){
     e.preventDefault();
     try {
-      const response = await resendOtp(email);
+      const response = await resendOtp(email,type);
       if(response){
         toast.success("OTP resended!");
       }

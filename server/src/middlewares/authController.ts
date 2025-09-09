@@ -55,13 +55,23 @@ export class AuthController{
 
     static async resendOtp(req: Request, res: Response): Promise<void> {
       try {
-      const { email } = req.body;
-      const result = await authService.resendOtp(email);
+      const { email,type } = req.body;
+      const result = await authService.resendOtp(email,type);
       res.status(200).json(result);
       } catch (error: any) {
       res.status(400).json({ error: error.message });
       }
     }
+
+  static async resetPassword(req: Request, res: Response): Promise<void> {
+  try {
+    const { email, password } = req.body;
+    await authService.resetPassword(email, password);
+    res.status(200).json({ message: "Password reset successful" });
+  } catch (error: any) {
+    res.status(400).json({ error: error.message });
+  }
+  }  
 
 
 }

@@ -4,8 +4,6 @@ import { MESSAGES } from "../utils/constants";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { sendOTP } from "../utils/mailer";
-import { response } from "express";
-
 
 export class AuthService{
     private userRepo : IUserRepository;
@@ -60,36 +58,36 @@ export class AuthService{
     }
 
 
-async verifyOtp(email: string, otp: string, type:string) {
-  const user = await this.userRepo.findByEmail(email);
-  if (!user) throw new Error("User not found");
+    async verifyOtp(email: string, otp: string, type:string) {
+        const user = await this.userRepo.findByEmail(email);
+        if (!user) throw new Error("User not found");
 
-  if (user.otpCode !== otp || new Date() > user.otpExpiry!)
-    throw new Error("Invalid or expired OTP");
+        if (user.otpCode !== otp || new Date() > user.otpExpiry!)
+        throw new Error("Invalid or expired OTP");
 
-    if(type==="signup"){
-      if (user.isVerified) throw new Error("Already verified");
-      user.isVerified = true;
-      user.otpCode = undefined;
-      user.otpExpiry = undefined;
-      await user.save();
+        user.otpCode = undefined;
+        user.otpExpiry = undefined;
 
-    const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, {
-      expiresIn: "1h",
-    });
+        if(type==="signup"){
+            if (user.isVerified) throw new Error("Already verified");
+            user.isVerified = true;
+            await user.save();
 
-    return { user, token };
+            const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, {
+            expiresIn: "1h",
+            });
+
+          return { user, token };
+        }
+  
+        if(type==="forgot"){
+           await user.save();
+           return { success: true };
+        } 
+  
+        throw new Error("Invalid verification type");
     }
-  
-    if(type==="forgot"){
-      user.otpCode = undefined;
-      user.otpExpiry = undefined;
-      await user.save();
-      return { success: true };
-    } 
-  
-    throw new Error("Invalid verification type");
-}
+
 
     async login(email:string,password:string){
         if(!email || !password) throw new Error(MESSAGES.COMMON.ERROR.MISSING_FIELDS);
@@ -111,12 +109,14 @@ async verifyOtp(email: string, otp: string, type:string) {
     }
 
 
-    async resendOtp(email: string) {
+    async resendOtp(email: string, type:string) {
         try {
             const user = await this.userRepo.findByEmail(email);
             if (!user) throw new Error("User not found");
 
-            if (user.isVerified) throw new Error("User already verified");
+            if (type === "signup" && user.isVerified) {
+            throw new Error("User already verified");
+            }
 
             const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); 
             const newExpiry = new Date(Date.now() + 10 * 60 * 1000);
@@ -130,6 +130,17 @@ async verifyOtp(email: string, otp: string, type:string) {
         } catch (error) {
             return false;
         }
+    }
+
+    
+    async resetPassword(email: string, password: string) {
+        const user = await this.userRepo.findByEmail(email);
+        if (!user) throw new Error("User not found");
+
+        user.password = await bcrypt.hash(password, 10);
+        await user.save();
+
+        return { message: "Password reset successful" };
     }
 
 }

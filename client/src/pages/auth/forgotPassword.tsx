@@ -19,9 +19,10 @@ const ForgotPassword: React.FC = () => {
       return;
     }
     try {
-      await requestPasswordReset(email);
+      const type = "forgot"
+      await requestPasswordReset(email,type);
       toast.success("OTP sent to your email 📩");
-      navigate(`/verify-otp?email=${encodeURIComponent(email)}&type=forgot-password`);
+      navigate(`/verify-otp?email=${encodeURIComponent(email)}&type=forgot`);
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Request failed ❌");
     }

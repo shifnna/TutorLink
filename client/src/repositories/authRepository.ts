@@ -28,8 +28,13 @@ export const authRepository = {
   return response.data;
   },
 
-  resendOtp: async (data: { email: string; }) => { //same for send otp to reset pass
+  resendOtp: async (data: { email: string; type:string }) => { //same for send otp to reset pass
   const response = await axiosClient.post("/api/auth/resend-otp", data)
+  return response.data;
+  },
+  
+  resetPassword: async (data: { email: string; password: string }) => {
+  const response = await axiosClient.post("/api/auth/reset-password", data);
   return response.data;
   },
 };

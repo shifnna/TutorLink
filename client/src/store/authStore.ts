@@ -13,20 +13,17 @@ interface AuthState {
   error: string | null;
   isAuthenticated: boolean;
 
-  signup: (
-    name: string,
-    email: string,
-    password: string,
-    confirmPassword: string
-  ) => Promise<any>;
+  signup: ( name: string, email: string, password: string, confirmPassword: string) => Promise<any>;
 
   verifyOtp: (email: string, otp: string, type: string) => Promise<any>;
 
-  resendOtp: (email: string) => Promise<any>;
+  resendOtp: (email: string, type:string) => Promise<any>;
 
   login: (email: string, password: string) => Promise<any>;
 
-  requestPasswordReset : (email:string) => Promise<any>;
+  requestPasswordReset : (email:string,type:string) => Promise<any>;
+
+  resetPassword : (email:string, password:string) => Promise<any>;
 
   logout: () => void;
 }
@@ -75,10 +72,10 @@ export const useAuthStore = create<AuthState>((set) => ({
   }
   },
 
-  resendOtp: async (email:string) => {
+  resendOtp: async (email:string,type:string) => {
     try {
       set({ isLoading: true, error: null });
-      const response =  await authRepository.resendOtp({email});
+      const response =  await authRepository.resendOtp({email,type});
       set({ isLoading: false });
       return response;
     } catch (error) {
@@ -111,13 +108,25 @@ export const useAuthStore = create<AuthState>((set) => ({
     }
   },
 
-  requestPasswordReset: async (email:string) => {
+  requestPasswordReset: async (email:string,type:string) => {
     try {
-      const response = await authRepository.resendOtp({email});
+      const response = await authRepository.resendOtp({email,type});
       return response
     } catch (error) {
       throw error;
     }
+  },
+
+  resetPassword: async (email: string, password: string) => {
+  try {
+    set({ isLoading: true, error: null });
+    const response = await authRepository.resetPassword({ email, password });
+    set({ isLoading: false });
+    return response;
+  } catch (error: any) {
+    set({ isLoading: false, error: error.response?.data?.error || "Reset failed" });
+    throw error;
+  }
   },
 
   logout: () => set({ user: null, isAuthenticated: false }),

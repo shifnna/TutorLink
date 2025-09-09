@@ -11,7 +11,7 @@ const ResetPassword: React.FC = () => {
   const { search } = useLocation();
   const email = new URLSearchParams(search).get("email") || "";
 
-//   const { resetPassword } = useAuthStore(); 
+  const { resetPassword } = useAuthStore(); 
   const [formData, setFormData] = useState({ password: "", confirmPassword: "" });
 
   function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
@@ -33,7 +33,7 @@ const ResetPassword: React.FC = () => {
     }
 
     try {
-    //   await resetPassword(email, formData.password);
+      await resetPassword(email, formData.password);
       toast.success("Password reset successfully ✅");
       navigate("/login");
     } catch (error: any) {
