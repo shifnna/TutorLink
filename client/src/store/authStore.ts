@@ -5,6 +5,7 @@ interface User {
   id: string;
   name: string;
   email: string;
+  role:string;
 }
 
 interface AuthState {
@@ -26,6 +27,22 @@ interface AuthState {
   resetPassword : (email:string, password:string) => Promise<any>;
 
   logout: () => void;
+
+  applyForTutor: (
+    description: string,
+    languages: string,
+    education: string,
+    skills: string,
+    experienceLevel: string,
+    gender: string,
+    occupation: string,
+    profileImage: string | null,
+    certificates: string | null,
+    accountHolder: string,
+    accountNumber: number,
+    bankName: string,
+    ifsc: string
+  ) => Promise<any>;
 }
 
 export const useAuthStore = create<AuthState>((set) => ({
@@ -129,5 +146,25 @@ export const useAuthStore = create<AuthState>((set) => ({
   }
   },
 
-  logout: () => set({ user: null, isAuthenticated: false }),
+  logout: async () => {
+    try {
+      set({ user: null, isAuthenticated: false })
+      const response = await authRepository.logout()
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  applyForTutor: async (description: string,languages: string,education: string,skills: string,experienceLevel: string,gender: string,occupation: string,profileImage: string | null,certificates: string | null,accountHolder: string,accountNumber: number,bankName: string,ifsc: string)=>{
+    try {
+      set({ isLoading: true, error: null });
+      const response = await authRepository.applyForTutor({description,languages,education,skills,experienceLevel,gender,occupation,profileImage,certificates,accountHolder,accountNumber,bankName,ifsc})
+      set({ isLoading: false });
+      return response;
+    } catch (error) {
+      throw error;
+    }
+  }
+
 }));

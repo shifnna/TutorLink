@@ -18,4 +18,8 @@ export class UserRepository implements  IUserRepository {
         return UserModel.findById(id);
     }
 
+    async updateStatus(id: string, isBlocked: true | false): Promise<IUser | null> {
+    return UserModel.findByIdAndUpdate(id, { isBlocked }, { new: true });
+    }
+
 }

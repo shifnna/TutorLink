@@ -1,9 +1,8 @@
+import React, { useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import type React from "react";
-import { useState } from "react";
 import { FaGraduationCap } from "react-icons/fa";
-import { FcGoogle } from "react-icons/fc"; 
+import { FcGoogle } from "react-icons/fc";
 import { isValidEmail, isValidName, isStrongPassword } from "../../utils/validators";
 import { toast, Toaster } from "react-hot-toast";
 import { useAuthStore } from "../../store/authStore";
@@ -11,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-  const { signup, isLoading } = useAuthStore();
+  const { signup } = useAuthStore();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -58,87 +57,97 @@ const Signup: React.FC = () => {
       );
       toast.success("OTP sent to your email 📩");
       navigate(`/verify-otp?email=${response.email}&type=signup`);
-      
     } catch (error: any) {
-      toast.error(error?.message || "Signup failed ❌");
+      toast.error(error?.response?.data?.error || "Signup failed ❌");
     }
   }
 
+  function handleGoogle(){
+    toast.loading("Google Signup coming soon..")
+  }  
+
   return (
-    <div className="flex flex-col min-h-screen bg-gradient-to-br from-blue-900 via-purple-800 to-pink-700 text-white items-center justify-center px-6">
-      {/* Header */}
-      <header className="absolute top-0 left-0 w-full flex items-center justify-center py-6 bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 rounded-b-2xl shadow-md">
-        <div className="flex items-center gap-3">
-          <FaGraduationCap className="w-10 h-10 text-amber-400" />
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-yellow-100 via-pink-500 to-indigo-900 bg-clip-text text-transparent">
-            TutorLink
-          </h1>
-        </div>
-      </header>
+    <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-black text-white">
 
-      {/* Signup Card */}
-      <div className="bg-white/10 backdrop-blur-md rounded-3xl p-10 shadow-xl w-full max-w-md mt-24">
-        <h2 className="text-3xl font-bold text-center mb-6 text-white drop-shadow-md">
-          Create Account
-        </h2>
-        <p className="text-center text-gray-200 mb-8">
-          Sign up to start your learning journey with TutorLink
-        </p>
+      <div className="flex flex-1 items-center justify-center p-6">
+        <div className="bg-white/10 backdrop-blur-md rounded-3xl p-10 shadow-2xl w-full max-w-md">
+          {/* Logo */}
+          <div className="flex items-center justify-center gap-3 mb-8">
+            <FaGraduationCap className="w-10 h-10 text-amber-400 animate-bounce" />
+            <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-yellow-300 via-pink-400 to-indigo-400 bg-clip-text text-transparent">
+              TutorLink
+            </h1>
+          </div>
 
-        {/* Signup Form */}
-        <form className="flex flex-col gap-6" onSubmit={handleSubmit}>
-          <Input
-            type="text"
-            placeholder="Full Name"
-            className="rounded-full px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
-            name="name"
-            value={formData.name}
-            onChange={handleChange}
-          />
-          <Input
-            type="email"
-            placeholder="Email"
-            className="rounded-full px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
-            name="email"
-            value={formData.email}
-            onChange={handleChange}
-          />
-          <Input
-            type="password"
-            placeholder="Password"
-            className="rounded-full px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
-            name="password"
-            value={formData.password}
-            onChange={handleChange}
-          />
-          <Input
-            type="password"
-            placeholder="Confirm Password"
-            className="rounded-full px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
-            name="confirmPassword"
-            value={formData.confirmPassword}
-            onChange={handleChange}
-          />
+          {/* Heading */}
+          <h2 className="text-2xl font-bold text-center mb-4">Create Account</h2>
+          <p className="text-center text-gray-300 mb-6">
+            Sign up to start your learning journey
+          </p>
+
+          {/* Signup Form */}
+          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+            <Input
+              name="name"
+              type="text"
+              placeholder="Full Name"
+              className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
+              value={formData.name}
+              onChange={handleChange}
+            />
+            <Input
+              name="email"
+              type="email"
+              placeholder="Email"
+              className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
+              value={formData.email}
+              onChange={handleChange}
+            />
+            <Input
+              name="password"
+              type="password"
+              placeholder="Password"
+              className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
+              value={formData.password}
+              onChange={handleChange}
+            />
+            <Input
+              name="confirmPassword"
+              type="password"
+              placeholder="Confirm Password"
+              className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
+              value={formData.confirmPassword}
+              onChange={handleChange}
+            />
+
+            <Button
+              type="submit"
+              className="rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 text-white py-4 font-bold hover:scale-105 hover:shadow-lg transition"
+            >
+              Sign Up
+            </Button>
+          </form>
+
+          {/* Links */}
+          <p className="text-center text-gray-300 mt-6">
+            Already have an account?{" "}
+            <a href="/login" className="text-yellow-400 hover:underline">
+              Log In
+            </a>
+          </p>
+
+          {/* Divider */}
+          <div className="flex items-center gap-4 my-6">
+            <span className="flex-grow h-px bg-gray-600"></span>
+            <span className="text-sm text-gray-400">or</span>
+            <span className="flex-grow h-px bg-gray-600"></span>
+          </div>
+
+          {/* Google Signup */}
           <Button
-            type="submit"
-            className="rounded-full bg-gradient-to-r from-indigo-500 to-pink-500 text-white py-4 font-bold hover:scale-105 hover:shadow-lg transition"
-          >
-            Sign Up
-          </Button>
-        </form>
-
-        <p className="text-center text-gray-200 mt-6">
-          Already have an account?{" "}
-          <a href="/login" className="text-yellow-400 hover:underline">
-            Log In
-          </a>
-        </p>
-
-        {/* Google Login */}
-        <div className="flex items-center gap-4 mt-8 justify-center">
-          <Button
-            disabled={isLoading}
-            className="rounded-full bg-white text-gray-900 px-4 py-3 flex items-center gap-2 hover:bg-gray-100 transition"
+            onClick={()=>handleGoogle()}
+            type="button"
+            className="w-full rounded-xl bg-white text-gray-900 px-4 py-3 flex items-center justify-center gap-3 hover:bg-gray-100 transition"
           >
             <FcGoogle className="w-6 h-6" />
             Sign up with Google
@@ -146,10 +155,6 @@ const Signup: React.FC = () => {
         </div>
       </div>
 
-      {/* Footer */}
-      <footer className="absolute bottom-0 w-full text-center py-6 text-gray-200 text-sm">
-        © 2025 TutorLink. All rights reserved.
-      </footer>
       <Toaster position="top-center" reverseOrder={false} />
     </div>
   );

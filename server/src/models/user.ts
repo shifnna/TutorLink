@@ -7,6 +7,9 @@ export interface IUser extends Document {
   otpCode?: string;
   otpExpiry?: Date;
   isVerified: boolean;
+  isBlocked: boolean;
+  role: string;
+  tutorProfile?: Schema.Types.ObjectId; 
 }
 
 const userSchema = new Schema<IUser>({
@@ -16,6 +19,9 @@ const userSchema = new Schema<IUser>({
   otpCode: { type: String },
   otpExpiry: { type: Date },
   isVerified: { type: Boolean, default: false },
+  isBlocked: { type: Boolean, default: false },
+  role: { type: String, default: "client" },
+  tutorProfile: { type: Schema.Types.ObjectId, ref: "Tutor" },
 });
 
 export const UserModel = model<IUser>("User", userSchema);

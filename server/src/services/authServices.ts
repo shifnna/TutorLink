@@ -1,9 +1,10 @@
 import { IUser } from "../models/user";
+import { ITutor } from "../models/tutor";
 import { IUserRepository } from "../repositories/userRepository";
-import { MESSAGES } from "../utils/constants";
+import { MESSAGES } from "../config/utils/constants";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { sendOTP } from "../utils/mailer";
+import { sendOTP } from "../config/utils/mailer";
 
 export class AuthService{
     private userRepo : IUserRepository;
@@ -138,5 +139,6 @@ export class AuthService{
 
         return { message: "Password reset successful" };
     }
+
 
 }

@@ -29,7 +29,7 @@ export class AuthController{
           sameSite: "strict",
           maxAge: 60 * 60 * 1000,
         })
-        
+        console.log(req.cookies)
         res.status(200).json(result);
       } catch (error:any) {
         res.status(400).json({error:error.message});
@@ -38,8 +38,12 @@ export class AuthController{
 
   
     static async logout(req: Request, res: Response) {
-      res.clearCookie("token");
-      res.status(200).json({ message: "Logged out successfully" });
+      try {
+        res.clearCookie("token");
+        res.status(200).json({ message: "Logged out successfully" });
+      } catch (error:any) {
+        res.status(400).json({ error: error.message });
+      }
     }
 
 
@@ -71,7 +75,6 @@ export class AuthController{
   } catch (error: any) {
     res.status(400).json({ error: error.message });
   }
-  }  
-
-
-}
+  }
+  
+}  
