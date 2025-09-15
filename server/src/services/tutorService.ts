@@ -1,17 +1,21 @@
 // services/tutorService.ts
-import { TutorRepository } from "../repositories/tutorRepository";
-import { UserRepository } from "../repositories/userRepository";
 import { uploadToCloudinary } from "../config/utils/cloudinary";
+import { inject } from "inversify";
+import { TYPES } from "../types/types";
+import { ITutorRepository } from "../repositories/interfaces/ITutorRepository";
+import { injectable } from "inversify";
+import { IClientRepository } from "../repositories/interfaces/IClientRepository";
+import { ITutor } from "../models/tutor";
+import { ITutorService } from "./interfaces/ITutorService";
 
-const tutorRepo = new TutorRepository();
-const userRepo = new UserRepository();
-
-export class TutorService {
-  async applyTutor(
-    userId: string,
-    data: any,
-    files: { profileImage?: Express.Multer.File; certificates?: Express.Multer.File[] }
-  ) {
+@injectable()
+export class TutorService implements ITutorService {
+  constructor(
+    @inject(TYPES.ITutorRepository) private readonly tutorRepo : ITutorRepository,
+    @inject(TYPES.IClientRepository) private readonly userRepo : IClientRepository
+  ){}
+  
+  async applyTutor(tutorId: string,data: any,files: { profileImage?: Express.Multer.File; certificates?: Express.Multer.File[] }) : Promise<ITutor | null> {
     let profileImageUrl = "";
     let certificateUrls: string[] = [];
 
@@ -31,14 +35,14 @@ export class TutorService {
       );
     }
 
-    const tutor = await tutorRepo.create({
-      userId,
+    const tutor = await this.tutorRepo.create({
+      tutorId,
       ...data,
       profileImage: profileImageUrl,
       certificates: certificateUrls,
     });
 
-    await userRepo.findById(userId).then((user) => {
+    await this.userRepo.findById(tutorId).then((user) => {
       if (user) {
         user.role = "tutor";
         user.tutorProfile = tutor.id;
@@ -49,7 +53,4 @@ export class TutorService {
     return tutor;
   }
 
-  async getTutorByUserId(userId: string) {
-    return await tutorRepo.findByUserId(userId);
-  }
 }

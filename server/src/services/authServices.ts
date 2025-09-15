@@ -1,19 +1,19 @@
 import { IUser } from "../models/user";
-import { ITutor } from "../models/tutor";
-import { IUserRepository } from "../repositories/userRepository";
+import { IClientRepository } from "../repositories/interfaces/IClientRepository";
 import { MESSAGES } from "../config/utils/constants";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { sendOTP } from "../config/utils/mailer";
+import { injectable } from "inversify";
+import { inject } from "inversify";
+import { TYPES } from "../types/types";
+import { IAuthService } from "./interfaces/IAuthService";
 
-export class AuthService{
-    private userRepo : IUserRepository;
+@injectable()
+export class AuthService implements IAuthService{
+    constructor( @inject(TYPES.IClientRepository) private readonly userRepo: IClientRepository){}
 
-    constructor(userRepo:IUserRepository){
-        this.userRepo = userRepo;
-    }
-
-    async signup(name:string ,email:string ,password:string ,confirmPassword:string ){
+    async signup(name:string ,email:string ,password:string ,confirmPassword:string ): Promise<IUser| null>{
         if (!name || !email || !password || !confirmPassword) {
             throw new Error(MESSAGES.COMMON.ERROR.MISSING_FIELDS)
         }
@@ -59,7 +59,7 @@ export class AuthService{
     }
 
 
-    async verifyOtp(email: string, otp: string, type:string) {
+    async verifyOtp(email: string, otp: string, type:string): Promise<{ user: IUser; token: string } | {success:boolean} | null> {
         const user = await this.userRepo.findByEmail(email);
         if (!user) throw new Error("User not found");
 
@@ -90,7 +90,7 @@ export class AuthService{
     }
 
 
-    async login(email:string,password:string){
+    async login(email:string,password:string):Promise<{ user: IUser; token: string }>{
         if(!email || !password) throw new Error(MESSAGES.COMMON.ERROR.MISSING_FIELDS);
         
         const emailRegex = /^\S+@\S+\.\S+$/;
@@ -110,7 +110,7 @@ export class AuthService{
     }
 
 
-    async resendOtp(email: string, type:string) {
+    async resendOtp(email: string, type:string):Promise<{ message: string } | null> {
             const user = await this.userRepo.findByEmail(email);
             if (!user) throw new Error("User not found");
 
@@ -130,7 +130,7 @@ export class AuthService{
     }
 
     
-    async resetPassword(email: string, password: string) {
+    async resetPassword(email: string, password: string):Promise<{ message: string } | null> {
         const user = await this.userRepo.findByEmail(email);
         if (!user) throw new Error("User not found");
 

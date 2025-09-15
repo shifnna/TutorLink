@@ -1,16 +1,19 @@
 import { Request,Response } from "express";
-import { UserRepository } from "../repositories/userRepository";
-import { AuthService } from "../services/authServices";
+import { inject } from "inversify";
+import { TYPES } from "../types/types";
+import { IAuthService } from "../services/interfaces/IAuthService";
+import { injectable } from "inversify";
+import { IAuthController } from "./interfaces/IAuthController";
 
-const userRepo = new UserRepository();
-const authService = new AuthService(userRepo);
+@injectable()
+export class AuthController implements IAuthController{
+ 
+  constructor(@inject(TYPES.IAuthService) private readonly authService: IAuthService){}
 
-export class AuthController{
-
-  static async signup(req:Request,res:Response):Promise<void>{
+   async signup(req:Request,res:Response):Promise<void>{
       try {
         const {name,email,password,confirmPassword} = req.body;
-        const result = await authService.signup(name,email,password,confirmPassword);
+        const result = await this.authService.signup(name,email,password,confirmPassword);
         res.status(201).json(result);
       } catch (error:any) {
         res.status(400).json({error:error.message})
@@ -18,10 +21,10 @@ export class AuthController{
    } 
    
   
-    static async login(req:Request , res:Response):Promise<void>{
+     async login(req:Request , res:Response):Promise<void>{
       try {
         const {email,password} =  req.body;
-        const result = await authService.login(email,password);
+        const result = await this.authService.login(email,password);
 
         res.cookie("token", result.token, {
           httpOnly:true,
@@ -29,7 +32,7 @@ export class AuthController{
           sameSite: "strict",
           maxAge: 60 * 60 * 1000,
         })
-        console.log(req.cookies)
+
         res.status(200).json(result);
       } catch (error:any) {
         res.status(400).json({error:error.message});
@@ -37,7 +40,7 @@ export class AuthController{
     }
 
   
-    static async logout(req: Request, res: Response) {
+     async logout(req: Request, res: Response) {
       try {
         res.clearCookie("token");
         res.status(200).json({ message: "Logged out successfully" });
@@ -47,30 +50,30 @@ export class AuthController{
     }
 
 
-    static async verifyOtp(req: Request, res: Response): Promise<void> {
+     async verifyOtp(req: Request, res: Response): Promise<void> {
       try {
       const { email, otp, type } = req.body;
-      const result = await authService.verifyOtp(email, otp, type);
+      const result = await this.authService.verifyOtp(email, otp, type);
       res.status(200).json(result);
       } catch (error: any) {
       res.status(400).json({ error: error.message });
       }
     }
 
-    static async resendOtp(req: Request, res: Response): Promise<void> {
+     async resendOtp(req: Request, res: Response): Promise<void> {
       try {
       const { email,type } = req.body;
-      const result = await authService.resendOtp(email,type);
+      const result = await this.authService.resendOtp(email,type);
       res.status(200).json(result);
       } catch (error: any) {
       res.status(400).json({ error: error.message });
       }
     }
 
-  static async resetPassword(req: Request, res: Response): Promise<void> {
+  async resetPassword(req: Request, res: Response): Promise<void> {
   try {
     const { email, password } = req.body;
-    await authService.resetPassword(email, password);
+    await this.authService.resetPassword(email, password);
     res.status(200).json({ message: "Password reset successful" });
   } catch (error: any) {
     res.status(400).json({ error: error.message });

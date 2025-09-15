@@ -1,14 +1,17 @@
 import { Router } from "express";
-import { AuthController } from "../controllers/authController";
+import container from "../config/inversify";
+import { IAuthController } from "../controllers/interfaces/IAuthController";
+import { TYPES } from "../types/types";
 
 const router = Router();
+const controller = container.get<IAuthController>(TYPES.IAuthController)
 
-router.post('/signup',AuthController.signup)
-router.post("/verify-otp", AuthController.verifyOtp);
-router.post("/resend-otp", AuthController.resendOtp);
-router.post("/reset-password", AuthController.resetPassword);
-router.post('/login',AuthController.login)
-router.post('/logout',AuthController.logout)
+router.post('/signup',controller.signup.bind(controller))           //when using normal functions, .bind(controller) ensures the method always remembers the correct this
+router.post("/verify-otp", controller.verifyOtp.bind(controller));        //* arrow or normal function which is best practise ?
+router.post("/resend-otp", controller.resendOtp.bind(controller));
+router.post("/reset-password", controller.resetPassword.bind(controller));
+router.post('/login',controller.login.bind(controller))
+router.post('/logout',controller.logout.bind(controller))
 
 
 export default router;

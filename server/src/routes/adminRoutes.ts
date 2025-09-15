@@ -1,9 +1,12 @@
 import { Router } from "express";
-import { AdminController } from "../controllers/adminController";
+import container from "../config/inversify";
+import { IAdminController } from "../controllers/interfaces/IAdminController";
+import { TYPES } from "../types/types";
 
 const router = Router();
+const controller = container.get<IAdminController>(TYPES.IAdminController)
 
-router.get("/users", AdminController.getAllUsers);
-router.patch("/users/:id/toggle", AdminController.toggleUserStatus);
+router.get("/users", controller.getAllUsers.bind(controller));
+router.patch("/users/:id/toggle", controller.toggleUserStatus.bind(controller));
 
 export default router;
