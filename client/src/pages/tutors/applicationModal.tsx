@@ -2,16 +2,15 @@ import { Dialog } from "@headlessui/react";
 import { useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { FaCamera } from "react-icons/fa";
-import { useAuthStore } from "../../store/authStore";
+import { FaCamera, FaTimes } from "react-icons/fa";
+import { tutorService } from "../../services/tutorService";
 
-interface ModalProps {
+interface ApplicationModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-const ApplicationModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
-  const { applyForTutor } = useAuthStore();
+const ApplicationModal: React.FC<ApplicationModalProps> = ({ isOpen, onClose }) => {
 
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -72,58 +71,40 @@ const ApplicationModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
     return Object.keys(newErrors).length === 0;
   };
 
-  const nextStep = () => {
-    if (validateStep()) setStep((prev) => prev + 1);
-  };
-
+  const nextStep = () => { if (validateStep()) setStep((prev) => prev + 1)};
   const prevStep = () => setStep((prev) => prev - 1);
-
-  function fileToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader();
-      reader.readAsDataURL(file);
-      reader.onload = () => resolve(reader.result as string);
-      reader.onerror = (error) => reject(error);
-    });
-  }
 
   const handleSubmit = async () => {
     if (!validateStep()) return;
-
-    // Convert profile image
-    const profileImageStr = formData.profileImage ? await fileToBase64(formData.profileImage) : null;
-
-    // Convert certificates
-    const certificatesStr = formData.certificates.length
-      ? await Promise.all(formData.certificates.map((file) => fileToBase64(file)))
-      : [];
-
-    const certificatesJoined = certificatesStr.join(","); // convert array to single string
-  
-    await applyForTutor(
-      formData.description,
-      formData.languages,
-      formData.education,
-      formData.skills,
-      formData.experienceLevel,
-      formData.gender,
-      formData.occupation,
-      profileImageStr,
-      certificatesJoined, // Pass as array of strings
-      formData.accountHolder,
-      formData.accountNumber,
-      formData.bankName,
-      formData.ifsc
-    );
-
-    onClose();
+    try {
+      await tutorService.apply(formData);
+      alert("Application submitted successfully!");
+      // setIsOpen(false);
+    } catch (err) {
+      console.error(err);
+      alert("Something went wrong!");
+    }
   };
 
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
+      {/* Background overlay */}
       <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
+
+      {/* Modal wrapper */}
       <div className="fixed inset-0 flex items-center justify-center p-4">
-        <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-8 max-h-[90vh] overflow-y-auto">
+        <div
+          className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-8 max-h-[90vh] overflow-y-auto relative"
+          onClick={(e) => e.stopPropagation()}
+        >
+          {/* ❌ Close button */}
+          <button
+            onClick={onClose}
+            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+          >
+              <FaTimes size={20} />
+
+          </button>
 
           {/* Stepper */}
           <div className="flex items-center justify-center mb-8 text-sm font-bold text-gray-600">
@@ -135,8 +116,10 @@ const ApplicationModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
           </div>
 
           {/* Steps */}
+          {/* Step 1 */}
           {step === 1 && (
             <div className="space-y-3">
+              {/* Profile Image */}
               <div className="flex flex-col items-center relative">
                 {formData.profileImage ? (
                   <img
@@ -153,6 +136,7 @@ const ApplicationModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
                 {errors.profileImage && <p className="text-red-500 text-sm">{errors.profileImage}</p>}
               </div>
 
+              {/* Description */}
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">Description</label>
                 <textarea
@@ -165,6 +149,7 @@ const ApplicationModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
                 {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
               </div>
 
+              {/* Languages */}
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">Languages</label>
                 <Input
@@ -178,6 +163,7 @@ const ApplicationModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
                 {errors.languages && <p className="text-red-500 text-sm">{errors.languages}</p>}
               </div>
 
+              {/* Gender */}
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">Gender</label>
                 <select
@@ -193,6 +179,7 @@ const ApplicationModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
                 </select>
               </div>
 
+              {/* Next button */}
               <div className="flex justify-end">
                 <Button className="bg-gradient-to-r from-purple-700 to-pink-600 text-white px-6 py-2 rounded-lg shadow" onClick={nextStep}>
                   Continue →
@@ -201,6 +188,7 @@ const ApplicationModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
+          {/* Step 2 */}
           {step === 2 && (
             <div className="space-y-5">
               <div>
@@ -240,6 +228,7 @@ const ApplicationModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
             </div>
           )}
 
+          {/* Step 3 */}
           {step === 3 && (
             <div className="space-y-5">
               <div>
@@ -270,7 +259,6 @@ const ApplicationModal: React.FC<ModalProps> = ({ isOpen, onClose }) => {
               </div>
             </div>
           )}
-
         </div>
       </div>
     </Dialog>

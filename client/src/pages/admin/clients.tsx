@@ -1,14 +1,13 @@
 import { useState, useEffect } from "react";
 import { adminRepository } from "../../repositories/adminRepository";
 import {
-  FaGraduationCap,
-  FaArrowLeft,
   FaUserCircle,
   FaSearch,
   FaCheckCircle,
   FaTimesCircle,
 } from "react-icons/fa";
 import { Button } from "../../components/ui/button";
+import Header from "../../components/admin/header";
 
 interface User {
   id: string;
@@ -67,17 +66,7 @@ const ClientsPage: React.FC = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-950 to-black text-white p-8">
       {/* Header */}
-      <div className="flex items-center justify-between mb-8">
-        <div className="flex items-center gap-3">
-          <FaGraduationCap className="w-8 h-8 text-amber-400 animate-bounce" />
-          <h1 className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-yellow-300 via-pink-400 to-indigo-400 bg-clip-text text-transparent">
-            Clients
-          </h1>
-        </div>
-        <Button className="flex items-center gap-2 bg-gradient-to-r from-pink-500 to-indigo-500 rounded-xl font-bold hover:scale-105 transition">
-          <FaArrowLeft /> <a href="/admin-dashboard"> Back to Dashboard</a>
-        </Button>
-      </div>
+      <Header name={"Clients"} />
 
       {/* Search Bar */}
       <div className="flex items-center gap-3 bg-white/10 px-4 py-3 rounded-xl border border-purple-800/40 mb-6">
