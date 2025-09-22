@@ -48,7 +48,7 @@ const Sidebar :React.FC = () => {
           <a href="/admin-dashboard/clients" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-purple-800/40 transition">
             <FaUsers /> Clients
           </a>
-          <a href="/admin-dashboard/clients" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-purple-800/40 transition">
+          <a href="/admin-dashboard/tutors" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-purple-800/40 transition">
             <FaUsers /> Tutors
           </a>
           <a href="#" className="flex items-center gap-3 px-4 py-3 rounded-xl hover:bg-purple-800/40 transition">

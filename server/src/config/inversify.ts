@@ -25,6 +25,8 @@ import { TutorController } from "../controllers/tutorController";
 import { IAdminController } from "../controllers/interfaces/IAdminController";
 import { AdminController } from "../controllers/adminController";
 
+import { S3Service } from "../services/s3Service";
+
 const container = new Container();
 
 container.bind<IAuthController>(TYPES.IAuthController).to(AuthController);
@@ -39,5 +41,7 @@ container.bind<ITutorController>(TYPES.ITutorController).to(TutorController)
 container.bind<IAdminController>(TYPES.IAdminController).to(AdminController);
 
 container.bind<typeof UserModel>(TYPES.IUserModel).toConstantValue(UserModel);
+
+container.bind<S3Service>(TYPES.IS3Service).to(S3Service)
 
 export default container;

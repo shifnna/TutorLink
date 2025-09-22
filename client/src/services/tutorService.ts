@@ -1,30 +1,32 @@
 import { tutorRepository } from "../repositories/tutorRepository";
-import { TutorApplication } from "../types/tutor";
+import { ITutorApplication } from "../types/ITutorApplication";
 
 
-async function uploadFileToS3 (file:File) : Promise<string> {
-    // Step 1: Get presigned URL
-    const presigned = await tutorRepository.getPresignedUrl(file.name , file.type);
-
-    // Step 2: Upload file directly to S3
-    await fetch(presigned.url,{
-        method:"PUT",
-        body:file,
-        headers:{
-            "Content-Type" : file.type,
-        }
+async function uploadFileToS3(file: File): Promise<string> {
+  try {
+    const safeFileName = file.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_\-\.]/g, "");
+    const { url, key } = await tutorRepository.getPresignedUrl(safeFileName, file.type);
+    // Upload file to S3
+    await fetch(url, {
+      method: "PUT",
+      body: file,
+      headers: { "Content-Type": file.type },
     });
-
-    // Step 3: Return final S3 object URL (your backend should construct)
-    return presigned.url.split("?")[0]; // strip query params
+  
+    return key;
+  } catch (err) {
+    console.error("Error uploading file to S3:", err);
+    throw err;
+  }
 }
+
 
 
 export const tutorService = {
 
     async apply(formData : any){
         // upload profile image
-        const profieImageUrl = formData.profieImage ? await uploadFileToS3(formData.profieImage) : null;
+        const profileImageUrl = formData.profileImage ? await uploadFileToS3(formData.profileImage) : null;
 
         // upload certificates
         const certificatesUrls: string[] = [];
@@ -36,9 +38,9 @@ export const tutorService = {
         }
 
         // build final payload
-        const payload: TutorApplication = {
+        const payload: ITutorApplication = {
             ...formData,
-            profileImage : profieImageUrl,
+            profileImage : profileImageUrl,
             certificates : certificatesUrls, 
         }
 

@@ -4,13 +4,11 @@ import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { FaCamera, FaTimes } from "react-icons/fa";
 import { tutorService } from "../../services/tutorService";
+import { Toaster,toast } from "react-hot-toast";
+import { IApplicationModal } from "../../types/IApplicationModal";
 
-interface ApplicationModalProps {
-  isOpen: boolean;
-  onClose: () => void;
-}
 
-const ApplicationModal: React.FC<ApplicationModalProps> = ({ isOpen, onClose }) => {
+const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
 
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
@@ -25,7 +23,7 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({ isOpen, onClose }) 
     profileImage: null as File | null,
     certificates: [] as File[],
     accountHolder: "",
-    accountNumber: 0,
+    accountNumber: "",
     bankName: "",
     ifsc: "",
   });
@@ -39,7 +37,7 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({ isOpen, onClose }) 
     if (field === "profileImage") {
       setFormData({ ...formData, profileImage: e.target.files[0] });
     } else {
-      setFormData({ ...formData, certificates: Array.from(e.target.files) });
+      setFormData({ ...formData, certificates: [...formData.certificates, ...Array.from(e.target.files)]});
     }
   };
 
@@ -78,11 +76,11 @@ const ApplicationModal: React.FC<ApplicationModalProps> = ({ isOpen, onClose }) 
     if (!validateStep()) return;
     try {
       await tutorService.apply(formData);
-      alert("Application submitted successfully!");
-      // setIsOpen(false);
+      toast.success("Application submitted successfully!");
+      onClose();
     } catch (err) {
       console.error(err);
-      alert("Something went wrong!");
+      toast.error("something went wrong")
     }
   };
 

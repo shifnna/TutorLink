@@ -1,56 +1,52 @@
 // services/tutorService.ts
-import { uploadToCloudinary } from "../config/utils/cloudinary";
 import { inject } from "inversify";
 import { TYPES } from "../types/types";
 import { ITutorRepository } from "../repositories/interfaces/ITutorRepository";
 import { injectable } from "inversify";
-import { IClientRepository } from "../repositories/interfaces/IClientRepository";
 import { ITutor } from "../models/tutor";
 import { ITutorService } from "./interfaces/ITutorService";
+import { IS3Service } from "./interfaces/IS3Service";
+import { UserModel } from "../models/user";
 
 @injectable()
 export class TutorService implements ITutorService {
   constructor(
     @inject(TYPES.ITutorRepository) private readonly tutorRepo : ITutorRepository,
-    @inject(TYPES.IClientRepository) private readonly userRepo : IClientRepository
+    @inject(TYPES.IS3Service) private readonly s3Service : IS3Service,
   ){}
   
-  async applyTutor(tutorId: string,data: any,files: { profileImage?: Express.Multer.File; certificates?: Express.Multer.File[] }) : Promise<ITutor | null> {
-    let profileImageUrl = "";
-    let certificateUrls: string[] = [];
-
-    if (files.profileImage) {
-      profileImageUrl = await uploadToCloudinary(
-        files.profileImage.buffer,
-        files.profileImage.originalname,
-        "tutors/profileImages"
-      );
-    }
-
-    if (files.certificates && files.certificates.length > 0) {
-      certificateUrls = await Promise.all(
-        files.certificates.map((file) =>
-          uploadToCloudinary(file.buffer, file.originalname, "tutors/certificates")
-        )
-      );
-    }
-
-    const tutor = await this.tutorRepo.create({
-      tutorId,
-      ...data,
-      profileImage: profileImageUrl,
-      certificates: certificateUrls,
-    });
-
-    await this.userRepo.findById(tutorId).then((user) => {
-      if (user) {
-        user.role = "tutor";
-        user.tutorProfile = tutor.id;
-        user.save();
-      }
-    });
-
-    return tutor;
+  async getPresignedUrl(fileName: string, fileType: string): Promise<{ url: string; key: string }> {
+    const presigned = await this.s3Service.getPresignedUrl(fileName, fileType);
+    return presigned;
   }
 
+  async applyForTutor(userId: string, body: any): Promise<ITutor | null> {
+  try {
+    const appData: Partial<ITutor> = {
+      tutorId: userId,
+      description: body.description,
+      languages: body.languages.split(","),
+      skills: body.skills.split(","),
+      education: body.education,
+      experienceLevel: body.experienceLevel,
+      gender: body.gender,
+      occupation: body.occupation,
+      profileImage: body.profileImage || "",
+      certificates:  Array.isArray(body.certificates) ? body.certificates : typeof body.certificates === "string" ? body.certificates.split(",") : [],
+      accountHolder: body.accountHolder,
+      accountNumber: String(body.accountNumber),
+      bankName: body.bankName,
+      ifsc: body.ifsc,
+    };
+
+    const tutor = await this.tutorRepo.createApplication(appData);
+    await UserModel.findByIdAndUpdate(userId, { tutorProfile: tutor._id });
+
+    return tutor;
+  } catch (error) {
+    console.error("Error in applyForTutor service:", error);
+    throw error;
+  }
 }
+
+}   

@@ -8,20 +8,14 @@ import {
 } from "react-icons/fa";
 import { Button } from "../../components/ui/button";
 import Header from "../../components/admin/header";
+import { IUser } from "../../types/IUser";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  isBlocked: boolean;
-  joinedDate: string;
-}
 
 const ClientsPage: React.FC = () => {
-  const [users, setUsers] = useState<User[]>([]);
+  const [users, setUsers] = useState<IUser[]>([]);
   const [search, setSearch] = useState("");
 
-  // Fetch users from backend
+  // Fetch users from backend 
   useEffect(() => {
     const fetchUsers = async () => {
       try {
@@ -31,7 +25,9 @@ const ClientsPage: React.FC = () => {
             id: u._id,
             name: u.name,
             email: u.email,
-            isBlocked: u.isBlocked || false, // important
+            role: u.role,
+            isBlocked: u.isBlocked || false,
+            isVerified: u.isVerified,
             joinedDate: new Date(u.createdAt).toLocaleDateString(),
           }))
         );
@@ -96,6 +92,9 @@ const ClientsPage: React.FC = () => {
                     <h3 className="text-xl font-semibold">{user.name}</h3>
                     <p className="text-gray-300 text-sm">{user.email}</p>
                     <p className="text-gray-400 text-xs">Joined: {user.joinedDate}</p>
+                    <p className="text-gray-400 text-xs">Verified:{" "}{user.isVerified ? (
+                      <span className="text-green-400 font-bold">Yes</span>) : ( <span className="text-red-400 font-bold">No</span>)}
+                    </p>
                   </div>
                 </div>
 

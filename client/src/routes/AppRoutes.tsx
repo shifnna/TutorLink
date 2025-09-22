@@ -9,7 +9,7 @@ import ResetPassword from "../pages/auth/resetPassword";
 import AdminDashboard from "../pages/admin/dashboard";
 import TutorApplications from "../pages/admin/applicaions";
 import ClientsPage from "../pages/admin/clients";
-import ApplicationModal from "../pages/tutors/applicationModal";
+import TutorsPage from "../pages/admin/tutors";
 
 function AppRoutes() {
   return (
@@ -25,11 +25,11 @@ function AppRoutes() {
             <Route path="/reset-password" element={<ResetPassword/>} />
 
             <Route path="/explore-tutors" element={<ExploreTutors/>} />
-            <Route path="/become-a-tutor" element={<ApplicationModal/>} />
 
             <Route path="/admin-dashboard" element={<AdminDashboard/>} />
             <Route path="/admin-dashboard/applications" element={<TutorApplications/>} />
             <Route path="/admin-dashboard/clients" element={<ClientsPage/>} />
+            <Route path="/admin-dashboard/tutors" element={<TutorsPage/>} />
 
         </Routes>
       </BrowserRouter>

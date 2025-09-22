@@ -1,9 +1,14 @@
+import dotenv from "dotenv";
+dotenv.config();
 import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/authRoutes";
 import userRoutes from "./routes/userRoutes";
 import adminRoutes from "./routes/adminRoutes";
 import cookieParser from "cookie-parser";
+import tutorRoutes from "./routes/tutorRoutes";
+import { authenticateJWT } from "./middlewares/authMiddleware";
+
 
 const app = express();
 app.use(cookieParser());
@@ -24,7 +29,8 @@ app.use((req, res, next) => {
 
 //// Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes);
+app.use("/api/user", authenticateJWT, userRoutes);
 app.use("/api/admin", adminRoutes);
+app.use("/api/tutor", authenticateJWT, tutorRoutes)
 
 export default app;

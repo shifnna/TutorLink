@@ -6,4 +6,6 @@ export interface IClientRepository{
     findByEmail(email:string) : Promise<IUser | null>;
     findById(id: string): Promise<IUser | null>;
     updateStatus(id: string, isBlocked: true | false): Promise<IUser | null>;
+    updateRole(userId: string): Promise<IUser | null>;
+    delete(userId:string): Promise<void>;
 }

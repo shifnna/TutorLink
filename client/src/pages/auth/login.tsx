@@ -10,7 +10,7 @@ import { useAuthStore } from "../../store/authStore";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login,user } = useAuthStore();
+  const { login } = useAuthStore();
   const [formData, setFormData] = useState({ email: "", password: "" });
 
   function validate(): boolean {

@@ -11,4 +11,6 @@ export const TYPES = {
   ITutorRepository: Symbol.for("ITutorRepository"),
 
   IAdminController : Symbol.for("IAdminController"),
+
+  IS3Service : Symbol.for("IS3Service"),
 };

@@ -1,5 +1,6 @@
 // Repo-Contract (implimentation) --- Actual code that talks to the DB
 import { IUser, UserModel } from "../models/user";
+import { TutorModel } from "../models/tutor";
 import { IClientRepository } from "./interfaces/IClientRepository";
 import { injectable,inject } from "inversify";
 import { TYPES } from "../types/types";
@@ -24,4 +25,12 @@ export class clientRepository implements  IClientRepository {
     return this.userModel.findByIdAndUpdate(id, { isBlocked }, { new: true });
     }
 
+    async updateRole(userId: string): Promise<IUser | null> {
+     return this.userModel.findByIdAndUpdate(userId,{role:"tutor"},{ new: true });
+    }
+
+    async delete(userId:string): Promise<void> {
+        await TutorModel.findOneAndDelete({tutorId:userId});
+        return;
+    }
 }

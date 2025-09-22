@@ -1,51 +1,9 @@
 import { create } from "zustand";
 import { authRepository } from "../repositories/authRepository";
+import { IAuthState } from "../types/IAuthState";
 
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  role:string;
-}
 
-interface AuthState {
-  user: User | null;
-  isLoading: boolean;
-  error: string | null;
-  isAuthenticated: boolean;
-
-  signup: ( name: string, email: string, password: string, confirmPassword: string) => Promise<any>;
-
-  verifyOtp: (email: string, otp: string, type: string) => Promise<any>;
-
-  resendOtp: (email: string, type:string) => Promise<any>;
-
-  login: (email: string, password: string) => Promise<any>;
-
-  requestPasswordReset : (email:string,type:string) => Promise<any>;
-
-  resetPassword : (email:string, password:string) => Promise<any>;
-
-  logout: () => void;
-
-  applyForTutor: (
-    description: string,
-    languages: string,
-    education: string,
-    skills: string,
-    experienceLevel: string,
-    gender: string,
-    occupation: string,
-    profileImage: string | null,
-    certificates: string | null,
-    accountHolder: string,
-    accountNumber: number,
-    bankName: string,
-    ifsc: string
-  ) => Promise<any>;
-}
-
-export const useAuthStore = create<AuthState>((set) => ({
+export const useAuthStore = create<IAuthState>((set) => ({
   user: null,
   isLoading: false,
   error: null,

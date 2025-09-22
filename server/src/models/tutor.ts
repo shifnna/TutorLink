@@ -1,7 +1,7 @@
 import { Schema, model, Document } from "mongoose";
 
 export interface ITutor extends Document {
-  userId: Schema.Types.ObjectId;
+  tutorId: string;
   description: string;
   languages: string[];
   education: string;
@@ -15,13 +15,11 @@ export interface ITutor extends Document {
   accountNumber: string;
   bankName: string;
   ifsc: string;
-  createdAt: Date;
-  updatedAt: Date;
 }
 
 const TutorSchema = new Schema<ITutor>(
   {
-    userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    tutorId: { type: String, ref: "User", required: true },
     description: { type: String, required: true },
     languages: [String],
     education: String,

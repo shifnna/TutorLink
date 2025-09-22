@@ -1,4 +1,4 @@
-import axiosClient from "../api/anxiosClient";
+import axiosClient from "../api/axiosClient";
 
 interface SignupData {
   name: string;
@@ -20,6 +20,7 @@ export const authRepository = {
 
   login: async (data: LoginData) => {
     const response = await axiosClient.post("/api/auth/login", data);
+    localStorage.setItem("token", response.data.token); 
     return response.data; 
   },
 
@@ -28,7 +29,7 @@ export const authRepository = {
   return response.data;
   },
 
-  resendOtp: async (data: { email: string; type:string }) => { //same for send otp to reset pass
+  resendOtp: async (data:any) => { //same for send otp to reset pass
   const response = await axiosClient.post("/api/auth/resend-otp", data)
   return response.data;
   },
