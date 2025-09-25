@@ -1,12 +1,10 @@
 import { Router } from "express";
 import container from "../config/inversify";
-import { ITutorController } from "../controllers/interfaces/ITutorController";
 import { TYPES } from "../types/types";
+import { IClientRepository } from "../repositories/interfaces/IClientRepository";
 
 const router = Router();
-const controller = container.get<ITutorController>(TYPES.ITutorController);
+const controller = container.get<IClientRepository>(TYPES.IClientRepository);
 
-router.post('/apply-for-tutor',controller.applyForTutor.bind(controller));
-router.post("/upload/presign",controller.getPresignedUrl.bind(controller))
 
 export default router;

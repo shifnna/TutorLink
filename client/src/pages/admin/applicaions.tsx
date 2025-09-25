@@ -2,9 +2,9 @@ import { useEffect, useState } from "react";
 import { FaCheckCircle, FaTimesCircle, FaFileAlt } from "react-icons/fa";
 import { Button } from "../../components/ui/button";
 import Header from "../../components/admin/header";
-import { adminRepository } from "../../repositories/adminRepository";
 import {toast,Toaster} from "react-hot-toast";
 import { ITutorApplication } from "../../types/ITutorApplication";
+import { adminService } from "../../services/adminService";
 
 
 const TutorApplications: React.FC = () => {
@@ -14,7 +14,7 @@ const TutorApplications: React.FC = () => {
   useEffect(() => {
     const fetchApplications = async () => {
       try {
-        const data = await adminRepository.getAllTutors();
+        const data = await adminService.getAllTutorApplications();
         setApplications(data || []);
       } catch (err) {
         console.error("Error fetching tutor applications", err);
@@ -27,12 +27,12 @@ const TutorApplications: React.FC = () => {
 
   async function handleApprove(userId: string) {
   try {
-    await adminRepository.approveTutor(userId);
+    await adminService.approveTutor(userId);
     toast.success("Tutor approved successfully!");
     setSelectedTutor(null);
 
     // Refresh applications
-    const updated = await adminRepository.getAllTutors();
+    const updated = await adminService.getAllTutorApplications();
     setApplications(updated);
   } catch (err: any) {
     console.error("Error approving tutor:", err.response?.data || err.message);

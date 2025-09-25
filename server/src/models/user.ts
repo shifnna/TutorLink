@@ -1,4 +1,5 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
+import { ITutor } from "./tutor";
 
 export interface IUser extends Document {
   name: string;
@@ -9,7 +10,8 @@ export interface IUser extends Document {
   isVerified: boolean;
   isBlocked: boolean;
   role: string;
-  tutorProfile?: Schema.Types.ObjectId; 
+  profileImage: string;
+  tutorProfile?: Types.ObjectId | ITutor; 
 }
 
 const userSchema = new Schema<IUser>({
@@ -21,6 +23,7 @@ const userSchema = new Schema<IUser>({
   isVerified: { type: Boolean, default: false },
   isBlocked: { type: Boolean, default: false },
   role: { type: String, default: "client" },
+  profileImage: {type : String},
   tutorProfile: { type: Schema.Types.ObjectId, ref: "Tutor" },
 },{ timestamps: true } );
 

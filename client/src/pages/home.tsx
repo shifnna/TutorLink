@@ -8,23 +8,43 @@ import {
   FaLinkedin,
   FaYoutube,
   FaGraduationCap,
+  FaUserCircle,
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import {toast,Toaster} from "react-hot-toast";
+import { useState } from "react";
+import ApplicationModal from "./tutors/applicationModal";
+import { authService } from "../services/authService";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  
+  const openModal = () => setIsModalOpen(true);
+  const closeModal = () => setIsModalOpen(false);
 
   async function handleLogin() {
     navigate("/login");
   }
 
-  const { user } = useAuthStore();
+  const { user,logout } = useAuthStore();
+
+    async function handleLogout() {
+    try {
+      const response = await authService.logout() //rmv cookies
+      logout(); //remv frm state/store
+      navigate("/");
+      toast.success(response.message)
+    } catch (err) {
+      console.error("Logout failed:", err);
+    }
+  }
 
 function handleProtectedNavigation(path: string) {
   if (user) {
-    navigate(path); // User is logged in, go to page
+    navigate(path);
   } else {
     toast.error("You must be logged in to access this page!"); // Show toast
   }
@@ -51,12 +71,55 @@ function handleProtectedNavigation(path: string) {
             Contact
           </a>
         </nav>
-        <Button
-          onClick={handleLogin}
-          className="rounded-full bg-gradient-to-r from-yellow-400 to-pink-500 text-white font-bold px-6 hover:scale-105 transition"
-        >
-          Log In
-        </Button>
+          {user ? (
+    // User dropdown
+    <div className="relative">
+      <FaUserCircle
+        className="w-8 h-8 text-white cursor-pointer"
+        onClick={() => setMenuOpen(!menuOpen)}
+      />
+
+      {menuOpen && (
+        <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg p-4 z-50">
+          <p className="font-bold text-gray-800">{user?.name || ""}</p>
+          <p className="text-sm text-yellow-600 mb-3">{user?.role || ""}</p>
+
+          <Button
+            onClick={(e) => {e.stopPropagation(); openModal()}} className="w-full mb-2 bg-gradient-to-r from-blue-900 via-purple-800 to-pink-700 text-white rounded-lg"
+          >
+            Become a Tutor
+          </Button>
+
+          <Button
+            variant="outline"
+            className="w-full mb-2 text-black rounded-lg border-gray-300 hover:bg-gray-100 hover:border-gray-400"
+          >
+            Messages
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full text-black mb-2 rounded-lg border-gray-300 hover:bg-gray-100 hover:border-gray-400"
+          >
+            Settings
+          </Button>
+          <Button
+            variant="outline"
+            className="w-full rounded-lg border-red-400 text-red-600 hover:bg-red-100"
+            onClick={()=>handleLogout()}
+          >
+            Logout
+          </Button>
+        </div>
+      )}
+    </div>
+  ) : (
+    <Button
+      onClick={handleLogin}
+      className="rounded-full bg-gradient-to-r from-yellow-400 to-pink-500 text-white font-bold px-6 hover:scale-105 transition"
+    >
+      Log In
+    </Button>
+  )}
       </header>
 
       {/* Hero Section */}
@@ -73,20 +136,45 @@ function handleProtectedNavigation(path: string) {
         </p>
 
         <div className="flex gap-4 mt-4">
-          <Button onClick={() => handleProtectedNavigation("/login")} className="rounded-full bg-gradient-to-r from-indigo-500 to-pink-600 text-white px-8 py-3 hover:scale-105 hover:shadow-lg transition">
+          <Button onClick={() => {
+            if (user) {
+              openModal();
+            } else {
+              navigate("/login");
+            }
+          }} className="rounded-full bg-gradient-to-r from-indigo-500 to-pink-600 text-white px-8 py-3 hover:scale-105 hover:shadow-lg transition">
             Become a Tutor
           </Button>
           <Button
-            onClick={() => handleProtectedNavigation("/explore-tutors")}
+            onClick={() => {
+            if (user) {
+              navigate("/explore-tutors")
+            } else {
+              navigate("/login");
+            }
+          }}
             variant="outline"
             className="rounded-full border-purple-500/40 text-white px-6 py-3 hover:bg-purple-800/40 hover:text-yellow-300 transition"
           >
             <a>Find Tutor</a>
           </Button>
+          <Button
+            onClick={() => {
+            if (user) {
+              navigate("/find-job")
+            } else {
+              navigate("/login");
+            }
+          }}
+            variant="outline"
+            className="rounded-full border-purple-500/40 text-white px-6 py-3 hover:bg-purple-800/40 hover:text-yellow-300 transition"
+          >
+            <a>Find Job</a>
+          </Button>
         </div>
 
         {/* Search Bar */}
-        <div className="flex items-center w-full max-w-lg mt-8 rounded-full overflow-hidden bg-black/50 backdrop-blur-md border border-purple-700/50 shadow-lg">
+        {/* <div className="flex items-center w-full max-w-lg mt-8 rounded-full overflow-hidden bg-black/50 backdrop-blur-md border border-purple-700/50 shadow-lg">
           <Input
             type="text"
             placeholder="Search tutors by subject..."
@@ -95,7 +183,7 @@ function handleProtectedNavigation(path: string) {
           <Button className="rounded-r-full px-6 py-4 text-white font-medium bg-gradient-to-r from-indigo-500 to-pink-600 hover:scale-105 transition">
             Search
           </Button>
-        </div>
+        </div> */}
       </section>
 
       {/* How It Works */}
@@ -166,6 +254,7 @@ function handleProtectedNavigation(path: string) {
         </div>
       </footer>
       <Toaster position="top-center" reverseOrder={false} />  
+      <ApplicationModal isOpen={isModalOpen} onClose={closeModal} />
     </div>
   );
 };

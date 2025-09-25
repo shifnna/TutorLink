@@ -3,15 +3,15 @@ import { Input } from "../ui/input";
 import React, { useState } from "react";
 import { FaBell, FaGraduationCap, FaUserCircle } from "react-icons/fa";
 import { HiOutlineAdjustments } from "react-icons/hi";
-import { authRepository } from "../../repositories/authRepository";
 import { toast, Toaster } from "react-hot-toast";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
 import ApplicationModal from "../../pages/tutors/applicationModal";
+import { authService } from "../../services/authService";
 
 
 const Header : React.FC = () => {    
-    const [search, setSearch] = useState("");
+    const { search, setSearch } = useAuthStore();
     const [menuOpen, setMenuOpen] = useState(false);
     const [isModalOpen, setIsModalOpen] = useState(false);
     const {logout,user} = useAuthStore()
@@ -21,7 +21,7 @@ const Header : React.FC = () => {
   const openModal = () => setIsModalOpen(true);
   async function handleLogout() {
   try {
-    const response = await authRepository.logout() //rmv cookies
+    const response = await authService.logout() //rmv cookies
     logout(); //remv frm state/store
     navigate("/");
     toast.success(response.message)
@@ -32,8 +32,8 @@ const Header : React.FC = () => {
   
 
   return (
-        <div
-      className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 text-gray-900"
+    <div
+      className="w-full bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 text-gray-900"
       onClick={closeModal} // 👈 clicking anywhere closes modal
     >
     <div>

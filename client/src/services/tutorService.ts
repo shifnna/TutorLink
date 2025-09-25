@@ -1,30 +1,26 @@
-import { tutorRepository } from "../repositories/tutorRepository";
-import { ITutorApplication } from "../types/ITutorApplication";
-
-
-async function uploadFileToS3(file: File): Promise<string> {
-  try {
-    const safeFileName = file.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_\-\.]/g, "");
-    const { url, key } = await tutorRepository.getPresignedUrl(safeFileName, file.type);
-    // Upload file to S3
-    await fetch(url, {
-      method: "PUT",
-      body: file,
-      headers: { "Content-Type": file.type },
-    });
-  
-    return key;
-  } catch (err) {
-    console.error("Error uploading file to S3:", err);
-    throw err;
-  }
-}
-
-
+import axiosClient from "../api/axiosClient";
+import { uploadFileToS3 } from "../api/uploadToS3";
+import { IS3UploadResponse, ITutorApplication } from "../types/ITutorApplication";
 
 export const tutorService = {
+    
+    getPresignedUrl : async (fileName:string,fileType:string): Promise <IS3UploadResponse> =>{
+        const {data} = await axiosClient.post("/api/tutor/upload/presign", {fileName,fileType});
+        return data;
+    },
 
-    async apply(formData : any){
+    applyForTutor : async (payload : ITutorApplication | FormData) =>{
+        const {data} = await axiosClient.post("/api/tutor/apply-for-tutor",payload);
+        return data;
+    },
+
+    getAllTutors: async () => {
+        const response = await axiosClient.get("/api/tutor/get-tutors");
+        return response.data.tutors;
+    },
+    
+
+    apply: async (formData:any) => {
         // upload profile image
         const profileImageUrl = formData.profileImage ? await uploadFileToS3(formData.profileImage) : null;
 
@@ -44,6 +40,6 @@ export const tutorService = {
             certificates : certificatesUrls, 
         }
 
-        return tutorRepository.applyForTutor(payload);
+        return tutorService.applyForTutor(payload);
     }
 }

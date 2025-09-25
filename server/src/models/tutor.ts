@@ -15,6 +15,7 @@ export interface ITutor extends Document {
   accountNumber: string;
   bankName: string;
   ifsc: string;
+  adminApproved : boolean;
 }
 
 const TutorSchema = new Schema<ITutor>(
@@ -33,6 +34,7 @@ const TutorSchema = new Schema<ITutor>(
     accountNumber: String,
     bankName: String,
     ifsc: String,
+    adminApproved: {type:Boolean , default:false}
   },
   { timestamps: true }
 );

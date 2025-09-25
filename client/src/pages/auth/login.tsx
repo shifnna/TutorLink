@@ -10,7 +10,7 @@ import { useAuthStore } from "../../store/authStore";
 
 const Login: React.FC = () => {
   const navigate = useNavigate();
-  const { login } = useAuthStore();
+  const { login,isLoading } = useAuthStore();
   const [formData, setFormData] = useState({ email: "", password: "" });
 
   function validate(): boolean {
@@ -34,6 +34,7 @@ const Login: React.FC = () => {
     e.preventDefault();
     if (!validate()) return;
     try {
+      useAuthStore.getState().setLoading(true); // start loading
       await login(formData.email, formData.password);
       toast.success("Login successful! 🎉");
 
@@ -47,7 +48,10 @@ const Login: React.FC = () => {
 
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Login failed ❌");
+    } finally {
+    useAuthStore.getState().setLoading(false); // stop loading
     }
+
   }
 
   function handleGoogle(){
@@ -131,7 +135,13 @@ const Login: React.FC = () => {
       </div>
 
       <Toaster position="top-center" reverseOrder={false} />
-      
+
+{isLoading && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/20">
+    <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+  </div>
+)}
+    
     </div>
   );
 };

@@ -5,6 +5,13 @@ export interface IAuthState {
   isLoading: boolean;
   error: string | null;
   isAuthenticated: boolean;
+  search: string;
+  
+  setSearch: (term: string) => void;
+
+  fetchUser: () => Promise<void>,
+
+  setLoading: (value: boolean) => Promise<any>,
 
   signup: ( name: string, email: string, password: string, confirmPassword: string) => Promise<any>;
 

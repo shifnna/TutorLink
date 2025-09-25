@@ -11,11 +11,11 @@ import {
   FaCrown,
 } from "react-icons/fa";
 import { Button } from "../../components/ui/button";
-import { authRepository } from "../../repositories/authRepository";
 import {toast,Toaster} from "react-hot-toast";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
 import React from "react";
+import { authService } from "../../services/authService";
 
 const Sidebar :React.FC = () => {
     const {logout} = useAuthStore();
@@ -23,7 +23,7 @@ const Sidebar :React.FC = () => {
 
     async function handleLogout() {
     try {
-      const response = await authRepository.logout() //rmv cookies
+      const response = await authService.logout() //rmv cookies
       logout(); //remv frm state/store
       navigate("/");
       toast.success(response.message)

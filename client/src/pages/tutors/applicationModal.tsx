@@ -3,13 +3,14 @@ import { useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { FaCamera, FaTimes } from "react-icons/fa";
-import { tutorService } from "../../services/tutorService";
 import { Toaster,toast } from "react-hot-toast";
-import { IApplicationModal } from "../../types/IApplicationModal";
+import { IApplicationModal } from "../../types/ITutorApplication";
+import { useAuthStore } from "../../store/authStore";
+import { tutorService } from "../../services/tutorService";
 
 
 const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
-
+  const { isLoading } = useAuthStore();
   const [step, setStep] = useState(1);
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [formData, setFormData] = useState({
@@ -75,12 +76,15 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
   const handleSubmit = async () => {
     if (!validateStep()) return;
     try {
+      useAuthStore.getState().setLoading(true); // start loading
       await tutorService.apply(formData);
       toast.success("Application submitted successfully!");
       onClose();
     } catch (err) {
       console.error(err);
       toast.error("something went wrong")
+    } finally {
+      useAuthStore.getState().setLoading(false); // stop loading
     }
   };
 
@@ -258,6 +262,11 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
             </div>
           )}
         </div>
+{isLoading && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/20">
+    <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+  </div>
+)}
       </div>
     </Dialog>
   );

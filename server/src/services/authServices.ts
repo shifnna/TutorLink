@@ -103,7 +103,7 @@ export class AuthService implements IAuthService{
         if(!isPasswordVaild) throw new Error(MESSAGES.COMMON.ERROR.INVALID_CREDENTIALS);
 
         const token = jwt.sign({id:user.id},process.env.JWT_SECRET as string,{
-            expiresIn:'1h',
+            expiresIn:'7d',
         });
 
         return {user,token};

@@ -10,6 +10,9 @@ import AdminDashboard from "../pages/admin/dashboard";
 import TutorApplications from "../pages/admin/applicaions";
 import ClientsPage from "../pages/admin/clients";
 import TutorsPage from "../pages/admin/tutors";
+import GuestRoute from "../components/guestRoute";
+import ProtectedRoute from "../components/protectedRoute";
+import Unauthorized from "../pages/auth/unAuthorized";
 
 function AppRoutes() {
   return (
@@ -17,19 +20,20 @@ function AppRoutes() {
       <BrowserRouter>
         <Routes>
             <Route path="/" element={<Home/>} />
-            
-            <Route path="/signup" element={<Signup/>} />
+            <Route path="/unauthorized" element={<Unauthorized/>} />
+           
+            <Route path="/signup" element={<GuestRoute><Signup/></GuestRoute> } />
             <Route path="/verify-otp" element={<VerifyOtp />} />
-            <Route path="/login" element={<Login/>} />
+            <Route path="/login" element={<GuestRoute><Login/></GuestRoute>} />
             <Route path="/forgot-password" element={<ForgotPassword/>} />
             <Route path="/reset-password" element={<ResetPassword/>} />
 
-            <Route path="/explore-tutors" element={<ExploreTutors/>} />
+            <Route path="/explore-tutors" element={<ProtectedRoute><ExploreTutors/></ProtectedRoute>} />
 
-            <Route path="/admin-dashboard" element={<AdminDashboard/>} />
-            <Route path="/admin-dashboard/applications" element={<TutorApplications/>} />
-            <Route path="/admin-dashboard/clients" element={<ClientsPage/>} />
-            <Route path="/admin-dashboard/tutors" element={<TutorsPage/>} />
+            <Route path="/admin-dashboard" element={<ProtectedRoute role="admin"><AdminDashboard/></ProtectedRoute>} />
+            <Route path="/admin-dashboard/applications" element={<ProtectedRoute role="admin"><TutorApplications/></ProtectedRoute>} />
+            <Route path="/admin-dashboard/clients" element={<ProtectedRoute role="admin"><ClientsPage/></ProtectedRoute>} />
+            <Route path="/admin-dashboard/tutors" element={<ProtectedRoute role="admin"><TutorsPage/></ProtectedRoute>} />
 
         </Routes>
       </BrowserRouter>

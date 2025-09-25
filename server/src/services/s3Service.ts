@@ -1,4 +1,4 @@
-import { PutObjectCommand } from "@aws-sdk/client-s3";
+import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
 import { s3Client } from "../config/s3Confing";
 import { IS3Service } from "./interfaces/IS3Service";
 import { v4 as uuidv4 } from "uuid";
@@ -33,5 +33,15 @@ export class S3Service implements IS3Service {
     );
 
     return `https://${process.env.AWS_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/${key}`;
+  }
+
+  
+  async generatePresignedUrl(key: string): Promise<string> {
+    const command = new GetObjectCommand({
+      Bucket: process.env.AWS_BUCKET_NAME!,
+      Key: key,
+    });
+    const url = await getSignedUrl(s3Client, command, { expiresIn: 3600 }); // 1 hour expiry
+    return url;
   }
 }

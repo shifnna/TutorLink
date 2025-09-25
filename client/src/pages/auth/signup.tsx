@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-  const { signup } = useAuthStore();
+  const { signup,isLoading } = useAuthStore();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -49,6 +49,7 @@ const Signup: React.FC = () => {
     if (!validate()) return;
 
     try {
+      useAuthStore.getState().setLoading(true);
       const response = await signup(
         formData.name,
         formData.email,
@@ -59,6 +60,8 @@ const Signup: React.FC = () => {
       navigate(`/verify-otp?email=${response.email}&type=signup`);
     } catch (error: any) {
       toast.error(error?.response?.data?.error || "Signup failed ❌");
+    } finally {
+      useAuthStore.getState().setLoading(false); // stop loading
     }
   }
 
@@ -156,6 +159,11 @@ const Signup: React.FC = () => {
       </div>
 
       <Toaster position="top-center" reverseOrder={false} />
+{isLoading && (
+  <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/20">
+    <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+  </div>
+)}
     </div>
   );
 };

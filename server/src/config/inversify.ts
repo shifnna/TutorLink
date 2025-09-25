@@ -24,8 +24,13 @@ import { TutorController } from "../controllers/tutorController";
 
 import { IAdminController } from "../controllers/interfaces/IAdminController";
 import { AdminController } from "../controllers/adminController";
+import { IAdminService } from "../services/interfaces/IAdminService";
 
 import { S3Service } from "../services/s3Service";
+import { IAdminRepository } from "../repositories/interfaces/IAdminRepository";
+import { AdminRepository } from "../repositories/adminRepository";
+import { TutorModel } from "../models/tutor";
+import { AdminService } from "../services/adminService";
 
 const container = new Container();
 
@@ -37,8 +42,11 @@ container.bind<IClientRepository>(TYPES.IClientRepository).to(clientRepository);
 container.bind<ITutorRepository>(TYPES.ITutorRepository).to(TutorRepository);
 container.bind<ITutorService>(TYPES.ITutorService).to(TutorService);
 container.bind<ITutorController>(TYPES.ITutorController).to(TutorController)
+container.bind<typeof TutorModel>(TYPES.ITutorModel).toConstantValue(TutorModel);
 
 container.bind<IAdminController>(TYPES.IAdminController).to(AdminController);
+container.bind<IAdminRepository>(TYPES.IAdminRepository).to(AdminRepository);
+container.bind<IAdminService>(TYPES.IAdminService).to(AdminService);
 
 container.bind<typeof UserModel>(TYPES.IUserModel).toConstantValue(UserModel);
 

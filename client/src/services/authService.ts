@@ -12,7 +12,11 @@ interface LoginData {
   password: string;
 }
 
-export const authRepository = {
+export const authService = {
+  fetchUser: async () => {
+    const response = await axiosClient.get("/api/auth/me");
+    return response.data;
+  },
   signup: async (data: SignupData) => {
     const response = await axiosClient.post("/api/auth/signup", data);
     return response.data; 
@@ -20,7 +24,6 @@ export const authRepository = {
 
   login: async (data: LoginData) => {
     const response = await axiosClient.post("/api/auth/login", data);
-    localStorage.setItem("token", response.data.token); 
     return response.data; 
   },
 

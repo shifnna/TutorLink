@@ -1,25 +1,19 @@
 import { useState, useEffect } from "react";
-import { adminRepository } from "../../repositories/adminRepository";
-import {
-  FaUserCircle,
-  FaSearch,
-  FaCheckCircle,
-  FaTimesCircle,
-} from "react-icons/fa";
-import { Button } from "../../components/ui/button";
+import {FaSearch} from "react-icons/fa";
 import Header from "../../components/admin/header";
 import { IUser } from "../../types/IUser";
+import TableList from "../../components/admin/tableList";
+import { adminService } from "../../services/adminService";
 
 
 const ClientsPage: React.FC = () => {
   const [users, setUsers] = useState<IUser[]>([]);
   const [search, setSearch] = useState("");
 
-  // Fetch users from backend 
   useEffect(() => {
-    const fetchUsers = async () => {
+    const fetchClients = async () => {
       try {
-        const data = await adminRepository.getAllUsers();
+        const data = await adminService.getAllClients();
         setUsers(
           data.map((u: any) => ({
             id: u._id,
@@ -36,20 +30,13 @@ const ClientsPage: React.FC = () => {
       }
     };
 
-    fetchUsers();
+    fetchClients();
   }, []);
 
-  const filteredUsers = users.filter(
-    (u) =>
-      u.name.toLowerCase().includes(search.toLowerCase()) ||
-      u.email.toLowerCase().includes(search.toLowerCase())
-  );
 
   const handleToggleStatus = async (id: string) => {
-    try {
-      // Call backend to toggle isBlocked
-      const updatedUser = await adminRepository.toggleUserStatus(id);
-
+    try {      
+      const updatedUser = await adminService.toggleUserStatus(id);
       // Update local state with backend value
       setUsers((prev) =>
         prev.map((u) => (u.id === id ? { ...u, isBlocked: updatedUser.isBlocked } : u))
@@ -77,60 +64,8 @@ const ClientsPage: React.FC = () => {
       </div>
 
       {/* Users List */}
-      <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-purple-800/40">
-        <div className="space-y-4">
-          {filteredUsers.length > 0 ? (
-            filteredUsers.map((user) => (
-              <div
-                key={user.id}
-                className="flex items-center justify-between bg-black/30 rounded-xl px-6 py-4 shadow-md hover:shadow-lg transition"
-              >
-                {/* User Info */}
-                <div className="flex items-center gap-4">
-                  <FaUserCircle className="w-12 h-12 text-purple-400" />
-                  <div>
-                    <h3 className="text-xl font-semibold">{user.name}</h3>
-                    <p className="text-gray-300 text-sm">{user.email}</p>
-                    <p className="text-gray-400 text-xs">Joined: {user.joinedDate}</p>
-                    <p className="text-gray-400 text-xs">Verified:{" "}{user.isVerified ? (
-                      <span className="text-green-400 font-bold">Yes</span>) : ( <span className="text-red-400 font-bold">No</span>)}
-                    </p>
-                  </div>
-                </div>
-
-                {/* Status & Actions */}
-                <div className="flex items-center gap-4">
-                  <span
-                    className={`px-3 py-1 rounded-full text-xs font-bold ${
-                      !user.isBlocked ? "bg-green-600 text-white" : "bg-red-600 text-white"
-                    }`}
-                  >
-                    {!user.isBlocked ? "ACTIVE" : "BLOCKED"}
-                  </span>
-                  <Button
-                    onClick={() => handleToggleStatus(user.id)}
-                    className={`flex items-center gap-2 rounded-full px-4 py-2 font-bold ${
-                      !user.isBlocked ? "bg-red-600 hover:bg-red-700" : "bg-green-600 hover:bg-green-700"
-                    }`}
-                  >
-                    {!user.isBlocked ? (
-                      <>
-                        <FaTimesCircle /> Block
-                      </>
-                    ) : (
-                      <>
-                        <FaCheckCircle /> Unblock
-                      </>
-                    )}
-                  </Button>
-                </div>
-              </div>
-            ))
-          ) : (
-            <p className="text-gray-400 text-center">No users found.</p>
-          )}
-        </div>
-      </div>
+      <TableList users={users} handleToggleStatus={handleToggleStatus}/>
+      
     </div>
   );
 };
