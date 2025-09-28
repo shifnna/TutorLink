@@ -1,12 +1,12 @@
+import { FilterQuery } from "mongoose";
 import { IUser } from "../../models/user";
 
 export interface IClientRepository {
-    findClients(): Promise<IUser[]>;
+    findAll(filter?: FilterQuery<IUser >): Promise<IUser[]>;
     findTutorsWithProfile(): Promise<IUser[]>;
-    countUsers(): Promise<number>;
-    countTutors(): Promise<number>;
-    create(user: object): Promise<IUser>;
+    count(filter?: FilterQuery<IUser >): Promise<number>;
+    create(user: Partial<IUser>): Promise<IUser>;
     findByEmail(email: string): Promise<IUser | null>;
-    updateStatus(id: string, isBlocked: true | false): Promise<IUser | null>;
+    updateById(id: string, updateData: Partial<IUser>): Promise<IUser | null>;
     findById(id: string): Promise<IUser | null>;
 }

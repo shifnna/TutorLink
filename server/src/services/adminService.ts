@@ -6,21 +6,24 @@ import { IAdminRepository } from "../repositories/interfaces/IAdminRepository";
 import { IS3Service } from "./interfaces/IS3Service";
 import { IUser } from "../models/user";
 import { ITutor } from "../models/tutor";
+import { COMMON_ERROR } from "../utils/constants";
+import { ITutorRepository } from "../repositories/interfaces/ITutorRepository";
 
 @injectable()
 export class AdminService implements IAdminService {
   constructor(
-    @inject(TYPES.IClientRepository) private readonly userRepo: IClientRepository,
-    @inject(TYPES.IAdminRepository) private readonly adminRepo: IAdminRepository,
+    @inject(TYPES.IClientRepository) private readonly _userRepo: IClientRepository,
+    @inject(TYPES.IAdminRepository) private readonly _adminRepo: IAdminRepository,
+    @inject(TYPES.ITutorRepository) private readonly _tutorRepo: ITutorRepository,
     @inject(TYPES.IS3Service) private readonly s3Service: IS3Service
   ) {}
 
   async getAllClients(): Promise<IUser[]> {
-    return this.userRepo.findClients();
+    return this._userRepo.findAll({ role: "client" });
   }
 
   async getAllTutors(): Promise<ITutor[]> {
-    const users = await this.userRepo.findTutorsWithProfile();
+    const users = await this._userRepo.findTutorsWithProfile();
 
     return Promise.all(
       users.map(async (user: any) => {
@@ -57,7 +60,7 @@ export class AdminService implements IAdminService {
   }
 
   async getAllTutorApplications(): Promise<ITutor[]> {
-    const tutors = await this.adminRepo.findPendingTutors();
+    const tutors = await this._adminRepo.findPendingTutors();
 
     return Promise.all(
       tutors.map(async (tutor: any) => {
@@ -82,22 +85,22 @@ export class AdminService implements IAdminService {
   }
 
   async toggleUserStatus(userId: string): Promise<IUser> {
-    const user = await this.userRepo.findById(userId);
-    if (!user) throw new Error("User not found");
+    const user = await this._userRepo.findById(userId);
+    if (!user) throw new Error(COMMON_ERROR.USER_NOT_FOUND);
 
     const newStatus = !user.isBlocked;
-    return this.userRepo.updateStatus(userId, newStatus) as Promise<IUser>;
+    return this._userRepo.updateById(userId,{ isBlocked: newStatus }) as Promise<IUser>;
   }
 
   async approveTutor(userId: string): Promise<ITutor> {
-    const tutor = await this.adminRepo.findById(userId);
+    const tutor = await this._tutorRepo.findById(userId);
     if (!tutor) throw new Error("Tutor application not found");
 
-    const user = await this.userRepo.findById(userId);
-    if (!user) throw new Error("User not found in Tutor Applications");
+    const user = await this._userRepo.findById(userId);
+    if (!user) throw new Error(COMMON_ERROR.USER_NOT_FOUND);
 
-    await this.adminRepo.updateRole(userId);
-    await this.adminRepo.markApproved(userId);
+    await this._userRepo.updateById(userId,{role:"tutor"});
+    await this._tutorRepo.findOneAndUpdate({ tutorId: userId },{ adminApproved: true });
 
     if (tutor.profileImage) {
       user.profileImage = tutor.profileImage;
@@ -107,17 +110,17 @@ export class AdminService implements IAdminService {
   }
 
   async blockUser(userId: string): Promise<IUser> {
-    return this.userRepo.updateStatus(userId, true) as Promise<IUser>;
+    return this._userRepo.updateById(userId,{ isBlocked: true }) as Promise<IUser>;
   }
 
   async unblockUser(userId: string): Promise<IUser> {
-    return this.userRepo.updateStatus(userId, false) as Promise<IUser>;
+    return this._userRepo.updateById(userId,{ isBlocked: false }) as Promise<IUser>;
   }
 
   async getDashboardStats(): Promise<{ totalUsers: number; totalTutors: number; subscriptions: number; revenue: number; pendingApplications: ITutor[] }> {
-    const totalUsers = await this.userRepo.countUsers();
-    const totalTutors = await this.userRepo.countTutors();
-    const pendingApplications = await this.adminRepo.findPendingTutors();
+    const totalUsers = await this._userRepo.count({ role: { $ne: "admin" } });
+    const totalTutors = await this._userRepo.count({ role: "tutor" });
+    const pendingApplications = await this._adminRepo.findPendingTutors();
 
     return {
       totalUsers,

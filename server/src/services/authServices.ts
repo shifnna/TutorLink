@@ -1,6 +1,5 @@
 import { IUser } from "../models/user";
 import { IClientRepository } from "../repositories/interfaces/IClientRepository";
-import { MESSAGES } from "../utils/constants";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
 import { sendOTP } from "../config/mailer";
@@ -8,35 +7,36 @@ import { injectable } from "inversify";
 import { inject } from "inversify";
 import { TYPES } from "../types/types";
 import { IAuthService } from "./interfaces/IAuthService";
+import { COMMON_ERROR } from "../utils/constants";
 
 @injectable()
 export class AuthService implements IAuthService{
-    constructor( @inject(TYPES.IClientRepository) private readonly userRepo: IClientRepository){}
+    constructor( @inject(TYPES.IClientRepository) private readonly _userRepo: IClientRepository){}
 
     async signup(name:string ,email:string ,password:string ,confirmPassword:string ): Promise<IUser| null>{
         if (!name || !email || !password || !confirmPassword) {
-            throw new Error(MESSAGES.COMMON.ERROR.MISSING_FIELDS)
+            throw new Error(COMMON_ERROR.MISSING_FIELDS)
         }
         
         if (name.trim().length < 3) {
-            throw new Error(MESSAGES.COMMON.ERROR.INVALID_NAME);
+            throw new Error(COMMON_ERROR.INVALID_NAME);
         }
         
         const emailRegex = /^\S+@\S+\.\S+$/;
         if (!emailRegex.test(email)) {
-            throw new Error(MESSAGES.COMMON.ERROR.INVALID_EMAIL);
+            throw new Error(COMMON_ERROR.INVALID_EMAIL);
         }
 
         if(password!==confirmPassword){
-            throw new Error(MESSAGES.COMMON.ERROR.PASSWODS_MISSMATCH)
+            throw new Error(COMMON_ERROR.PASSWORDS_MISMATCH)
         }
         if (password.length < 6) {
-            throw new Error(MESSAGES.COMMON.ERROR.WEAK_PASSWORD);
+            throw new Error(COMMON_ERROR.WEAK_PASSWORD);
         }
 
-        const existingUser = await this.userRepo.findByEmail(email);
+        const existingUser = await this._userRepo.findByEmail(email);
         if(existingUser){
-            throw new Error(MESSAGES.COMMON.ERROR.EMAIL_IN_USE);
+            throw new Error(COMMON_ERROR.EMAIL_IN_USE);
         }
 
         const hashedPassword = await bcrypt.hash(password,10);
@@ -44,7 +44,7 @@ export class AuthService implements IAuthService{
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); 
         const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins expiry
 
-        const user:IUser = await this.userRepo.create({
+        const user:IUser = await this._userRepo.create({
             name,
             email,
             password:hashedPassword,
@@ -60,8 +60,8 @@ export class AuthService implements IAuthService{
 
 
     async verifyOtp(email: string, otp: string, type:string): Promise<{ user: IUser; token: string } | {success:boolean} | null> {
-        const user = await this.userRepo.findByEmail(email);
-        if (!user) throw new Error("User not found");
+        const user = await this._userRepo.findByEmail(email);
+        if (!user) throw new Error(COMMON_ERROR.USER_NOT_FOUND);
 
         if (user.otpCode !== otp || new Date() > user.otpExpiry!)
         throw new Error("Invalid or expired OTP");
@@ -70,7 +70,7 @@ export class AuthService implements IAuthService{
         user.otpExpiry = undefined;
 
         if(type==="signup"){
-            if (user.isVerified) throw new Error("Already verified");
+            if (user.isVerified) throw new Error(COMMON_ERROR.ALREADY_VERIFIED);
             user.isVerified = true;
             await user.save();
 
@@ -91,16 +91,16 @@ export class AuthService implements IAuthService{
 
 
     async login(email:string,password:string):Promise<{ user: IUser; token: string }>{
-        if(!email || !password) throw new Error(MESSAGES.COMMON.ERROR.MISSING_FIELDS);
+        if(!email || !password) throw new Error(COMMON_ERROR.MISSING_FIELDS);
         
         const emailRegex = /^\S+@\S+\.\S+$/;
-        if (!emailRegex.test(email)) throw new Error(MESSAGES.COMMON.ERROR.INVALID_EMAIL);
+        if (!emailRegex.test(email)) throw new Error(COMMON_ERROR.INVALID_EMAIL);
         
-        const user = await this.userRepo.findByEmail(email)
-        if(!user) throw new Error(MESSAGES.COMMON.ERROR.INVALID_CREDENTIALS);
+        const user = await this._userRepo.findByEmail(email)
+        if(!user) throw new Error(COMMON_ERROR.INVALID_CREDENTIALS);
 
         const isPasswordVaild = await bcrypt.compare(password,user.password)
-        if(!isPasswordVaild) throw new Error(MESSAGES.COMMON.ERROR.INVALID_CREDENTIALS);
+        if(!isPasswordVaild) throw new Error(COMMON_ERROR.INVALID_CREDENTIALS);
 
         const token = jwt.sign({id:user.id},process.env.JWT_SECRET as string,{
             expiresIn:'7d',
@@ -111,11 +111,11 @@ export class AuthService implements IAuthService{
 
 
     async resendOtp(email: string, type:string):Promise<{ message: string } | null> {
-            const user = await this.userRepo.findByEmail(email);
-            if (!user) throw new Error("User not found");
+            const user = await this._userRepo.findByEmail(email);
+            if (!user) throw new Error(COMMON_ERROR.USER_NOT_FOUND);
 
             if (type === "signup" && user.isVerified) {
-            throw new Error("User already verified");
+            throw new Error(COMMON_ERROR.ALREADY_VERIFIED);
             }
 
             const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); 
@@ -131,8 +131,8 @@ export class AuthService implements IAuthService{
 
     
     async resetPassword(email: string, password: string):Promise<{ message: string } | null> {
-        const user = await this.userRepo.findByEmail(email);
-        if (!user) throw new Error("User not found");
+        const user = await this._userRepo.findByEmail(email);
+        if (!user) throw new Error(COMMON_ERROR.USER_NOT_FOUND);
 
         user.password = await bcrypt.hash(password, 10);
         await user.save();

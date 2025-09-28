@@ -6,6 +6,8 @@ export enum COMMON_ERROR {
   EMAIL_IN_USE = "Email already in use",
   PASSWORDS_MISMATCH = "Passwords are not matching",
   INVALID_CREDENTIALS = "Invalid credentials",
+  USER_NOT_FOUND = "User Not Found",
+  ALREADY_VERIFIED = "User Alredy Verified"
 }
 
 export enum COMMON_SUCCESS {

@@ -3,18 +3,18 @@ import { TYPES } from "../types/types";
 import { ITutorRepository } from "../repositories/interfaces/ITutorRepository";
 import { IS3Service } from "./interfaces/IS3Service";
 import { ITutorService } from "./interfaces/ITutorService";
-import { ITutor, TutorModel } from "../models/tutor";
+import { ITutor } from "../models/tutor";
 import { UserModel } from "../models/user";
 
 @injectable()
 export class TutorService implements ITutorService {
   constructor(
-    @inject(TYPES.ITutorRepository) private readonly tutorRepo: ITutorRepository,
-    @inject(TYPES.IS3Service) private readonly s3Service: IS3Service
+    @inject(TYPES.ITutorRepository) private readonly _tutorRepo: ITutorRepository,
+    @inject(TYPES.IS3Service) private readonly _s3Service: IS3Service
   ) {}
 
   async getPresignedUrl(fileName: string, fileType: string): Promise<{ url: string; key: string }> {
-    return this.s3Service.getPresignedUrl(fileName, fileType);
+    return this._s3Service.getPresignedUrl(fileName, fileType);
   }
 
   async applyForTutor(userId: string, body: any): Promise<ITutor> {
@@ -39,27 +39,25 @@ export class TutorService implements ITutorService {
       ifsc: body.ifsc,
     };
 
-    const tutor = await this.tutorRepo.createApplication(appData);
+    const tutor = await this._tutorRepo.create(appData);
     await UserModel.findByIdAndUpdate(userId, { tutorProfile: tutor._id });
     return tutor;
   }
 
   async getAllTutors(): Promise<ITutor[]> {
-    const tutors = await TutorModel.find({ adminApproved: true })
-      .sort({ createdAt: -1 })
-      .populate("tutorId", "name email");
+    const tutors = await this._tutorRepo.findAllApproved()
 
     return Promise.all(
       tutors.map(async (tutor: any) => {
         let profileImageUrl: string | null = null;
         if (tutor.profileImage) {
-          profileImageUrl = await this.s3Service.generatePresignedUrl(tutor.profileImage);
+          profileImageUrl = await this._s3Service.generatePresignedUrl(tutor.profileImage);
         }
 
         let certificates: string[] = [];
         if (tutor.certificates?.length > 0) {
           certificates = await Promise.all(
-            tutor.certificates.map((key: string) => this.s3Service.generatePresignedUrl(key))
+            tutor.certificates.map((key: string) => this._s3Service.generatePresignedUrl(key))
           );
         }
 
