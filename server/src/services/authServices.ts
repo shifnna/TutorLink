@@ -1,9 +1,9 @@
 import { IUser } from "../models/user";
 import { IClientRepository } from "../repositories/interfaces/IClientRepository";
-import { MESSAGES } from "../config/utils/constants";
+import { MESSAGES } from "../utils/constants";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
-import { sendOTP } from "../config/utils/mailer";
+import { sendOTP } from "../config/mailer";
 import { injectable } from "inversify";
 import { inject } from "inversify";
 import { TYPES } from "../types/types";

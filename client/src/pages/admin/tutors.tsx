@@ -35,12 +35,13 @@ const TutorsPage: React.FC = () => {
   },[])
 
     const handleToggleStatus = async (id: string) => {
-    try {      
+    try {     
+      if(window.confirm("are you sure?")){
       const updatedUser = await adminService.toggleUserStatus(id);
-      // Update local state with backend value
       setTutors((prev) =>
-        prev.map((u) => (u.id === id ? { ...u, isBlocked: updatedUser.isBlocked } : u))
+        prev.map((u) => (u.id === id ? { ...u, isBlocked: updatedUser.isBlocked } : u)) // Update local state with backend value
       );
+      }
     } catch (err) {
       console.error("Failed to toggle status:", err);
     }

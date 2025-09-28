@@ -1,5 +1,5 @@
 import { Router } from "express";
-import container from "../config/inversify";
+import container from "../container/inversify.config";
 import { IAdminController } from "../controllers/interfaces/IAdminController";
 import { TYPES } from "../types/types";
 import { adminOnly, protect } from "../middlewares/authMiddleware";

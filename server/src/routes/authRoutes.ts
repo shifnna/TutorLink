@@ -1,5 +1,5 @@
 import { Router } from "express";
-import container from "../config/inversify";
+import container from "../container/inversify.config";
 import { IAuthController } from "../controllers/interfaces/IAuthController";
 import { TYPES } from "../types/types";
 import { protect } from "../middlewares/authMiddleware";
