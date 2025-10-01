@@ -14,26 +14,6 @@ export class AuthService implements IAuthService{
     constructor( @inject(TYPES.IClientRepository) private readonly _userRepo: IClientRepository){}
 
     async signup(name:string ,email:string ,password:string ,confirmPassword:string ): Promise<IUser| null>{
-        if (!name || !email || !password || !confirmPassword) {
-            throw new Error(COMMON_ERROR.MISSING_FIELDS)
-        }
-        
-        if (name.trim().length < 3) {
-            throw new Error(COMMON_ERROR.INVALID_NAME);
-        }
-        
-        const emailRegex = /^\S+@\S+\.\S+$/;
-        if (!emailRegex.test(email)) {
-            throw new Error(COMMON_ERROR.INVALID_EMAIL);
-        }
-
-        if(password!==confirmPassword){
-            throw new Error(COMMON_ERROR.PASSWORDS_MISMATCH)
-        }
-        if (password.length < 6) {
-            throw new Error(COMMON_ERROR.WEAK_PASSWORD);
-        }
-
         const existingUser = await this._userRepo.findByEmail(email);
         if(existingUser){
             throw new Error(COMMON_ERROR.EMAIL_IN_USE);
@@ -42,7 +22,7 @@ export class AuthService implements IAuthService{
         const hashedPassword = await bcrypt.hash(password,10);
 
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); 
-        const otpExpiry = new Date(Date.now() + 10 * 60 * 1000); // 10 mins expiry
+        const otpExpiry = new Date(Date.now() + 60 * 1000); // 1 mins expiry
 
         const user:IUser = await this._userRepo.create({
             name,
@@ -91,11 +71,6 @@ export class AuthService implements IAuthService{
 
 
     async login(email:string,password:string):Promise<{ user: IUser; token: string }>{
-        if(!email || !password) throw new Error(COMMON_ERROR.MISSING_FIELDS);
-        
-        const emailRegex = /^\S+@\S+\.\S+$/;
-        if (!emailRegex.test(email)) throw new Error(COMMON_ERROR.INVALID_EMAIL);
-        
         const user = await this._userRepo.findByEmail(email)
         if(!user) throw new Error(COMMON_ERROR.INVALID_CREDENTIALS);
 
@@ -119,7 +94,7 @@ export class AuthService implements IAuthService{
             }
 
             const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); 
-            const newExpiry = new Date(Date.now() + 10 * 60 * 1000);
+            const newExpiry = new Date(Date.now() +  60 * 1000);
 
             user.otpExpiry = newExpiry;
             user.otpCode = otpCode;
@@ -138,6 +113,12 @@ export class AuthService implements IAuthService{
         await user.save();
 
         return { message: "Password reset successful" };
+    }
+
+    
+    async googleSignin(user: IUser): Promise<string>{
+      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, { expiresIn: "7d" });
+      return token;
     }
 
 

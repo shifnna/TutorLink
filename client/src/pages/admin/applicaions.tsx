@@ -40,9 +40,30 @@ const TutorApplications: React.FC = () => {
   }
   }
 
-  async function handleReject(userId: string){
-
+async function handleReject(userId: string) {
+  const message = prompt("Enter rejection message for this tutor:");
+  if (!message) {
+    toast.error("Rejection message cannot be empty!");
+    return;
   }
+
+  try {
+    await adminService.rejectTutor(userId, message);
+    toast.success("Tutor rejected successfully!");
+    const updated = await adminService.getAllTutorApplications();
+    setApplications(updated);
+    setSelectedTutor(null);
+  } catch (err: any) {
+    const errorMessage =
+      err.response?.data?.message ||
+      err.response?.data?.error ||
+      "Something went wrong!";
+    toast.error(errorMessage);
+  }
+}
+
+
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-950 to-black text-white p-8">
       {/* Header */}

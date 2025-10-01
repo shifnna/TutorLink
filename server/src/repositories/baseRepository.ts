@@ -11,6 +11,15 @@ export class BaseRepository <T extends Document> {
         return await doc.save();
     }
 
+    async findOne(data:{email:string}): Promise<T | null>{
+        const email = data.email;
+        return this.model.findOne({email});
+    }
+
+    async findByIdAndUpdate(id: string, update: UpdateQuery<T>, options = { new: true }): Promise<T | null> {
+        return this.model.findByIdAndUpdate(id, update, options);
+    }
+
     async findById(id:string): Promise<T | null>{
         return this.model.findById(id);
     }

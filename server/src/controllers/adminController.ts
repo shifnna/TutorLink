@@ -58,6 +58,18 @@ export class AdminController implements IAdminController {
     }
   }
 
+  async rejectTutor(req: Request, res: Response): Promise<Response> {
+  try {
+    const { userId } = req.params;
+    const { message } = req.body;
+    await this._adminService.rejectTutor(userId, message);
+    return res.status(200).json({ message: "Tutor rejected successfully" });
+  } catch (error: any) {
+    return res.status(500).json({ error: error.message });
+  }
+ }
+
+
   async getDashboardStats(req: Request, res: Response): Promise<void> {
     try {
       const stats = await this._adminService.getDashboardStats();

@@ -12,12 +12,13 @@ export interface IUser extends Document {
   role: string;
   profileImage: string;
   tutorProfile?: Types.ObjectId | ITutor; 
+  tutorApplication?: { status:"Pending" | "Rejected" | "Approved" | null , adminMessage?: string}
 }
 
 const userSchema = new Schema<IUser>({
   name: { type: String, required: true },
   email: { type: String, required: true, unique: true },
-  password: { type: String, required: true },
+  password: { type: String},
   otpCode: { type: String },
   otpExpiry: { type: Date },
   isVerified: { type: Boolean, default: false },
@@ -25,6 +26,10 @@ const userSchema = new Schema<IUser>({
   role: { type: String, default: "client" },
   profileImage: {type : String},
   tutorProfile: { type: Schema.Types.ObjectId, ref: "Tutor" },
+  tutorApplication: {
+    status: { type: String, enum: ["Pending", "Approved", "Rejected"], default: null },
+    adminMessage: { type: String, default: "" },
+  },
 },{ timestamps: true } );
 
 export const UserModel = model<IUser>("User", userSchema);

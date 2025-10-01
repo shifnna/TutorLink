@@ -9,4 +9,5 @@ export interface IClientRepository {
     findByEmail(email: string): Promise<IUser | null>;
     updateById(id: string, updateData: Partial<IUser>): Promise<IUser | null>;
     findById(id: string): Promise<IUser | null>;
+    findByIdAndUpdate(id: string, update: Partial<IUser>): Promise<IUser | null>;
 }

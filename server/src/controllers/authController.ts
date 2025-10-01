@@ -4,6 +4,7 @@ import { TYPES } from "../types/types";
 import { IAuthService } from "../services/interfaces/IAuthService";
 import { IAuthController } from "./interfaces/IAuthController";
 import { STATUS_CODES } from "../utils/constants";
+import { IUser } from "../models/user";
 
 @injectable()
 export class AuthController implements IAuthController {
@@ -43,12 +44,8 @@ export class AuthController implements IAuthController {
   }
 
   async logout(req: Request, res: Response): Promise<void> {
-    try {
-      res.clearCookie("token");
-      res.status(STATUS_CODES.SUCCESS).json({ message: "Logged out successfully" });
-    } catch (error: any) {
-      res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
-    }
+    res.clearCookie("token");
+    res.status(STATUS_CODES.SUCCESS).json({ message: "Logged out successfully" });
   }
 
   async verifyOtp(req: Request, res: Response): Promise<void> {
@@ -80,4 +77,20 @@ export class AuthController implements IAuthController {
       res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
     }
   }
+
+  async googleSignin(req: Request, res: Response):  Promise<void>{
+    try {
+    const user = req.user as IUser;
+    if (!user) {
+      res.status(STATUS_CODES.BAD_REQUEST).json({ error: "Google login failed" });
+      return;
+    }
+    const token = await this._authService.googleSignin(user);
+    res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "strict" });
+    res.redirect(`${process.env.CLIENT_URL}/login?googleSuccess=true`);
+  } catch (error:any) {
+    res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
+  }
+}
+
 }

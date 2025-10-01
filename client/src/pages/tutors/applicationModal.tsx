@@ -7,6 +7,7 @@ import { Toaster,toast } from "react-hot-toast";
 import { IApplicationModal } from "../../types/ITutorApplication";
 import { useAuthStore } from "../../store/authStore";
 import { tutorService } from "../../services/tutorService";
+import { authService } from "../../services/authService";
 
 
 const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
@@ -79,10 +80,14 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
       useAuthStore.getState().setLoading(true); // start loading
       await tutorService.apply(formData);
       toast.success("Application submitted successfully!");
+      const updatedUser = await authService.fetchUser();
+      useAuthStore.getState().setUser(updatedUser.user);
       onClose();
     } catch (err) {
-      console.error(err);
-      toast.error("something went wrong")
+      const errorMessage =
+      err.response?.data?.message ||
+      "Something went wrong!";
+    toast.error(errorMessage);
     } finally {
       useAuthStore.getState().setLoading(false); // stop loading
     }

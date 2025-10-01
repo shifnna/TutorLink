@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import { useAuthStore } from "../../store/authStore";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast, Toaster } from "react-hot-toast";
@@ -9,12 +9,15 @@ import { FaGraduationCap } from "react-icons/fa";
 const VerifyOtp: React.FC = () => {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+  const [timer,setTimer] = useState<number>(60);
+
 
   const { verifyOtp, resendOtp } = useAuthStore();
   const navigate = useNavigate();
   const { search } = useLocation();
   const email = new URLSearchParams(search).get("email") || "";
   const type = new URLSearchParams(search).get("type") || "";
+
 
   function handleChange(value: string, index: number) {
     if (!/^\d*$/.test(value)) return;
@@ -24,11 +27,13 @@ const VerifyOtp: React.FC = () => {
     if (value && index < 5) inputRefs.current[index + 1]?.focus();
   }
 
+
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>, index: number) {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   }
+
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -51,6 +56,7 @@ const VerifyOtp: React.FC = () => {
     }
   }
 
+
   async function handleResendOtp(e: React.FormEvent) {
     e.preventDefault();
     try {
@@ -61,6 +67,15 @@ const VerifyOtp: React.FC = () => {
     }
   }
 
+
+  useEffect(()=>{
+    if(timer>0){
+      const countDown = setTimeout(()=>setTimer((prev)=>prev-1),1000)
+      return ()=> clearTimeout(countDown);
+    }
+  },[timer]);
+
+  
   return (
     <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-br from-blue-950 via-purple-900 to-black text-white">
       {/* Right side OTP form */}
@@ -109,10 +124,18 @@ const VerifyOtp: React.FC = () => {
 
           {/* Resend OTP */}
           <p className="text-center text-gray-200 mt-6">
+            {timer>0? (
+            <span className="text-gray-400">
+              Resend in 00:{timer.toString().padStart(2, "0")}
+            </span>
+            ):(
+            <>
             Didn’t receive an OTP?{" "}
             <button onClick={handleResendOtp} className="text-yellow-400 hover:underline">
               Resend
             </button>
+            </>
+            )}
           </p>
         </div>
       </div>

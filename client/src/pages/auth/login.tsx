@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { FaGraduationCap } from "react-icons/fa";
@@ -54,8 +54,18 @@ const Login: React.FC = () => {
 
   }
 
+  useEffect(() => {
+  const params = new URLSearchParams(window.location.search);
+  if (params.get("googleSuccess")) {
+    toast.success("Logged in with Google! 🎉");
+    // Optionally, fetch user data from /me endpoint
+    navigate("/");
+  }
+  }, []);
+
+
   function handleGoogle(){
-    toast.loading("Google Login coming soon..")
+    window.location.href = "http://localhost:5000/api/auth/google";
   }
 
   return (

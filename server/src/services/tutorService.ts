@@ -4,13 +4,15 @@ import { ITutorRepository } from "../repositories/interfaces/ITutorRepository";
 import { IS3Service } from "./interfaces/IS3Service";
 import { ITutorService } from "./interfaces/ITutorService";
 import { ITutor } from "../models/tutor";
-import { UserModel } from "../models/user";
+import { IClientRepository } from "../repositories/interfaces/IClientRepository";
+import { Types } from "mongoose";
 
 @injectable()
 export class TutorService implements ITutorService {
   constructor(
     @inject(TYPES.ITutorRepository) private readonly _tutorRepo: ITutorRepository,
-    @inject(TYPES.IS3Service) private readonly _s3Service: IS3Service
+    @inject(TYPES.IS3Service) private readonly _s3Service: IS3Service,
+    @inject(TYPES.IClientRepository) private readonly _userRepo: IClientRepository
   ) {}
 
   async getPresignedUrl(fileName: string, fileType: string): Promise<{ url: string; key: string }> {
@@ -40,7 +42,7 @@ export class TutorService implements ITutorService {
     };
 
     const tutor = await this._tutorRepo.create(appData);
-    await UserModel.findByIdAndUpdate(userId, { tutorProfile: tutor._id });
+    await this._userRepo.findByIdAndUpdate(userId, { tutorProfile: tutor._id as Types.ObjectId, tutorApplication:{status:"Pending"}}); 
     return tutor;
   }
 

@@ -37,7 +37,7 @@ export const authService = {
   return response.data;
   },
   
-  resetPassword: async (data: { email: string; password: string }) => {
+  resetPassword: async (data: { email: string; password: string; confirmPassword:string }) => {
   const response = await axiosClient.post("/api/auth/reset-password", data);
   return response.data;
   },
@@ -48,8 +48,8 @@ export const authService = {
   },
 
   applyForTutor: async (data:{description: string,languages: string,education: string,skills: string,experienceLevel: string,gender: string,occupation: string,profileImage: string | null,certificates: string | null,accountHolder: string,accountNumber: number,bankName: string,ifsc: string})=>{
-    console.log("my data",data)
     const response = await axiosClient.post("/api/user/apply-for-tutor",data)
     return response.data;
-  }
+  },
+
 };

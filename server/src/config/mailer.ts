@@ -16,7 +16,7 @@ export async function sendOTP(email: string, otpCode: string) {
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Your OTP Code",
-      text: `Your OTP code is ${otpCode}. It will expire in 5 minutes.`,
+      text: `Your OTP code is ${otpCode}. It will expire in 1 minute.`,
       html: `<h2>Your OTP Code</h2>
              <p><b>${otpCode}</b></p>
              <p>This code will expire in 5 minutes.</p>`,

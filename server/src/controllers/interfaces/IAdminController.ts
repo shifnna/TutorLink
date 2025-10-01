@@ -6,5 +6,6 @@ export interface IAdminController{
     getAllTutorApplications(req: Request, res: Response): Promise<void>;
     toggleUserStatus(req: Request, res: Response) : Promise<Response>;
     approveTutor(req: Request, res: Response) : Promise<Response>;
+    rejectTutor(req: Request, res: Response): Promise<Response>
     getDashboardStats(req: Request, res: Response): Promise<void>;
 }

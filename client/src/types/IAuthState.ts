@@ -7,6 +7,8 @@ export interface IAuthState {
   isAuthenticated: boolean;
   search: string;
   
+  setUser: (user: any) => void,
+
   setSearch: (term: string) => void;
 
   fetchUser: () => Promise<void>,
@@ -23,7 +25,7 @@ export interface IAuthState {
 
   requestPasswordReset : (email:string,type:string) => Promise<any>;
 
-  resetPassword : (email:string, password:string) => Promise<any>;
+  resetPassword : (email:string, password:string, confirmPassword:string) => Promise<any>;
 
   logout: () => void;
 

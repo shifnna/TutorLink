@@ -1,5 +1,4 @@
 import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
 import { Card, CardContent } from "../components/ui/card";
 import { Search, MessageSquare, BookOpen } from "lucide-react";
 import {
@@ -21,6 +20,7 @@ const Home: React.FC = () => {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [showAdminMsg, setShowAdminMsg] = useState(false);
   
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
@@ -42,13 +42,6 @@ const Home: React.FC = () => {
     }
   }
 
-function handleProtectedNavigation(path: string) {
-  if (user) {
-    navigate(path);
-  } else {
-    toast.error("You must be logged in to access this page!"); // Show toast
-  }
-}
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 via-purple-950 to-black text-white">
@@ -84,11 +77,73 @@ function handleProtectedNavigation(path: string) {
           <p className="font-bold text-gray-800">{user?.name || ""}</p>
           <p className="text-sm text-yellow-600 mb-3">{user?.role || ""}</p>
 
-          <Button
-            onClick={(e) => {e.stopPropagation(); openModal()}} className="w-full mb-2 bg-gradient-to-r from-blue-900 via-purple-800 to-pink-700 text-white rounded-lg"
-          >
-            Become a Tutor
-          </Button>
+          {user?.role === "client" && (
+                                <>
+                                  {user.tutorApplication?.status === "Pending" && (
+                                    <Button
+                                      disabled
+                                      className="w-full mb-2 bg-green-400 text-white rounded-lg cursor-not-allowed"
+                                    >
+                                      Application Pending
+                                    </Button>
+                                  )}
+          
+                                  {user.tutorApplication?.status === "Rejected" && (
+                                    <div className="w-full mb-2">
+                                      <Button
+                                        disabled
+                                        className="w-full bg-red-500 text-white rounded-lg cursor-not-allowed"
+                                      >
+                                        Application Rejected
+                                      </Button>
+          
+                                      {/* Dropdown Message */}
+                                      <p
+                                        className="text-sm mt-2 text-blue-950 cursor-pointer hover:underline"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          setShowAdminMsg(!showAdminMsg);
+                                        }}
+                                      >
+                                        {showAdminMsg
+                                          ? "💬Hide Message From Admin"
+                                          : "💬View Message From Admin"}
+                                      </p>
+          
+                                      <div
+                                        className={`overflow-hidden transition-all duration-500 ease-in-out ${
+                                          showAdminMsg ? "max-h-40 opacity-100 mt-2" : "max-h-0 opacity-0"
+                                        }`}
+                                      >
+                                        <div className=" rounded-lg p-3 text-sm text-gray-800 shadow-sm">
+                                        {user.tutorApplication?.adminMessage || "No message provided"}
+                                        </div>
+                                      </div>
+                                    </div>
+                                  )}
+          
+                                  {!user.tutorApplication?.status && (
+                                    <Button
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        openModal();
+                                      }}
+                                      className="w-full mb-2 bg-gradient-to-r from-blue-900 via-purple-800 to-pink-700 text-white rounded-lg"
+                                    >
+                                      Become a Tutor
+                                    </Button>
+                                  )}
+          
+                                  {user.tutorApplication?.status === "Approved" && (
+                                    <Button
+                                      disabled
+                                      className="w-full mb-2 bg-green-600 text-white rounded-lg cursor-not-allowed"
+                                    >
+                                      Application Approved
+                                    </Button>
+                                  )}
+                                </>
+                              )}
 
           <Button
             variant="outline"

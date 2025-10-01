@@ -25,7 +25,6 @@ export const adminService = {
   
   approveTutor: async (userId:string) => {
     try {
-      console.log('hello')
     const response = await axiosClient.patch(`/api/admin/users/approve/${userId}`);
     return response.data;
     } catch (err: any) {
@@ -36,5 +35,13 @@ export const adminService = {
 
   getDashboardStats: async () =>{
     return await axiosClient.get("/api/admin/dashboard-stats");
+  },
+
+  rejectTutor: async (userId: string, message: string) => {
+    console.log('msg from frontend service',message)
+    const response = await axiosClient.patch(`/api/admin/users/reject/${userId}`, { message });
+    return response.data;
   }
+
+
 };

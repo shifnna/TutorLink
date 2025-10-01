@@ -99,7 +99,7 @@ export class AdminService implements IAdminService {
     const user = await this._userRepo.findById(userId);
     if (!user) throw new Error(COMMON_ERROR.USER_NOT_FOUND);
 
-    await this._userRepo.updateById(userId,{role:"tutor"});
+    await this._userRepo.updateById(userId,{role:"tutor",tutorApplication:{status:"Approved"}});
     await this._tutorRepo.findOneAndUpdate({ tutorId: userId },{ adminApproved: true });
 
     if (tutor.profileImage) {
@@ -108,6 +108,14 @@ export class AdminService implements IAdminService {
     }
     return tutor;
   }
+
+  async rejectTutor(userId: string, message: string): Promise<void> {
+    const user = await this._userRepo.findById(userId);
+    if (!user) throw new Error(COMMON_ERROR.USER_NOT_FOUND);
+
+    await this._userRepo.updateById(userId, { tutorApplication: { status: "Rejected", adminMessage: message } });
+  }
+
 
   async blockUser(userId: string): Promise<IUser> {
     return this._userRepo.updateById(userId,{ isBlocked: true }) as Promise<IUser>;

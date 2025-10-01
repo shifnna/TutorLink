@@ -1,5 +1,5 @@
 import { GetObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
-import { s3Client } from "../config/s3Confing";
+import { s3Client } from "../config/s3Config";
 import { IS3Service } from "./interfaces/IS3Service";
 import { v4 as uuidv4 } from "uuid";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";

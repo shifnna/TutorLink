@@ -6,7 +6,8 @@ export interface IUser {
   isBlocked: boolean;
   isVerified: boolean,
   joinedDate: string;
-  profileImage: string,
+  profileImage: string;
+  tutorApplication?: { status:"Pending" | "Rejected" | "Approved" | null , adminMessage?: string}
 }
 
 export interface ITutorProfile {

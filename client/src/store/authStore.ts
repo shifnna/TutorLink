@@ -12,6 +12,8 @@ export const useAuthStore = create<IAuthState>()(
       isAuthenticated: false,
       search: "",
   
+      setUser: (user: any) => set({ user }),
+
       setSearch: (term) => set({ search: term }),
       
       setLoading: async (value: boolean) => set({ isLoading: value }),
@@ -116,12 +118,13 @@ export const useAuthStore = create<IAuthState>()(
         }
       },
 
-      resetPassword: async (email: string, password: string) => {
+      resetPassword: async (email: string, password: string, confirmPassword:string) => {
         try {
           set({ isLoading: true, error: null });
           const response = await authService.resetPassword({
             email,
             password,
+            confirmPassword
           });
           set({ isLoading: false });
           return response;

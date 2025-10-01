@@ -33,7 +33,7 @@ const ResetPassword: React.FC = () => {
     }
 
     try {
-      await resetPassword(email, formData.password);
+      await resetPassword(email, formData.password, formData.confirmPassword);
       toast.success("Password reset successfully ✅");
       navigate("/login");
     } catch (error: any) {

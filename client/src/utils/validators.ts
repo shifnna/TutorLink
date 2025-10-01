@@ -7,11 +7,9 @@ export function isValidEmail(email: string) {
 }
 
 export function isValidPhone(phone: string) {
-  // Basic 10-digit phone validation, adjust for your locale
   return /^\d{10}$/.test(phone);
 }
 
 export function isStrongPassword(password: string) {
-  // Example rule: min 8 characters. Add complexity rules if you want.
   return password.length >= 8;
 }

@@ -5,6 +5,7 @@ export interface IAdminService {
   getAllClients(): Promise<IUser[]>;
   getAllTutors(): Promise<ITutor[]>;
   approveTutor(tutorId: string): Promise<ITutor>;
+  rejectTutor(userId: string, message: string): Promise<void>;
   blockUser(userId: string): Promise<IUser>;
   unblockUser(userId: string): Promise<IUser>;
   getAllTutorApplications(): Promise<ITutor[]>;

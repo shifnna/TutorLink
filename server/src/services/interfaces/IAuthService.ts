@@ -6,4 +6,5 @@ export interface IAuthService{
     login(email:string,password:string):Promise<{ user: IUser; token: string }>;
     resendOtp(email: string, type:string):Promise<{ message: string } | null>;
     resetPassword(email: string, password: string):Promise<{ message: string } | null>; 
+    googleSignin(user: IUser): Promise<string>;
 }
