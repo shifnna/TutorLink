@@ -93,7 +93,7 @@ export class AdminService implements IAdminService {
   }
 
   async approveTutor(userId: string): Promise<ITutor> {
-    const tutor = await this._tutorRepo.findById(userId);
+    const tutor = await this._tutorRepo.findOne({ tutorId: userId });
     if (!tutor) throw new Error("Tutor application not found");
 
     const user = await this._userRepo.findById(userId);

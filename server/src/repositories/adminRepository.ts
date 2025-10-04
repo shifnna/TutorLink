@@ -10,7 +10,7 @@ export class AdminRepository implements IAdminRepository {
   constructor(@inject(TYPES.ITutorModel) private readonly _tutorModel: typeof TutorModel) {}
   
   async findPendingTutors(): Promise<ITutor[]>{
-    return this._tutorModel.find({ adminApproved: false }).populate("tutorId", "name email").sort({ createdAt: -1 });
+    return this._tutorModel.find({ adminApproved: false }).populate("tutorId", "name email tutorApplication").sort({ createdAt: -1 });
   }  
   
 }

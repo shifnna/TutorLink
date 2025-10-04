@@ -10,6 +10,7 @@ const ClientsPage: React.FC = () => {
   const [users, setUsers] = useState<IUser[]>([]);
   const [search, setSearch] = useState("");
 
+
   useEffect(() => {
     const fetchClients = async () => {
       try {
@@ -47,6 +48,14 @@ const ClientsPage: React.FC = () => {
     }
   };
 
+
+  //// Filter users based on search input
+  const filteredUsers = users.filter(
+    (user) =>
+      user.name.toLowerCase().includes(search.toLowerCase()) ||
+      user.email.toLowerCase().includes(search.toLowerCase())
+  );
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-950 to-black text-white p-8">
       {/* Header */}
@@ -65,7 +74,7 @@ const ClientsPage: React.FC = () => {
       </div>
 
       {/* Users List */}
-      <TableList users={users} handleToggleStatus={handleToggleStatus}/>
+      <TableList users={filteredUsers} handleToggleStatus={handleToggleStatus}/>
       
     </div>
   );

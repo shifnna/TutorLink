@@ -15,7 +15,7 @@ const AdminDashboard: React.FC = () => {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res = await adminService.getDashboardStats()
+        const res = await adminService.getDashboardStats();
         setStats(res.data);
       } catch (error) {
         console.error("Failed to fetch stats", error);
@@ -28,8 +28,9 @@ const AdminDashboard: React.FC = () => {
     <div className="flex min-h-screen bg-gradient-to-br from-gray-900 via-purple-950 to-black text-white">
       {/* Sidebar */}
       <Sidebar />
+
       {/* Main Content */}
-      <main className="flex-1 p-8 overflow-y-auto">
+      <main className="flex-1 p-8 ml-72 overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-8">
           <h2 className="text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-400 to-indigo-400">
@@ -66,9 +67,7 @@ const AdminDashboard: React.FC = () => {
               stats.pendingApplications.map((app: any) => (
                 <li key={app._id}>
                   📄 Application from{" "}
-                  <span className="text-white font-semibold">
-                    {app.tutorId?.name}
-                  </span>{" "}
+                  <span className="text-white font-semibold">{app.tutorId?.name}</span>{" "}
                   ({app.education || "N/A"}) - Awaiting Review
                 </li>
               ))

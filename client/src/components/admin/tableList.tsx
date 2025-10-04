@@ -16,6 +16,10 @@ const TableList: React.FC<TableListProps> = ({ users, handleToggleStatus }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTutor, setSelectedTutor] = useState<IUserWithTutor | null>(null);
 
+    // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const usersPerPage = 5;
+
   const openModal = (tutor: IUserWithTutor) => {
     setSelectedTutor(tutor);
     setIsModalOpen(true);
@@ -26,12 +30,19 @@ const TableList: React.FC<TableListProps> = ({ users, handleToggleStatus }) => {
     setIsModalOpen(false);
   };
 
+
+    //pagination logic
+  const indexOfLastUser = currentPage * usersPerPage;
+  const indexOfFirstUser = indexOfLastUser - usersPerPage;
+  const currentUsers = users.slice(indexOfFirstUser, indexOfLastUser);
+  const totalPages = Math.ceil(users.length / usersPerPage);
+
   return (
     <div>
       <div className="bg-white/10 backdrop-blur-md rounded-2xl p-6 shadow-lg border border-purple-800/40">
         <div className="space-y-4">
-          {users.length > 0 ? (
-            users.map((user) => (
+          {currentUsers.length > 0 ? (
+            currentUsers.map((user) => (
               <div
                 key={user.id}
                 className="flex items-center justify-between bg-black/30 rounded-xl px-6 py-4 shadow-md hover:shadow-lg transition"
@@ -230,8 +241,53 @@ const TableList: React.FC<TableListProps> = ({ users, handleToggleStatus }) => {
             )}
           </div>
         </div>
+        
+      )}
+
+       {/* Pagination Controls */}
+      {users.length > usersPerPage && (
+        <div className="flex justify-center items-center gap-2 mt-6">
+          <button
+            className={`px-4 py-2 rounded-lg ${
+              currentPage === 1
+                ? "bg-gray-500 cursor-not-allowed"
+                : "bg-purple-700 hover:bg-purple-800"
+            }`}
+            disabled={currentPage === 1}
+            onClick={() => setCurrentPage((prev) => prev - 1)}
+          >
+            Prev
+          </button>
+
+          {Array.from({ length: totalPages }, (_, i) => (
+            <button
+              key={i + 1}
+              className={`px-4 py-2 rounded-lg ${
+                currentPage === i + 1
+                  ? "bg-yellow-400 text-black font-bold"
+                  : "bg-purple-600 hover:bg-purple-700"
+              }`}
+              onClick={() => setCurrentPage(i + 1)}
+            >
+              {i + 1}
+            </button>
+          ))}
+
+          <button
+            className={`px-4 py-2 rounded-lg ${
+              currentPage === totalPages
+                ? "bg-gray-500 cursor-not-allowed"
+                : "bg-purple-700 hover:bg-purple-800"
+            }`}
+            disabled={currentPage === totalPages}
+            onClick={() => setCurrentPage((prev) => prev + 1)}
+          >
+            Next
+          </button>
+        </div>
       )}
     </div>
+    
   );
 };
 

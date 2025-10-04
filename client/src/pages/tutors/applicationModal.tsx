@@ -83,9 +83,9 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
       const updatedUser = await authService.fetchUser();
       useAuthStore.getState().setUser(updatedUser.user);
       onClose();
-    } catch (err) {
+    } catch (err:any) {
       const errorMessage =
-      err.response?.data?.message ||
+      err.response?.data?.error ||
       "Something went wrong!";
     toast.error(errorMessage);
     } finally {

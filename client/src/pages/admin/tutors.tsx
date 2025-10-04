@@ -47,6 +47,15 @@ const TutorsPage: React.FC = () => {
     }
   };
 
+
+  //// Filter users based on search input
+  const filteredUsers = tutors.filter(
+    (tutor) =>
+      tutor.name.toLowerCase().includes(search.toLowerCase()) ||
+      tutor.email.toLowerCase().includes(search.toLowerCase())
+  );
+
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-950 to-black text-white p-8">
       {/* Header */}
@@ -65,7 +74,7 @@ const TutorsPage: React.FC = () => {
       </div>
 
       {/* Users List */}
-      <TableList users={tutors} handleToggleStatus={handleToggleStatus}/>
+      <TableList users={filteredUsers} handleToggleStatus={handleToggleStatus}/>
     </div>
   );
 };

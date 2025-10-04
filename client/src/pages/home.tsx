@@ -11,7 +11,7 @@ import {
 } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import {toast,Toaster} from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 import { useState } from "react";
 import ApplicationModal from "./tutors/applicationModal";
 import { authService } from "../services/authService";
@@ -21,27 +21,26 @@ const Home: React.FC = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showAdminMsg, setShowAdminMsg] = useState(false);
-  
+
   const openModal = () => setIsModalOpen(true);
   const closeModal = () => setIsModalOpen(false);
 
-  async function handleLogin() {
-    navigate("/login");
-  }
+  const { user, logout } = useAuthStore();
 
-  const { user,logout } = useAuthStore();
-
-    async function handleLogout() {
+  async function handleLogout() {
     try {
-      const response = await authService.logout() //rmv cookies
-      logout(); //remv frm state/store
+      const response = await authService.logout(); // remove cookies
+      logout(); // remove from store
       navigate("/");
-      toast.success(response.message)
+      toast.success(response.message);
     } catch (err) {
       console.error("Logout failed:", err);
     }
   }
 
+  async function handleLogin() {
+    navigate("/login");
+  }
 
   return (
     <div className="flex flex-col min-h-screen bg-gradient-to-br from-gray-900 via-purple-950 to-black text-white">
@@ -64,117 +63,121 @@ const Home: React.FC = () => {
             Contact
           </a>
         </nav>
-          {user ? (
-    // User dropdown
-    <div className="relative">
-      <FaUserCircle
-        className="w-8 h-8 text-white cursor-pointer"
-        onClick={() => setMenuOpen(!menuOpen)}
-      />
+        {user ? (
+          // User dropdown
+          <div className="relative">
+            <FaUserCircle
+              className="w-8 h-8 text-white cursor-pointer"
+              onClick={() => setMenuOpen(!menuOpen)}
+            />
 
-      {menuOpen && (
-        <div className="absolute right-0 mt-3 w-56 bg-white rounded-xl shadow-lg p-4 z-50">
-          <p className="font-bold text-gray-800">{user?.name || ""}</p>
-          <p className="text-sm text-yellow-600 mb-3">{user?.role || ""}</p>
+            {menuOpen && (
+              <div className="absolute right-0 mt-3 w-72 bg-white rounded-xl shadow-lg p-4 z-50">
+                <p className="font-bold text-gray-800">{user?.name || ""}</p>
+                <p className="text-sm text-yellow-600 mb-3">{user?.role || ""}</p>
 
-          {user?.role === "client" && (
-                                <>
-                                  {user.tutorApplication?.status === "Pending" && (
-                                    <Button
-                                      disabled
-                                      className="w-full mb-2 bg-green-400 text-white rounded-lg cursor-not-allowed"
-                                    >
-                                      Application Pending
-                                    </Button>
-                                  )}
-          
-                                  {user.tutorApplication?.status === "Rejected" && (
-                                    <div className="w-full mb-2">
-                                      <Button
-                                        disabled
-                                        className="w-full bg-red-500 text-white rounded-lg cursor-not-allowed"
-                                      >
-                                        Application Rejected
-                                      </Button>
-          
-                                      {/* Dropdown Message */}
-                                      <p
-                                        className="text-sm mt-2 text-blue-950 cursor-pointer hover:underline"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          setShowAdminMsg(!showAdminMsg);
-                                        }}
-                                      >
-                                        {showAdminMsg
-                                          ? "💬Hide Message From Admin"
-                                          : "💬View Message From Admin"}
-                                      </p>
-          
-                                      <div
-                                        className={`overflow-hidden transition-all duration-500 ease-in-out ${
-                                          showAdminMsg ? "max-h-40 opacity-100 mt-2" : "max-h-0 opacity-0"
-                                        }`}
-                                      >
-                                        <div className=" rounded-lg p-3 text-sm text-gray-800 shadow-sm">
-                                        {user.tutorApplication?.adminMessage || "No message provided"}
-                                        </div>
-                                      </div>
-                                    </div>
-                                  )}
-          
-                                  {!user.tutorApplication?.status && (
-                                    <Button
-                                      onClick={(e) => {
-                                        e.stopPropagation();
-                                        openModal();
-                                      }}
-                                      className="w-full mb-2 bg-gradient-to-r from-blue-900 via-purple-800 to-pink-700 text-white rounded-lg"
-                                    >
-                                      Become a Tutor
-                                    </Button>
-                                  )}
-          
-                                  {user.tutorApplication?.status === "Approved" && (
-                                    <Button
-                                      disabled
-                                      className="w-full mb-2 bg-green-600 text-white rounded-lg cursor-not-allowed"
-                                    >
-                                      Application Approved
-                                    </Button>
-                                  )}
-                                </>
-                              )}
+                {/* Tutor Application Section */}
+                {user?.role === "client" && (
+                  <div className="space-y-3">
+                    {/* Pending */}
+                    {user.tutorApplication?.status === "Pending" && (
+                      <div className="p-3 bg-yellow-100 rounded-lg border-l-4 border-yellow-500 text-yellow-800 font-medium">
+                        Your tutor application is pending review.
+                      </div>
+                    )}
 
+                    {/* Rejected */}
+                    {user.tutorApplication?.status === "Rejected" && (
+                      <div className="p-3 bg-red-100 rounded-lg border-l-4 border-red-500 text-red-800 font-medium space-y-2">
+                        <p>Your tutor application was rejected by the admin.</p>
+
+                        {/* Admin Message */}
+                        {user.tutorApplication?.adminMessage && (
+                          <div>
+                            <button
+                              className="text-sm text-red-700 underline hover:text-red-900"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setShowAdminMsg(!showAdminMsg);
+                              }}
+                            >
+                              {showAdminMsg ? "Hide Reason" : "View Reason"}
+                            </button>
+
+                            {showAdminMsg && (
+                              <div className="mt-2 p-2 bg-red-200 rounded text-sm text-red-900 shadow-inner">
+                                {user.tutorApplication.adminMessage}
+                              </div>
+                            )}
+                          </div>
+                        )}
+
+                        {/* Resubmit Button */}
+                        <Button
+                          onClick={() => {
+                            openModal();
+                            setMenuOpen(false);
+                          }}
+                          className="w-full mt-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium"
+                        >
+                          Resubmit Application
+                        </Button>
+                      </div>
+                    )}
+
+                    {/* No Application */}
+                    {!user.tutorApplication?.status && (
+                      <Button
+                        onClick={() => {
+                          openModal();
+                          setMenuOpen(false);
+                        }}
+                        className="w-full bg-gradient-to-r from-blue-900 via-purple-800 to-pink-700 text-white rounded-lg font-medium"
+                      >
+                        Become a Tutor
+                      </Button>
+                    )}
+
+                    {/* Approved */}
+                    {user.tutorApplication?.status === "Approved" && (
+                      <div className="p-3 bg-green-100 rounded-lg border-l-4 border-green-500 text-green-800 font-medium">
+                        Your tutor application is approved! 🎉
+                      </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Other Options */}
+                <Button
+                  variant="outline"
+                  className="w-full mb-2 text-black rounded-lg border-gray-300 hover:bg-gray-100 hover:border-gray-400"
+                >
+                  Messages
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full text-black mb-2 rounded-lg border-gray-300 hover:bg-gray-100 hover:border-gray-400"
+                >
+                  Settings
+                </Button>
+                <Button
+                  variant="outline"
+                  className="w-full rounded-lg border-red-400 text-red-600 hover:bg-red-100"
+                  onClick={handleLogout}
+                >
+                  Logout
+                </Button>
+              </div>
+            )}
+          </div>
+        ) : (
           <Button
-            variant="outline"
-            className="w-full mb-2 text-black rounded-lg border-gray-300 hover:bg-gray-100 hover:border-gray-400"
+            onClick={handleLogin}
+            className="rounded-full bg-gradient-to-r from-yellow-400 to-pink-500 text-white font-bold px-6 hover:scale-105 transition"
           >
-            Messages
+            Log In
           </Button>
-          <Button
-            variant="outline"
-            className="w-full text-black mb-2 rounded-lg border-gray-300 hover:bg-gray-100 hover:border-gray-400"
-          >
-            Settings
-          </Button>
-          <Button
-            variant="outline"
-            className="w-full rounded-lg border-red-400 text-red-600 hover:bg-red-100"
-            onClick={()=>handleLogout()}
-          >
-            Logout
-          </Button>
-        </div>
-      )}
-    </div>
-  ) : (
-    <Button
-      onClick={handleLogin}
-      className="rounded-full bg-gradient-to-r from-yellow-400 to-pink-500 text-white font-bold px-6 hover:scale-105 transition"
-    >
-      Log In
-    </Button>
-  )}
+        )}
       </header>
 
       {/* Hero Section */}
@@ -191,57 +194,33 @@ const Home: React.FC = () => {
         </p>
 
         <div className="flex gap-4 mt-4">
-          <Button onClick={() => {
-            if (user) {
-              openModal();
-            } else {
-              navigate("/login");
-            }
-          }} className="rounded-full bg-gradient-to-r from-indigo-500 to-pink-600 text-white px-8 py-3 hover:scale-105 hover:shadow-lg transition">
+          <Button
+            onClick={() => {
+              if (user) openModal();
+              else navigate("/login");
+            }}
+            className="rounded-full bg-gradient-to-r from-indigo-500 to-pink-600 text-white px-8 py-3 hover:scale-105 hover:shadow-lg transition"
+          >
             Become a Tutor
           </Button>
           <Button
-            onClick={() => {
-            if (user) {
-              navigate("/explore-tutors")
-            } else {
-              navigate("/login");
-            }
-          }}
+            onClick={() => (user ? navigate("/explore-tutors") : navigate("/login"))}
             variant="outline"
             className="rounded-full border-purple-500/40 text-white px-6 py-3 hover:bg-purple-800/40 hover:text-yellow-300 transition"
           >
-            <a>Find Tutor</a>
+            Find Tutor
           </Button>
           <Button
-            onClick={() => {
-            if (user) {
-              navigate("/find-job")
-            } else {
-              navigate("/login");
-            }
-          }}
+            onClick={() => (user ? navigate("/find-job") : navigate("/login"))}
             variant="outline"
             className="rounded-full border-purple-500/40 text-white px-6 py-3 hover:bg-purple-800/40 hover:text-yellow-300 transition"
           >
-            <a>Find Job</a>
+            Find Job
           </Button>
         </div>
-
-        {/* Search Bar */}
-        {/* <div className="flex items-center w-full max-w-lg mt-8 rounded-full overflow-hidden bg-black/50 backdrop-blur-md border border-purple-700/50 shadow-lg">
-          <Input
-            type="text"
-            placeholder="Search tutors by subject..."
-            className="border-none focus:ring-0 text-gray-900 px-6 py-4 rounded-l-full bg-white"
-          />
-          <Button className="rounded-r-full px-6 py-4 text-white font-medium bg-gradient-to-r from-indigo-500 to-pink-600 hover:scale-105 transition">
-            Search
-          </Button>
-        </div> */}
       </section>
 
-      {/* How It Works */}
+      {/* How It Works Section */}
       <section className="px-6 md:px-10 py-16 bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 text-gray-900 rounded-t-3xl mt-16">
         <h3 className="text-4xl md:text-5xl font-extrabold text-center mb-12 text-yellow-400 tracking-wide drop-shadow-md">
           How It Works
@@ -308,7 +287,8 @@ const Home: React.FC = () => {
           </p>
         </div>
       </footer>
-      <Toaster position="top-center" reverseOrder={false} />  
+
+      <Toaster position="top-center" reverseOrder={false} />
       <ApplicationModal isOpen={isModalOpen} onClose={closeModal} />
     </div>
   );
