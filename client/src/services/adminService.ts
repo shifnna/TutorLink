@@ -8,13 +8,11 @@ export const adminService = {
 
   getAllTutors: async () => {
     const response = await axiosClient.get("/api/admin/tutors");
-    console.log("tutors",response)
     return response.data;
   },
 
   getAllTutorApplications: async () => {
     const response = await axiosClient.get("/api/admin/tutor-applications");
-    console.log("applications",response)
     return response.data;
   },
 
@@ -38,7 +36,6 @@ export const adminService = {
   },
 
   rejectTutor: async (userId: string, message: string) => {
-    console.log('msg from frontend service',message)
     const response = await axiosClient.patch(`/api/admin/users/reject/${userId}`, { message });
     return response.data;
   }
