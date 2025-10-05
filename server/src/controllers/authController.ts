@@ -8,9 +8,12 @@ import { IUser } from "../models/user";
 
 @injectable()
 export class AuthController implements IAuthController {
-  constructor(@inject(TYPES.IAuthService) private readonly _authService: IAuthService) {}
+  constructor(
+    @inject(TYPES.IAuthService)
+    private readonly _authService: IAuthService
+  ) {}
 
-  async signup(req: Request, res: Response): Promise<void> {
+  signup = async (req: Request, res: Response): Promise<void> => {
     try {
       const { name, email, password, confirmPassword } = req.body;
       const user = await this._authService.signup(name, email, password, confirmPassword);
@@ -18,9 +21,9 @@ export class AuthController implements IAuthController {
     } catch (error: any) {
       res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
     }
-  }
+  };
 
-  async login(req: Request, res: Response): Promise<void> {
+  login = async (req: Request, res: Response): Promise<void> => {
     try {
       const { email, password } = req.body;
       const result = await this._authService.login(email, password);
@@ -36,19 +39,19 @@ export class AuthController implements IAuthController {
     } catch (error: any) {
       res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
     }
-  }
+  };
 
-  async getMe(req: Request, res: Response): Promise<void> {
+  getMe = async (req: Request, res: Response): Promise<void> => {
     const user = (req as any).user;
     res.status(STATUS_CODES.SUCCESS).json({ user });
-  }
+  };
 
-  async logout(req: Request, res: Response): Promise<void> {
+  logout = async (req: Request, res: Response): Promise<void> => {
     res.clearCookie("token");
     res.status(STATUS_CODES.SUCCESS).json({ message: "Logged out successfully" });
-  }
+  };
 
-  async verifyOtp(req: Request, res: Response): Promise<void> {
+  verifyOtp = async (req: Request, res: Response): Promise<void> => {
     try {
       const { email, otp, type } = req.body;
       const result = await this._authService.verifyOtp(email, otp, type);
@@ -56,9 +59,9 @@ export class AuthController implements IAuthController {
     } catch (error: any) {
       res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
     }
-  }
+  };
 
-  async resendOtp(req: Request, res: Response): Promise<void> {
+  resendOtp = async (req: Request, res: Response): Promise<void> => {
     try {
       const { email, type } = req.body;
       const result = await this._authService.resendOtp(email, type);
@@ -66,9 +69,9 @@ export class AuthController implements IAuthController {
     } catch (error: any) {
       res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
     }
-  }
+  };
 
-  async resetPassword(req: Request, res: Response): Promise<void> {
+  resetPassword = async (req: Request, res: Response): Promise<void> => {
     try {
       const { email, password } = req.body;
       const result = await this._authService.resetPassword(email, password);
@@ -76,21 +79,26 @@ export class AuthController implements IAuthController {
     } catch (error: any) {
       res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
     }
-  }
+  };
 
-  async googleSignin(req: Request, res: Response):  Promise<void>{
+  googleSignin = async (req: Request, res: Response): Promise<void> => {
     try {
-    const user = req.user as IUser;
-    if (!user) {
-      res.status(STATUS_CODES.BAD_REQUEST).json({ error: "Google login failed" });
-      return;
-    }
-    const token = await this._authService.googleSignin(user);
-    res.cookie("token", token, { httpOnly: true, secure: false, sameSite: "strict" });
-    res.redirect(`${process.env.CLIENT_URL}/login?googleSuccess=true`);
-  } catch (error:any) {
-    res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
-  }
-}
+      const user = req.user as IUser;
+      if (!user) {
+        res.status(STATUS_CODES.BAD_REQUEST).json({ error: "Google login failed" });
+        return;
+      }
 
+      const token = await this._authService.googleSignin(user);
+      res.cookie("token", token, {
+        httpOnly: true,
+        secure: false,
+        sameSite: "strict",
+      });
+
+      res.redirect(`${process.env.CLIENT_URL}/login?googleSuccess=true`);
+    } catch (error: any) {
+      res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
+    }
+  };
 }

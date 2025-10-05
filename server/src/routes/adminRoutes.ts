@@ -9,12 +9,12 @@ import { approveTutorSchema, rejectTutorSchema, toggleUserSchema } from "../vali
 const router = Router();
 const controller = container.get<IAdminController>(TYPES.IAdminController)
 
-router.get("/clients",protect,adminOnly, controller.getAllClients.bind(controller));
-router.get("/tutors",protect,adminOnly, controller.getAllTutors.bind(controller));
-router.get("/tutor-applications",protect,adminOnly, controller.getAllTutorApplications.bind(controller));
-router.get("/dashboard-stats",protect,adminOnly, controller.getDashboardStats.bind(controller));
-router.patch("/users/:id/toggle",protect,adminOnly,validate(toggleUserSchema), controller.toggleUserStatus.bind(controller));
-router.patch("/users/approve/:userId",protect,adminOnly,validate(approveTutorSchema), controller.approveTutor.bind(controller));
-router.patch("/users/reject/:userId",protect,adminOnly,validate(rejectTutorSchema), controller.rejectTutor.bind(controller));
+router.get("/clients",protect,adminOnly, controller.getAllClients);
+router.get("/tutors",protect,adminOnly, controller.getAllTutors);
+router.get("/tutor-applications",protect,adminOnly, controller.getAllTutorApplications);
+router.get("/dashboard-stats",protect,adminOnly, controller.getDashboardStats);
+router.patch("/users/:id/toggle",protect,adminOnly,validate(toggleUserSchema), controller.toggleUserStatus);
+router.patch("/users/approve/:userId",protect,adminOnly,validate(approveTutorSchema), controller.approveTutor);
+router.patch("/users/reject/:userId",protect,adminOnly,validate(rejectTutorSchema), controller.rejectTutor);
 
 export default router;
