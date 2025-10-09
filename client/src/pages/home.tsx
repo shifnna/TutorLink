@@ -29,8 +29,8 @@ const Home: React.FC = () => {
 
   async function handleLogout() {
     try {
-      const response = await authService.logout(); // remove cookies
-      logout(); // remove from store
+      const response = await authService.logout(); //// remove cookies
+      logout(); //// remove from store
       navigate("/");
       toast.success(response.message);
     } catch (err) {

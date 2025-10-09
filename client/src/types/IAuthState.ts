@@ -9,7 +9,7 @@ export interface IAuthState {
   blocked: boolean;
   
   setUser: (user: any) => void,
-setAuthState: (data: any) => void,
+  setAuthState: (data: any) => void,
   setSearch: (term: string) => void;
 
   fetchUser: () => Promise<void>,

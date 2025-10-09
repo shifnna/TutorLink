@@ -1,5 +1,3 @@
-
-// GuestRoute.tsx
 import { Navigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
 import { JSX, useEffect } from "react";

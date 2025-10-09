@@ -25,7 +25,8 @@ export const useAuthStore = create<IAuthState>()(
         try {
           set({ isLoading: true, error: null });
           const response = await authService.fetchUser ();
-          set({ user: response.user, isAuthenticated: true, blocked: !!response.user?.blocked, isLoading: false });
+          const isBlocked = !!response.user?.blocked;
+          set({ user: response.user, isAuthenticated: !isBlocked, blocked: isBlocked, isLoading: false });
         } catch (error: any) {
           set({ user: null, isLoading: false, error: error?.message || null });
           if (error?.response?.status === 401) {
