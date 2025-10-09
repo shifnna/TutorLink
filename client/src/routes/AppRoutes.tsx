@@ -13,6 +13,7 @@ import TutorsPage from "../pages/admin/tutors";
 import GuestRoute from "../components/guestRoute";
 import ProtectedRoute from "../components/protectedRoute";
 import Unauthorized from "../pages/auth/unAuthorized";
+import Blocked from "../pages/auth/blocked";
 
 function AppRoutes() {
   return (
@@ -21,6 +22,7 @@ function AppRoutes() {
         <Routes>
             <Route path="/" element={<Home/>} />
             <Route path="/unauthorized" element={<Unauthorized/>} />
+            <Route path="/blocked" element={<Blocked/>} />
            
             <Route path="/signup" element={<GuestRoute><Signup/></GuestRoute> } />
             <Route path="/verify-otp" element={<VerifyOtp />} />

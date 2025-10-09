@@ -16,9 +16,7 @@ export class AdminController implements IAdminController {
       const users = await this._adminService.getAllClients();
       res.status(STATUS_CODES.SUCCESS).json(users);
     } catch (error: any) {
-      res
-        .status(STATUS_CODES.SERVER_ERROR)
-        .json({ message: "Failed to fetch users", error: error.message });
+      res.status(STATUS_CODES.SERVER_ERROR).json({ message: "Failed to fetch users", error: error.message });
     }
   };
 

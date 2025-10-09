@@ -6,9 +6,10 @@ export interface IAuthState {
   error: string | null;
   isAuthenticated: boolean;
   search: string;
+  blocked: boolean;
   
   setUser: (user: any) => void,
-
+setAuthState: (data: any) => void,
   setSearch: (term: string) => void;
 
   fetchUser: () => Promise<void>,

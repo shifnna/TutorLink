@@ -11,8 +11,11 @@ export const useAuthStore = create<IAuthState>()(
       error: null,
       isAuthenticated: false,
       search: "",
+      blocked: false,
   
-      setUser: (user: any) => set({ user }),
+      setAuthState: (data: Partial<IAuthState>) => set(data),
+      
+      setUser: (user: any) => set({ user, blocked: !!user?.blocked }),
 
       setSearch: (term) => set({ search: term }),
       
@@ -20,11 +23,18 @@ export const useAuthStore = create<IAuthState>()(
 
       fetchUser: async () => {
         try {
-          set({ isLoading: true });
-          const response = await authService.fetchUser();
-          set({ user: response.user, isAuthenticated: true, isLoading: false });
-        } catch {
-          set({ user: null, isAuthenticated: false, isLoading: false });
+          set({ isLoading: true, error: null });
+          const response = await authService.fetchUser ();
+          set({ user: response.user, isAuthenticated: true, blocked: !!response.user?.blocked, isLoading: false });
+        } catch (error: any) {
+          set({ user: null, isLoading: false, error: error?.message || null });
+          if (error?.response?.status === 401) {
+            set({ isAuthenticated: false, blocked: false });
+          } else if (error?.response?.status === 403) {
+            set({ isAuthenticated: true, blocked: true });
+          } else {
+            set({ isAuthenticated: false, blocked: false });
+          }
         }
       },
 

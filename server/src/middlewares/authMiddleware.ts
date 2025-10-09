@@ -16,6 +16,8 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
     const user = await UserModel.findById(decoded.id);
     if (!user) return res.status(STATUS_CODES.UNAUTHORIZED).json({ message: COMMON_ERROR.USER_NOT_FOUND });
 
+    if(user.isBlocked) return res.status(STATUS_CODES.FORBIDDEN).json({message: COMMON_ERROR.USER_BLOCKED });
+    
     req.user = user;
     next();
   } catch (error) {

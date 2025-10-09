@@ -7,7 +7,8 @@ export enum COMMON_ERROR {
   PASSWORDS_MISMATCH = "Passwords are not matching",
   INVALID_CREDENTIALS = "Invalid credentials",
   USER_NOT_FOUND = "User Not Found",
-  ALREADY_VERIFIED = "User Alredy Verified"
+  ALREADY_VERIFIED = "User Alredy Verified",
+  USER_BLOCKED = "Your account has been blocked by admin"
 }
 
 export enum COMMON_SUCCESS {
