@@ -11,7 +11,8 @@ const router = Router();
 const controller = container.get<IAuthController>(TYPES.IAuthController)
 
 
-router.get('/me',protect, controller.getMe.bind(controller))
+router.get('/me',protect, controller.getMe)
+router.post("/refresh-token", controller.refreshToken);
 
 router.post('/signup',validate(signupSchema), controller.signup);          //when using normal functions, .bind(controller) ensures the method always remembers the correct this
 router.post('/login',validate(loginSchema), controller.login);             //* arrow or normal function which is best practise ?

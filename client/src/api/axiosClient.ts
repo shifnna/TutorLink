@@ -6,8 +6,14 @@ const axiosClient = axios.create({
   withCredentials: true,
   headers: {
     "Content-Type": "application/json",
-    Authorization: `Bearer ${localStorage.getItem("token")}`, // //or from store
   },
+});
+
+//// Add token dynamically
+axiosClient.interceptors.request.use((config) => {
+  const accessToken = useAuthStore.getState().accessToken;
+  if (accessToken) config.headers.Authorization = `Bearer ${accessToken}`;
+  return config;
 });
 
 //// Intercept responses globally

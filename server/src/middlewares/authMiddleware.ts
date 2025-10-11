@@ -12,7 +12,7 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
     const token = req.cookies?.token;
     if (!token) return res.status(STATUS_CODES.UNAUTHORIZED).json({ message: "Not authorized, no token" });
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as { id: string };
     const user = await UserModel.findById(decoded.id);
     if (!user) return res.status(STATUS_CODES.UNAUTHORIZED).json({ message: COMMON_ERROR.USER_NOT_FOUND });
 

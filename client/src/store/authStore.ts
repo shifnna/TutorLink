@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { IAuthState } from "../types/IAuthState";
 import { authService } from "../services/authService";
+import { IUser } from "../types/IUser";
 
 export const useAuthStore = create<IAuthState>()(
   persist(
@@ -10,171 +11,176 @@ export const useAuthStore = create<IAuthState>()(
       isLoading: false,
       error: null,
       isAuthenticated: false,
+      accessToken: "",
       search: "",
       blocked: false,
-  
+
       setAuthState: (data: Partial<IAuthState>) => set(data),
-      
-      setUser: (user: any) => set({ user, blocked: !!user?.blocked }),
+
+      setUser: (user: IUser | null) => set({ user, blocked: !!user?.isBlocked }),
 
       setSearch: (term) => set({ search: term }),
-      
-      setLoading: async (value: boolean) => set({ isLoading: value }),
+
+      setLoading: async (value: boolean) => {
+        set({ isLoading: value });
+      },
 
       fetchUser: async () => {
         try {
           set({ isLoading: true, error: null });
-          const response = await authService.fetchUser ();
+          const response = await authService.fetchUser();
           const isBlocked = !!response.user?.blocked;
-          set({ user: response.user, isAuthenticated: !isBlocked, blocked: isBlocked, isLoading: false });
-        } catch (error: any) {
-          set({ user: null, isLoading: false, error: error?.message || null });
-          if (error?.response?.status === 401) {
-            set({ isAuthenticated: false, blocked: false });
-          } else if (error?.response?.status === 403) {
-            set({ isAuthenticated: true, blocked: true });
-          } else {
-            set({ isAuthenticated: false, blocked: false });
-          }
+          set({
+            user: response.user,
+            isAuthenticated: !isBlocked,
+            blocked: isBlocked,
+            isLoading: false,
+          });
+        } catch (error: unknown) {
+          let message = "Failed to fetch user";
+          if (error instanceof Error) message = error.message;
+
+          set({ user: null, isLoading: false, error: message });
+          set({ isAuthenticated: false, blocked: false });
         }
       },
 
       signup: async (name, email, password, confirmPassword) => {
+        set({ isLoading: true, error: null });
         try {
-          set({ isLoading: true, error: null });
-          const response = await authService.signup({
-            name,
-            email,
-            password,
-            confirmPassword,
-          });
-
+          const response = await authService.signup({ name, email, password, confirmPassword });
           set({
             user: response.user,
             isAuthenticated: true,
             isLoading: false,
           });
-
-          return response;
-        } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.response?.data?.error || "Signup failed",
-          });
-          throw error;
+          return response.user;
+        } catch (error: unknown) {
+          let message = "Signup failed";
+          if (error instanceof Error) message = error.message;
+          set({ isLoading: false, error: message });
+          throw new Error(message);
         }
       },
 
-      verifyOtp: async (email: string, otp: string, type: string) => {
+      verifyOtp: async (email, otp, type) => {
+        set({ isLoading: true, error: null });
         try {
-          set({ isLoading: true, error: null });
           const response = await authService.verifyOtp({ email, otp, type });
           set({
-            user: response.user,
+            user: response.user ?? null,
             isAuthenticated: type === "signup",
             isLoading: false,
           });
           return response;
-        } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.response?.data?.error || "OTP failed",
-          });
-          throw error;
+        } catch (error: unknown) {
+          let message = "OTP verification failed";
+          if (error instanceof Error) message = error.message;
+          set({ isLoading: false, error: message });
+          throw new Error(message);
         }
       },
 
-      resendOtp: async (email: string, type: string) => {
+      resendOtp: async (email, type) => {
+        set({ isLoading: true, error: null });
         try {
-          set({ isLoading: true, error: null });
           const response = await authService.resendOtp({ email, type });
           set({ isLoading: false });
           return response;
-        } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.response?.data?.error || "Resend OTP failed",
-          });
-          throw error;
+        } catch (error: unknown) {
+          let message = "Resend OTP failed";
+          if (error instanceof Error) message = error.message;
+          set({ isLoading: false, error: message });
+          throw new Error(message);
         }
       },
 
       login: async (email, password) => {
+        set({ isLoading: true, error: null });
         try {
-          set({ isLoading: true, error: null });
           const response = await authService.login({ email, password });
-
           set({
             user: response.user,
+            accessToken: response.accessToken,
             isAuthenticated: true,
             isLoading: false,
           });
-
           return response;
-        } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.response?.data?.error || "Login failed",
-          });
-          throw error;
+        } catch (error: unknown) {
+          let message = "Login failed";
+          if (error instanceof Error) message = error.message;
+          set({ isLoading: false, error: message });
+          throw new Error(message);
         }
       },
 
-      requestPasswordReset: async (email: string, type: string) => {
+      refreshAccessToken: async () => {
+        try {
+          const response = await authService.refreshToken();
+          set({ accessToken: response.accessToken });
+          return response.accessToken;
+        } catch (error: unknown) {
+          set({ user: null, accessToken: "", isAuthenticated: false });
+          let message = "Failed to refresh token";
+          if (error instanceof Error) message = error.message;
+          throw new Error(message);
+        }
+      },
+
+      requestPasswordReset: async (email, type) => {
         try {
           const response = await authService.resendOtp({ email, type });
           return response;
-        } catch (error) {
-          throw error;
+        } catch (error: unknown) {
+          let message = "Request password reset failed";
+          if (error instanceof Error) message = error.message;
+          throw new Error(message);
         }
       },
 
-      resetPassword: async (email: string, password: string, confirmPassword:string) => {
+      resetPassword: async (email, password, confirmPassword) => {
+        set({ isLoading: true, error: null });
         try {
-          set({ isLoading: true, error: null });
-          const response = await authService.resetPassword({
-            email,
-            password,
-            confirmPassword
-          });
+          const response = await authService.resetPassword({ email, password, confirmPassword });
           set({ isLoading: false });
           return response;
-        } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.response?.data?.error || "Reset failed",
-          });
-          throw error;
+        } catch (error: unknown) {
+          let message = "Reset password failed";
+          if (error instanceof Error) message = error.message;
+          set({ isLoading: false, error: message });
+          throw new Error(message);
         }
       },
 
       logout: async () => {
         try {
           set({ user: null, isAuthenticated: false });
-          const response = await authService.logout();
-          return response;
-        } catch (error) {
-          throw error;
+          localStorage.removeItem("auth-storage");
+          await authService.logout();
+        } catch (error: unknown) {
+          let message = "Logout failed";
+          if (error instanceof Error) message = error.message;
+          throw new Error(message);
         }
       },
 
       applyForTutor: async (
-        description: string,
-        languages: string,
-        education: string,
-        skills: string,
-        experienceLevel: string,
-        gender: string,
-        occupation: string,
-        profileImage: string | null,
-        certificates: string | null,
-        accountHolder: string,
-        accountNumber: number,
-        bankName: string,
-        ifsc: string
+        description,
+        languages,
+        education,
+        skills,
+        experienceLevel,
+        gender,
+        occupation,
+        profileImage,
+        certificates,
+        accountHolder,
+        accountNumber,
+        bankName,
+        ifsc
       ) => {
+        set({ isLoading: true, error: null });
         try {
-          set({ isLoading: true, error: null });
           const response = await authService.applyForTutor({
             description,
             languages,
@@ -192,17 +198,20 @@ export const useAuthStore = create<IAuthState>()(
           });
           set({ isLoading: false });
           return response;
-        } catch (error) {
-          throw error;
+        } catch (error: unknown) {
+          let message = "Tutor application failed";
+          if (error instanceof Error) message = error.message;
+          set({ isLoading: false, error: message });
+          throw new Error(message);
         }
       },
     }),
     {
-      name: "auth-storage", // key in localStorage
+      name: "auth-storage",
       partialize: (state) => ({
         user: state.user,
         isAuthenticated: state.isAuthenticated,
-      }), // only persist these
+      }),
     }
   )
 );

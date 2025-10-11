@@ -58,13 +58,16 @@ const Login: React.FC = () => {
   const params = new URLSearchParams(window.location.search);
   if (params.get("googleSuccess")) {
     toast.success("Logged in with Google! 🎉");
-    // Optionally, fetch user data from /me endpoint
+    async function fetch(){
+      await useAuthStore.getState().fetchUser()
+    }
+    fetch()
     navigate("/");
   }
   }, []);
 
 
-  function handleGoogle(){
+  async function handleGoogle(){
     window.location.href = "http://localhost:5000/api/auth/google";
   }
 

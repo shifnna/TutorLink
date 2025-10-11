@@ -10,7 +10,7 @@ import { useNavigate } from "react-router-dom";
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-  const { signup,isLoading } = useAuthStore();
+  const { signup,isLoading,fetchUser } = useAuthStore();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -67,13 +67,12 @@ const Signup: React.FC = () => {
 
 
   useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("googleSuccess")) {
-    toast.success("Logged in with Google! 🎉");
-    // Optionally, fetch user data from /me endpoint
-    navigate("/");
-  }
-  }, []);
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("googleSuccess")) {
+        toast.success("Logged in with Google! 🎉");
+        navigate('/')
+      }
+    },[]);
 
 
   function handleGoogle(){

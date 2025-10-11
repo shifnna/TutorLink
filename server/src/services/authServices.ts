@@ -8,6 +8,7 @@ import { inject } from "inversify";
 import { TYPES } from "../types/types";
 import { IAuthService } from "./interfaces/IAuthService";
 import { COMMON_ERROR } from "../utils/constants";
+import { generateAccessToken, generateRefreshToken} from "../utils/tokens";
 
 @injectable()
 export class AuthService implements IAuthService{
@@ -54,7 +55,7 @@ export class AuthService implements IAuthService{
             user.isVerified = true;
             await user.save();
 
-            const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, {
+            const token = jwt.sign({ id: user.id }, process.env.JWT_REFRESH_SECRET!, {
             expiresIn: "1h",
             });
 
@@ -70,18 +71,19 @@ export class AuthService implements IAuthService{
     }
 
 
-    async login(email:string,password:string):Promise<{ user: IUser; token: string }>{
+    async login(email:string,password:string):Promise<{ user: IUser; refreshToken: string; accessToken: string }>{
         const user = await this._userRepo.findByEmail(email)
         if(!user) throw new Error(COMMON_ERROR.INVALID_CREDENTIALS);
 
         const isPasswordVaild = await bcrypt.compare(password,user.password)
         if(!isPasswordVaild) throw new Error(COMMON_ERROR.INVALID_CREDENTIALS);
 
-        const token = jwt.sign({id:user.id},process.env.JWT_SECRET as string,{
-            expiresIn:'7d',
-        });
+        return {user,refreshToken:generateRefreshToken({ id:user.id, role:user.role}),accessToken:generateAccessToken({ id:user.id, role:user.role})};
+    }
 
-        return {user,token};
+    async findUserById(id: string): Promise<IUser | null> {
+       const user = await this._userRepo.findById(id);
+       return user;
     }
 
 
@@ -117,7 +119,7 @@ export class AuthService implements IAuthService{
 
     
     async googleSignin(user: IUser): Promise<string>{
-      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, { expiresIn: "7d" });
+      const token = generateRefreshToken({ id: user.id, role:user.role });
       return token;
     }
 

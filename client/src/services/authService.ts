@@ -27,6 +27,11 @@ export const authService = {
     return response.data; 
   },
 
+  refreshToken: async () => {
+    const response = await axiosClient.post("/api/auth/refresh-token");
+    return response.data;
+  },
+
   verifyOtp: async (data: { email: string; otp: string, type:string }) => {
   const response = await axiosClient.post("/api/auth/verify-otp", data)
   return response.data;

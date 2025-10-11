@@ -5,6 +5,9 @@ import { IAuthService } from "../services/interfaces/IAuthService";
 import { IAuthController } from "./interfaces/IAuthController";
 import { STATUS_CODES } from "../utils/constants";
 import { IUser } from "../models/user";
+import jwt from "jsonwebtoken";
+import { generateAccessToken } from "../utils/tokens";
+
 
 @injectable()
 export class AuthController implements IAuthController {
@@ -28,18 +31,38 @@ export class AuthController implements IAuthController {
       const { email, password } = req.body;
       const result = await this._authService.login(email, password);
 
-      res.cookie("token", result.token, {
+      res.cookie("refreshToken", result.refreshToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
         maxAge: 7 * 24 * 60 * 60 * 1000,
       });
 
-      res.status(STATUS_CODES.SUCCESS).json(result);
+      res.status(STATUS_CODES.SUCCESS).json({ user:result.user, accessToken:result.accessToken });
     } catch (error: any) {
       res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
     }
   };
+
+  refreshToken = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const token = req.cookies.refreshToken;
+    if (!token) {
+      res.status(STATUS_CODES.UNAUTHORIZED).json({ error: "No refresh token" });
+      return;
+    }
+
+    const payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as { id: string, role: string };
+    const user = await this._authService.findUserById(payload.id);
+    if (!user) throw new Error("User not found");
+
+    const accessToken = generateAccessToken({ id: user.id, role: user.role });
+    res.status(STATUS_CODES.SUCCESS).json({ accessToken });
+  } catch (error: any) {
+    res.status(STATUS_CODES.UNAUTHORIZED).json({ error: error.message });
+  }
+};
+
 
   getMe = async (req: Request, res: Response): Promise<void> => {
     const user = (req as any).user;
@@ -47,7 +70,11 @@ export class AuthController implements IAuthController {
   };
 
   logout = async (req: Request, res: Response): Promise<void> => {
-    res.clearCookie("token");
+    res.clearCookie("refreshToken",{
+      httpOnly:true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+    });
     res.status(STATUS_CODES.SUCCESS).json({ message: "Logged out successfully" });
   };
 
