@@ -77,7 +77,7 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
   const handleSubmit = async () => {
     if (!validateStep()) return;
     try {
-      useAuthStore.getState().setLoading(true); // start loading
+      useAuthStore.setState({isLoading:true})
       await tutorService.apply(formData);
       toast.success("Application submitted successfully!");
       const updatedUser = await authService.fetchUser();
@@ -89,7 +89,7 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
       "Something went wrong!";
     toast.error(errorMessage);
     } finally {
-      useAuthStore.getState().setLoading(false); // stop loading
+      useAuthStore.setState({isLoading:false})
     }
   };
 

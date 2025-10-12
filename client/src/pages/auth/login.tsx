@@ -34,7 +34,7 @@ const Login: React.FC = () => {
     e.preventDefault();
     if (!validate()) return;
     try {
-      useAuthStore.getState().setLoading(true); // start loading
+      useAuthStore.setState({isLoading:true})
       await login(formData.email, formData.password);
       toast.success("Login successful! 🎉");
 
@@ -49,7 +49,7 @@ const Login: React.FC = () => {
     } catch (error: any) {
       toast.error(error.response?.data?.error || "Login failed ❌");
     } finally {
-    useAuthStore.getState().setLoading(false); // stop loading
+    useAuthStore.setState({isLoading:false})
     }
 
   }

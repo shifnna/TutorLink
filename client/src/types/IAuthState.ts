@@ -3,18 +3,15 @@ import { IUser } from "./IUser";
 export interface IAuthState {
   user: IUser | null;
   isLoading: boolean;
-  error: string | null;
   isAuthenticated: boolean;
   search: string;
   blocked: boolean;
   
   setUser: (user: any) => void,
-  setAuthState: (data: any) => void,
+
   setSearch: (term: string) => void;
 
   fetchUser: () => Promise<void>,
-
-  setLoading: (value: boolean) => Promise<any>,
 
   signup: ( name: string, email: string, password: string, confirmPassword: string) => Promise<any>;
 

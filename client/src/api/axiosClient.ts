@@ -22,7 +22,7 @@ axiosClient.interceptors.response.use(
       const authStore = useAuthStore.getState();
 
       authStore.logout();
-      authStore.setAuthState({ blocked: true});
+      useAuthStore.setState({blocked:true});
 
       window.location.replace("/blocked");
     } else if (status === 401) {

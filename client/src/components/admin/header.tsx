@@ -1,7 +1,11 @@
 import { FaArrowLeft, FaGraduationCap } from "react-icons/fa"
 import { Button } from "../ui/button"
 
-const Header = ({name}) => {
+interface HeaderProps {
+  name: string;
+}
+
+const Header = ({name}:HeaderProps) => {
   return (
     <div>
       <div className="flex items-center justify-between mb-8">

@@ -49,7 +49,7 @@ const Signup: React.FC = () => {
     if (!validate()) return;
 
     try {
-      useAuthStore.getState().setLoading(true);
+      useAuthStore.setState({isLoading:true})
       const response = await signup(
         formData.name,
         formData.email,
@@ -59,21 +59,23 @@ const Signup: React.FC = () => {
       toast.success("OTP sent to your email 📩");
       navigate(`/verify-otp?email=${response.email}&type=signup`);
     } catch (error: any) {
+      console.error("Signup error:", error.response?.data);
       toast.error(error?.response?.data?.error || "Signup failed ❌");
     } finally {
-      useAuthStore.getState().setLoading(false); // stop loading
+      useAuthStore.setState({isLoading:false})
     }
   }
 
-
-  useEffect(() => {
+useEffect(() => {
   const params = new URLSearchParams(window.location.search);
-  if (params.get("googleSuccess")) {
+  const googleSuccess = params.get("googleSuccess");
+  
+  if (googleSuccess && window.location.pathname === "/signup") {
     toast.success("Logged in with Google! 🎉");
-    // Optionally, fetch user data from /me endpoint
-    navigate("/");
+    navigate('/');
   }
-  }, []);
+}, []);
+
 
 
   function handleGoogle(){

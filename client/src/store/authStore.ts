@@ -1,34 +1,27 @@
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
 import { IAuthState } from "../types/IAuthState";
 import { authService } from "../services/authService";
 
 export const useAuthStore = create<IAuthState>()(
-  persist(
     (set) => ({
       user: null,
       isLoading: false,
-      error: null,
       isAuthenticated: false,
       search: "",
       blocked: false,
-  
-      setAuthState: (data: Partial<IAuthState>) => set(data),
       
       setUser: (user: any) => set({ user, blocked: !!user?.blocked }),
 
       setSearch: (term) => set({ search: term }),
-      
-      setLoading: async (value: boolean) => set({ isLoading: value }),
 
       fetchUser: async () => {
         try {
-          set({ isLoading: true, error: null });
+          set({ isLoading: true});
           const response = await authService.fetchUser ();
           const isBlocked = !!response.user?.blocked;
           set({ user: response.user, isAuthenticated: !isBlocked, blocked: isBlocked, isLoading: false });
         } catch (error: any) {
-          set({ user: null, isLoading: false, error: error?.message || null });
+          set({ user: null, isLoading: false });
           if (error?.response?.status === 401) {
             set({ isAuthenticated: false, blocked: false });
           } else if (error?.response?.status === 403) {
@@ -41,81 +34,52 @@ export const useAuthStore = create<IAuthState>()(
 
       signup: async (name, email, password, confirmPassword) => {
         try {
-          set({ isLoading: true, error: null });
-          const response = await authService.signup({
-            name,
-            email,
-            password,
-            confirmPassword,
-          });
+          set({ isLoading: true });
+          const response = await authService.signup({name,email,password,confirmPassword,});
 
-          set({
-            user: response.user,
-            isAuthenticated: true,
-            isLoading: false,
-          });
+          set({user: response.user,isAuthenticated: true,isLoading: false,});
 
           return response;
         } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.response?.data?.error || "Signup failed",
-          });
+          set({isLoading: false});
           throw error;
         }
       },
 
       verifyOtp: async (email: string, otp: string, type: string) => {
         try {
-          set({ isLoading: true, error: null });
+          set({ isLoading: true });
           const response = await authService.verifyOtp({ email, otp, type });
-          set({
-            user: response.user,
-            isAuthenticated: type === "signup",
-            isLoading: false,
-          });
+          set({user: response.user,isAuthenticated: type === "signup",isLoading: false,});
           return response;
         } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.response?.data?.error || "OTP failed",
-          });
+          set({isLoading: false});
           throw error;
         }
       },
 
       resendOtp: async (email: string, type: string) => {
         try {
-          set({ isLoading: true, error: null });
+          set({ isLoading: true});
           const response = await authService.resendOtp({ email, type });
           set({ isLoading: false });
           return response;
         } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.response?.data?.error || "Resend OTP failed",
-          });
+          set({isLoading: false});
           throw error;
         }
       },
 
       login: async (email, password) => {
         try {
-          set({ isLoading: true, error: null });
+          set({ isLoading: true});
           const response = await authService.login({ email, password });
 
-          set({
-            user: response.user,
-            isAuthenticated: true,
-            isLoading: false,
-          });
+          set({user: response.user,isAuthenticated: true,isLoading: false});
 
           return response;
         } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.response?.data?.error || "Login failed",
-          });
+          set({isLoading: false});
           throw error;
         }
       },
@@ -131,19 +95,12 @@ export const useAuthStore = create<IAuthState>()(
 
       resetPassword: async (email: string, password: string, confirmPassword:string) => {
         try {
-          set({ isLoading: true, error: null });
-          const response = await authService.resetPassword({
-            email,
-            password,
-            confirmPassword
-          });
+          set({ isLoading: true});
+          const response = await authService.resetPassword({email,password,confirmPassword});
           set({ isLoading: false });
           return response;
         } catch (error: any) {
-          set({
-            isLoading: false,
-            error: error.response?.data?.error || "Reset failed",
-          });
+          set({isLoading: false});
           throw error;
         }
       },
@@ -158,37 +115,10 @@ export const useAuthStore = create<IAuthState>()(
         }
       },
 
-      applyForTutor: async (
-        description: string,
-        languages: string,
-        education: string,
-        skills: string,
-        experienceLevel: string,
-        gender: string,
-        occupation: string,
-        profileImage: string | null,
-        certificates: string | null,
-        accountHolder: string,
-        accountNumber: number,
-        bankName: string,
-        ifsc: string
-      ) => {
+      applyForTutor: async ( description: string, languages: string, education: string, skills: string, experienceLevel: string, gender: string, occupation: string, profileImage: string | null, certificates: string | null, accountHolder: string, accountNumber: number, bankName: string, ifsc: string ) => {
         try {
-          set({ isLoading: true, error: null });
-          const response = await authService.applyForTutor({
-            description,
-            languages,
-            education,
-            skills,
-            experienceLevel,
-            gender,
-            occupation,
-            profileImage,
-            certificates,
-            accountHolder,
-            accountNumber,
-            bankName,
-            ifsc,
+          set({ isLoading: true});
+          const response = await authService.applyForTutor({ description,languages,education,skills,experienceLevel,gender,occupation,profileImage,certificates,accountHolder,accountNumber,bankName,ifsc,
           });
           set({ isLoading: false });
           return response;
@@ -197,12 +127,4 @@ export const useAuthStore = create<IAuthState>()(
         }
       },
     }),
-    {
-      name: "auth-storage", // key in localStorage
-      partialize: (state) => ({
-        user: state.user,
-        isAuthenticated: state.isAuthenticated,
-      }), // only persist these
-    }
-  )
 );

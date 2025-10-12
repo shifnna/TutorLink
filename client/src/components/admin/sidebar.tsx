@@ -11,7 +11,6 @@ import {
   FaCrown,
 } from "react-icons/fa";
 import { Button } from "../../components/ui/button";
-import { toast, Toaster } from "react-hot-toast";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
 import React from "react";
@@ -26,7 +25,6 @@ const Sidebar: React.FC = () => {
       const response = await authService.logout();
       logout();
       navigate("/");
-      toast.success(response.message);
     } catch (err) {
       console.error("Logout failed:", err);
     }
@@ -109,7 +107,6 @@ const Sidebar: React.FC = () => {
           <FaSignOutAlt /> Logout
         </Button>
       </div>
-      <Toaster position="top-center" reverseOrder={false} />
     </aside>
   );
 };

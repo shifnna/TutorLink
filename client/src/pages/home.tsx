@@ -14,7 +14,6 @@ import { useAuthStore } from "../store/authStore";
 import { toast, Toaster } from "react-hot-toast";
 import { useState } from "react";
 import ApplicationModal from "./tutors/applicationModal";
-import { authService } from "../services/authService";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -29,10 +28,9 @@ const Home: React.FC = () => {
 
   async function handleLogout() {
     try {
-      const response = await authService.logout(); //// remove cookies
       logout(); //// remove from store
       navigate("/");
-      toast.success(response.message);
+      toast.success("Logged out successfully!");
     } catch (err) {
       console.error("Logout failed:", err);
     }
