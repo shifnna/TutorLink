@@ -1,33 +1,58 @@
 import axios from "axios";
 import { useAuthStore } from "../store/authStore";
+import { authService } from "../services/authService";
       
 const axiosClient = axios.create({
   baseURL: "http://localhost:5000", 
-  withCredentials: true,
-  headers: {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${localStorage.getItem("token")}`, // //or from store
-  },
+  withCredentials: true
 });
 
-//// Intercept responses globally
+
+//// Attach access token to requests
+axiosClient.interceptors.request.use((config)=>{
+  const token = useAuthStore.getState().accessToken;
+  if(token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+});
+
+
+//// Handle responses globally
 axiosClient.interceptors.response.use(
   (response) => response,
-  (error) => {
-    const status = error.response?.status;
+  async (error) => {
+    const originalRequest = error.config;
     const message = error.response?.data?.message;
 
-    if (status === 403) {
+    if (originalRequest.url?.includes("/refresh")) {
+      return Promise.reject(error);
+    }
+    
+    //// 🚫 Blocked user
+    if (error.response?.status === 403) {
       console.error("🚫 User Blocked:", message);
-      const authStore = useAuthStore.getState();
-
-      authStore.logout();
+      useAuthStore.getState().logout();
       useAuthStore.setState({blocked:true});
-
       window.location.replace("/blocked");
-    } else if (status === 401) {
-      console.warn("⚠️ Unauthorized:", message);
-    } else if (status >= 400) {
+      return Promise.reject(error);
+    }
+
+    //// ⚠️ Unauthorized - try refresh
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        const data = await authService.refresh();
+        useAuthStore.setState({ accessToken: data.accessToken });
+        originalRequest.headers.Authorization = `Bearer ${data.accessToken}`;
+        return axiosClient(originalRequest); ////retry
+      } catch (refreshError) {
+        console.warn("🔁 Refresh token expired or invalid. Logging out...");
+        useAuthStore.getState().logout();
+        return Promise.reject(refreshError);
+      }
+    }
+
+    //// ❌ Other API errors
+    if (error.response?.status >= 400) {
       console.error("❌ API Error:", message || error.message);
     }
 

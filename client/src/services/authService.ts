@@ -17,6 +17,7 @@ export const authService = {
     const response = await axiosClient.get("/api/auth/me");
     return response.data;
   },
+
   signup: async (data: SignupData) => {
     const response = await axiosClient.post("/api/auth/signup", data);
     return response.data; 
@@ -51,5 +52,10 @@ export const authService = {
     const response = await axiosClient.post("/api/user/apply-for-tutor",data)
     return response.data;
   },
+
+  refresh: async ()=>{
+    const response = await axiosClient.post("/api/auth/refresh",{});
+    return response.data;
+  }
 
 };

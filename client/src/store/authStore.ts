@@ -9,6 +9,7 @@ export const useAuthStore = create<IAuthState>()(
       isAuthenticated: false,
       search: "",
       blocked: false,
+      accessToken: null,
       
       setUser: (user: any) => set({ user, blocked: !!user?.blocked }),
 
@@ -37,7 +38,7 @@ export const useAuthStore = create<IAuthState>()(
           set({ isLoading: true });
           const response = await authService.signup({name,email,password,confirmPassword,});
 
-          set({user: response.user,isAuthenticated: true,isLoading: false,});
+          set({user: response.user,isAuthenticated: true,isLoading: false});
 
           return response;
         } catch (error: any) {
@@ -75,7 +76,7 @@ export const useAuthStore = create<IAuthState>()(
           set({ isLoading: true});
           const response = await authService.login({ email, password });
 
-          set({user: response.user,isAuthenticated: true,isLoading: false});
+          set({user: response.user,isAuthenticated: true,isLoading: false,accessToken: response.accessToken});
 
           return response;
         } catch (error: any) {
@@ -106,9 +107,9 @@ export const useAuthStore = create<IAuthState>()(
       },
 
       logout: async () => {
-        try {
-          set({ user: null, isAuthenticated: false });
+        try {   
           const response = await authService.logout();
+          set({ user: null, isAuthenticated: false,accessToken:null });
           return response;
         } catch (error) {
           throw error;
