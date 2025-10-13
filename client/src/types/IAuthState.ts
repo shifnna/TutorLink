@@ -6,6 +6,7 @@ export interface IAuthState {
   isAuthenticated: boolean;
   search: string;
   blocked: boolean;
+  accessToken: string | null;
   
   setUser: (user: any) => void,
 

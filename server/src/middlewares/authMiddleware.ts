@@ -9,10 +9,14 @@ export interface AuthRequest extends Request {
 
 export const protect = async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const token = req.cookies?.token;
-    if (!token) return res.status(STATUS_CODES.UNAUTHORIZED).json({ message: "Not authorized, no token" });
+    const authHeader = req.headers.authorization;
+    if (!authHeader?.startsWith("Bearer ")) {
+      return res.status(401).json({ message: "No access token" });
+    }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as { id: string };
+    const token = authHeader.split(" ")[1];
+
+    const decoded = jwt.verify(token, process.env.JWT_ACCESS_SECRET!) as { id: string };
     const user = await UserModel.findById(decoded.id);
     if (!user) return res.status(STATUS_CODES.UNAUTHORIZED).json({ message: COMMON_ERROR.USER_NOT_FOUND });
 
@@ -20,9 +24,11 @@ export const protect = async (req: AuthRequest, res: Response, next: NextFunctio
     
     req.user = user;
     next();
-  } catch (error) {
-    return res.status(STATUS_CODES.UNAUTHORIZED).json({ message: "Not authorized, token failed" });
+  } catch (error: any) {
+    console.error("JWT Verify failed:", error.message);
+    return res.status(STATUS_CODES.UNAUTHORIZED).json({ message: "Access token invalid or expired" });
   }
+
 };
 
 export const adminOnly = (req: AuthRequest, res: Response, next: NextFunction) => {

@@ -8,6 +8,7 @@ import { inject } from "inversify";
 import { TYPES } from "../types/types";
 import { IAuthService } from "./interfaces/IAuthService";
 import { COMMON_ERROR } from "../utils/constants";
+import { generateAccessToken, generateRefreshToken } from "../utils/tokens";
 
 @injectable()
 export class AuthService implements IAuthService{
@@ -39,7 +40,7 @@ export class AuthService implements IAuthService{
     }
 
 
-    async verifyOtp(email: string, otp: string, type:string): Promise<{ user: IUser; token: string } | {success:boolean} | null> {
+    async verifyOtp(email: string, otp: string, type:string): Promise<{ user: IUser; refreshToken: string; accessToken:string } | {success:boolean} | null> {
         const user = await this._userRepo.findByEmail(email);
         if (!user) throw new Error(COMMON_ERROR.USER_NOT_FOUND);
 
@@ -54,11 +55,7 @@ export class AuthService implements IAuthService{
             user.isVerified = true;
             await user.save();
 
-            const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, {
-            expiresIn: "1h",
-            });
-
-          return { user, token };
+          return { user, refreshToken:generateRefreshToken({ id:user.id, role:user.role }), accessToken:generateAccessToken({id:user.id, role:user.role}) };
         }
   
         if(type==="forgot"){
@@ -70,18 +67,14 @@ export class AuthService implements IAuthService{
     }
 
 
-    async login(email:string,password:string):Promise<{ user: IUser; token: string }>{
+    async login(email:string,password:string):Promise<{ user: IUser; refreshToken: string, accessToken: string }>{
         const user = await this._userRepo.findByEmail(email)
         if(!user) throw new Error(COMMON_ERROR.INVALID_CREDENTIALS);
 
         const isPasswordVaild = await bcrypt.compare(password,user.password)
         if(!isPasswordVaild) throw new Error(COMMON_ERROR.INVALID_CREDENTIALS);
 
-        const token = jwt.sign({id:user.id},process.env.JWT_SECRET as string,{
-            expiresIn:'7d',
-        });
-
-        return {user,token};
+        return {user,refreshToken:generateRefreshToken({id:user.id,role:user.role}),accessToken:generateAccessToken({id:user.id,role:user.role})};
     }
 
 
@@ -114,12 +107,5 @@ export class AuthService implements IAuthService{
 
         return { message: "Password reset successful" };
     }
-
-    
-    async googleSignin(user: IUser): Promise<string>{
-      const token = jwt.sign({ id: user.id }, process.env.JWT_SECRET!, { expiresIn: "7d" });
-      return token;
-    }
-
 
 }

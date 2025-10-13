@@ -54,11 +54,14 @@ const Login: React.FC = () => {
 
   }
 
+  
   useEffect(() => {
   const params = new URLSearchParams(window.location.search);
-  if (params.get("googleSuccess")) {
+  const accessToken = params.get("accessToken");
+
+  if (params.get("googleSuccess") && accessToken) {
+    useAuthStore.setState({ accessToken: accessToken, isAuthenticated: true });
     toast.success("Logged in with Google! 🎉");
-    // Optionally, fetch user data from /me endpoint
     navigate("/");
   }
   }, []);
