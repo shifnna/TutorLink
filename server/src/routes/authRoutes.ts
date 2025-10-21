@@ -1,4 +1,4 @@
-import { Router } from "express";
+import { RequestHandler, Router } from "express";
 import container from "../container/inversify.config";
 import { IAuthController } from "../controllers/interfaces/IAuthController";
 import { TYPES } from "../types/types";
@@ -11,7 +11,7 @@ const router = Router();
 const controller = container.get<IAuthController>(TYPES.IAuthController)
 
 
-router.get('/me',protect, controller.getMe.bind(controller))
+router.get('/me', protect , controller.getMe.bind(controller))
 router.post('/refresh',controller.refresh);
 router.post('/signup',validate(signupSchema), controller.signup);          //when using normal functions, .bind(controller) ensures the method always remembers the correct this
 router.post('/login',validate(loginSchema), controller.login);             //* arrow or normal function which is best practise ?

@@ -1,5 +1,5 @@
 import { NextFunction, Request, Response } from "express";
-import { ZodObject, ZodRawShape } from "zod";
+import { ZodError, ZodObject, ZodRawShape } from "zod";
 import { STATUS_CODES } from "../utils/constants";
 
 export const validate = (schema: ZodObject<ZodRawShape>) => 
@@ -11,9 +11,11 @@ export const validate = (schema: ZodObject<ZodRawShape>) =>
         params: req.params,
       });
       next();
-    } catch (err: any) {
+    } catch (err: unknown) {
       //// Map Zod issues to only the message
-      const errors = Array.isArray(err?.issues) ? err.issues.map((e: any) => e.message): [err.message || "Validation failed"];
-      return res.status(STATUS_CODES.BAD_REQUEST).json({ error: errors });
+      if (err instanceof ZodError) {
+        const errors = err.issues.map(issue => issue.message);
+        return res.status(STATUS_CODES.BAD_REQUEST).json({ error: errors });
+      }
     }
   };

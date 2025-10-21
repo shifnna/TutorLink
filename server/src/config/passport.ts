@@ -1,6 +1,6 @@
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { UserModel } from "../models/user";
+import { IUser, UserModel } from "../models/user";
 import { clientRepository } from "../repositories/clientRepository";
 
 passport.use(new GoogleStrategy({
@@ -26,8 +26,9 @@ passport.use(new GoogleStrategy({
     }
 }));
 
-passport.serializeUser((user: any, done) => {
-    done(null, user.id);
+passport.serializeUser((user, done) => {
+    const u = user as IUser; // safely cast
+    done(null, u._id);
 });
 
 passport.deserializeUser(async (id: string, done) => {

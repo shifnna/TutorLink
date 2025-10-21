@@ -10,6 +10,7 @@ import tutorRoutes from "./routes/tutorRoutes";
 import session from "express-session";
 import passport from "passport";
 import "./config/passport"; ////ensures the Google strategy is registered before you call passport.authenticate("google").
+import { consoleLogger, fileLogger } from "./middlewares/logger";
 
 const app = express();
 app.use(cookieParser());
@@ -25,11 +26,12 @@ app.use(cors({
 }));
 
 
-//// Debug logger
-app.use((req, res, next) => {
-  console.log(req.method, req.url, req.body);
-  next();
-});
+//// Debug logger during development
+app.use(consoleLogger);
+
+//// Save detailed logs to file
+app.use(fileLogger);
+
 
 ////Enable sessions (required by Passport):
 app.use(session({
@@ -48,3 +50,4 @@ app.use("/api/admin", adminRoutes);
 app.use("/api/tutor", tutorRoutes)
 
 export default app;
+

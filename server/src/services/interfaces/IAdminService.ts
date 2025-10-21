@@ -1,9 +1,10 @@
+import { IUserWithTutorDTO } from "../../dtos/tutor/UserWithTutor";
 import { ITutor } from "../../models/tutor";
 import { IUser } from "../../models/user";
 
 export interface IAdminService {
-  getAllClients(): Promise<IUser[]>;
-  getAllTutors(): Promise<ITutor[]>;
+  getAllClients(): Promise<IUserWithTutorDTO[]>;
+  getAllTutors(): Promise<IUserWithTutorDTO[]>;
   approveTutor(tutorId: string): Promise<ITutor>;
   rejectTutor(userId: string, message: string): Promise<void>;
   blockUser(userId: string): Promise<IUser>;

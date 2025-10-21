@@ -6,6 +6,8 @@ import { ITutorService } from "./interfaces/ITutorService";
 import { ITutor } from "../models/tutor";
 import { IClientRepository } from "../repositories/interfaces/IClientRepository";
 import { Types } from "mongoose";
+import { ApplyTutorRequestDTO } from "../dtos/tutor/TutorRequestDTO";
+import { PresignedUrlResponseDTO } from "../dtos/tutor/TutorResponseDTO";
 
 @injectable()
 export class TutorService implements ITutorService {
@@ -15,42 +17,56 @@ export class TutorService implements ITutorService {
     @inject(TYPES.IClientRepository) private readonly _userRepo: IClientRepository
   ) {}
 
-  async getPresignedUrl(fileName: string, fileType: string): Promise<{ url: string; key: string }> {
+  async getPresignedUrl(fileName: string, fileType: string): Promise<PresignedUrlResponseDTO> {
     return this._s3Service.getPresignedUrl(fileName, fileType);
   }
 
-  async applyForTutor(userId: string, body: any): Promise<ITutor> {
-    const appData: Partial<ITutor> = {
-      tutorId: userId,
-      description: body.description,
-      languages: body.languages.split(","),
-      skills: body.skills.split(","),
-      education: body.education,
-      experienceLevel: body.experienceLevel,
-      gender: body.gender,
-      occupation: body.occupation,
-      profileImage: body.profileImage || "",
-      certificates: Array.isArray(body.certificates)
-        ? body.certificates
-        : typeof body.certificates === "string"
-        ? body.certificates.split(",")
-        : [],
-      accountHolder: body.accountHolder,
-      accountNumber: String(body.accountNumber),
-      bankName: body.bankName,
-      ifsc: body.ifsc,
-    };
+       async applyForTutor(userId: string, body: ApplyTutorRequestDTO): Promise<ITutor> {
 
-    const tutor = await this._tutorRepo.create(appData);
-    await this._userRepo.findByIdAndUpdate(userId, { tutorProfile: tutor._id as Types.ObjectId, tutorApplication:{status:"Pending"}}); 
-    return tutor;
-  }
+       const appData: Partial<ITutor> = {
+         tutorId: userId,
+         description: body.description,
+         languages: body.languages.split(",").map(s => s.trim()),
+         skills: body.skills.split(",").map(s => s.trim()),
+         education: body.education,
+         experienceLevel: body.experienceLevel,
+         gender: body.gender,
+         occupation: body.occupation,
+         profileImage: body.profileImage || "",
+         certificates: Array.isArray(body.certificates)
+           ? body.certificates
+           : typeof body.certificates === "string"
+           ? body.certificates.split(",").map(s => s.trim())
+           : [],
+         accountHolder: body.accountHolder,
+         accountNumber: String(body.accountNumber),
+         bankName: body.bankName,
+         ifsc: body.ifsc,
+       };
+
+       try {
+         const tutor = await this._tutorRepo.create(appData);
+         console.log("Tutor created successfully:", tutor._id);
+
+         await this._userRepo.findByIdAndUpdate(userId, { 
+           tutorProfile: tutor._id as Types.ObjectId, 
+           tutorApplication: { status: "Pending" } 
+         });
+         console.log("User updated successfully");
+
+         return tutor;
+       } catch (err) {
+         console.error("Error in applyForTutor:", err);
+         throw err;  
+       }
+     }
+     
 
   async getAllTutors(): Promise<ITutor[]> {
-    const tutors = await this._tutorRepo.findAllApproved()
+    const tutors : ITutor[] = await this._tutorRepo.findAllApproved()
 
     return Promise.all(
-      tutors.map(async (tutor: any) => {
+      tutors.map(async (tutor: ITutor ) => {
         let profileImageUrl: string | null = null;
         if (tutor.profileImage) {
           profileImageUrl = await this._s3Service.generatePresignedUrl(tutor.profileImage);

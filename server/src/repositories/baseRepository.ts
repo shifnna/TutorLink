@@ -11,9 +11,8 @@ export class BaseRepository <T extends Document> {
         return await doc.save();
     }
 
-    async findOne(data:{email:string}): Promise<T | null>{
-        const email = data.email;
-        return this.model.findOne({email});
+    async findOne(filter:FilterQuery<T>): Promise<T | null>{
+        return this.model.findOne(filter);
     }
 
     async findByIdAndUpdate(id: string, update: UpdateQuery<T>, options = { new: true }): Promise<T | null> {

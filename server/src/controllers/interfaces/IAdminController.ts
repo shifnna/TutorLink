@@ -1,11 +1,11 @@
 import { Request,Response } from "express"
 
 export interface IAdminController{
-    getAllClients(req: Request, res: Response): Promise<void>;
-    getAllTutors(req: Request, res: Response): Promise<void>;
-    getAllTutorApplications(req: Request, res: Response): Promise<void>;
-    toggleUserStatus(req: Request, res: Response) : Promise<Response>;
-    approveTutor(req: Request, res: Response) : Promise<Response>;
-    rejectTutor(req: Request, res: Response): Promise<Response>
-    getDashboardStats(req: Request, res: Response): Promise<void>;
+    getAllClients : (req: Request, res: Response) => void;
+    getAllTutors : (req: Request, res: Response) => void;
+    getAllTutorApplications : (req: Request, res: Response) => void;
+    toggleUserStatus : (req: Request, res: Response) => void;
+    approveTutor : (req: Request, res: Response) => void;
+    rejectTutor : (req: Request, res: Response) => void;
+    getDashboardStats : (req: Request, res: Response) => void;
 }

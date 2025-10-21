@@ -1,7 +1,6 @@
 import { IUser } from "../models/user";
 import { IClientRepository } from "../repositories/interfaces/IClientRepository";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
 import { sendOTP } from "../config/mailer";
 import { injectable } from "inversify";
 import { inject } from "inversify";
@@ -14,7 +13,7 @@ import { generateAccessToken, generateRefreshToken } from "../utils/tokens";
 export class AuthService implements IAuthService{
     constructor( @inject(TYPES.IClientRepository) private readonly _userRepo: IClientRepository){}
 
-    async signup(name:string ,email:string ,password:string ,confirmPassword:string ): Promise<IUser| null>{
+    async signup(name:string ,email:string ,password:string ,confirmPassword:string ): Promise<IUser | null>{
         const existingUser = await this._userRepo.findByEmail(email);
         if(existingUser){
             throw new Error(COMMON_ERROR.EMAIL_IN_USE);
@@ -55,7 +54,7 @@ export class AuthService implements IAuthService{
             user.isVerified = true;
             await user.save();
 
-          return { user, refreshToken:generateRefreshToken({ id:user.id, role:user.role }), accessToken:generateAccessToken({id:user.id, role:user.role}) };
+          return { user,refreshToken:generateRefreshToken({id:user.id,role:user.role}),accessToken:generateAccessToken({id:user.id,role:user.role}) };
         }
   
         if(type==="forgot"){

@@ -3,10 +3,11 @@ import { inject, injectable } from "inversify";
 import { TYPES } from "../types/types";
 import { IAuthService } from "../services/interfaces/IAuthService";
 import { IAuthController } from "./interfaces/IAuthController";
-import { STATUS_CODES } from "../utils/constants";
 import { IUser } from "../models/user";
 import jwt from "jsonwebtoken";
-import { generateAccessToken, generateRefreshToken } from "../utils/tokens";
+import { generateAccessToken, generateRefreshToken, JwtPayload } from "../utils/tokens";
+import { LoginRequestDTO, ResendOtpRequestDTO, ResetPasswordRequestDTO, SignupRequestDTO, VerifyOtpRequestDTO } from "../dtos/auth/AuthRequestDTO";
+import { handleAsync } from "../utils/handleAsync";
 
 @injectable()
 export class AuthController implements IAuthController {
@@ -15,132 +16,129 @@ export class AuthController implements IAuthController {
     private readonly _authService: IAuthService
   ) {}
 
-  signup = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { name, email, password, confirmPassword } = req.body;
-      const user = await this._authService.signup(name, email, password, confirmPassword);
-      res.status(STATUS_CODES.CREATED).json(user);
-    } catch (error: any) {
-      res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
-    }
-  };
+  signup = (req: Request, res: Response) =>
+    handleAsync(() => {
+        const data: SignupRequestDTO = req.body;
+        return this._authService.signup(data.name,data.email,data.password,data.confirmPassword)
+    })(res);
 
-  login = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { email, password } = req.body;
-      const result = await this._authService.login(email, password);
 
-      res.cookie("refreshToken", result.refreshToken, {
+  login = async (req: Request, res: Response): Promise<void> => { 
+      const data : LoginRequestDTO = req.body;
+      const result = await this._authService.login( data.email, data.password);
+
+      const accessToken = result.accessToken;
+      const refreshToken = result.refreshToken;
+
+      res.cookie("accessToken", accessToken, {
         httpOnly: true,
         secure: process.env.NODE_ENV === "production",
         sameSite: "strict",
-        maxAge: parseInt(process.env.MAX_AGE || "604800000", 10),
+        maxAge: parseInt(process.env.ACCESS_TOKEN_MAX_AGE || "900000", 10),
       });
-
-      res.status(STATUS_CODES.SUCCESS).json(result);
-    } catch (error: any) {
-      res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
-    }
-  };
-
-  getMe = async (req: Request, res: Response): Promise<void> => {
-    const user = (req as any).user;
-    res.status(STATUS_CODES.SUCCESS).json({ user });
-  };
-
-  refresh = async (req: Request, res: Response): Promise< void> => {
-    try {
-    const refreshToken = req.cookies?.refreshToken;
-    if (!refreshToken) {
-      res.status(401).json({ message: "No refresh token" });
-      return;
-    }
-
-    const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!);
-    const accessToken = generateAccessToken({ id: (decoded as any).id, role: (decoded as any).role })
-
-    res.json({ accessToken });
-  } catch {
-    res.status(403).json({ message: "Invalid or expired refresh token" });
-  }
-  };
-
-  logout = async (req: Request, res: Response): Promise<void> => {
-    res.clearCookie("refreshToken");
-    res.status(STATUS_CODES.SUCCESS).json({ message: "Logged out successfully" });
-  };
-
-  verifyOtp = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { email, otp, type } = req.body;
-      const result = await this._authService.verifyOtp(email, otp, type);
-
-      if (!result) {
-        res.status(400).json({ error: "Verification failed" });
-        return;
-      }
-
-      if ("refreshToken" in result) {
-      res.cookie("refreshToken", result.refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: parseInt(process.env.MAX_AGE || "604800000", 10)
-      });
-      //// Send full result (user + tokens)
-      res.status(STATUS_CODES.SUCCESS).json(result);
-      return;
-    }
-
-    //// for forgot-password OTP
-      res.status(STATUS_CODES.SUCCESS).json(result);
-    } catch (error: any) {
-      res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
-    }
-  };
-  
-
-  resendOtp = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { email, type } = req.body;
-      const result = await this._authService.resendOtp(email, type);
-      res.status(STATUS_CODES.SUCCESS).json(result);
-    } catch (error: any) {
-      res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
-    }
-  };
-
-  resetPassword = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { email, password } = req.body;
-      const result = await this._authService.resetPassword(email, password);
-      res.status(STATUS_CODES.SUCCESS).json(result);
-    } catch (error: any) {
-      res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
-    }
-  };
-
-  googleSignin = async (req: Request, res: Response): Promise<void> => {
-    try {
-      const user = req.user as IUser;
-      if (!user) {
-        res.status(STATUS_CODES.BAD_REQUEST).json({ error: "Google login failed" });
-        return;
-      }
-
-      const refreshToken = generateRefreshToken({ id: user.id, role: user.role });
-      const accessToken = generateAccessToken({ id: user.id, role: user.role });
 
       res.cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === "production",
-      sameSite: "strict",
-      maxAge: parseInt(process.env.MAX_AGE || "604800000", 10),
-     });
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: parseInt(process.env.REFRESH_TOKEN_MAX_AGE || "604800000", 10),
+      });
 
-      res.redirect(`${process.env.CLIENT_URL}/login?googleSuccess=true&accessToken=${accessToken}`);
-    } catch (error: any) {
-      res.status(STATUS_CODES.BAD_REQUEST).json({ error: error.message });
-    }
-  };
+      handleAsync( async ()=> result)(res);
+  }
+      
+  
+  getMe = (req: Request, res: Response) =>
+    handleAsync(async() => {
+      if (!req.user) throw new Error("User not authenticated");
+      return req.user as IUser;
+    })(res);
+
+    
+  refresh = async (req: Request, res: Response): Promise<void> =>{
+      const refreshToken = req.cookies?.refreshToken;
+      if (!refreshToken) throw new Error("No refresh token");
+
+      const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET!) as JwtPayload;
+      const accessToken = generateAccessToken({ id: decoded.id, role: decoded.role });
+
+      res.cookie("accessToken", accessToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: parseInt(process.env.ACCESS_TOKEN_MAX_AGE || "900000", 10),
+      });
+    handleAsync(async()=> accessToken )(res);
+  }
+
+  logout = async(req: Request, res: Response): Promise<void> =>{
+    res.clearCookie("accessToken");
+    res.clearCookie("refreshToken");
+    handleAsync(async() => ( {message: "Logged out successfully"} ))(res);
+  }
+
+  verifyOtp = async (req: Request, res: Response): Promise<void> =>{
+    handleAsync(async () => {
+      const data: VerifyOtpRequestDTO = req.body;
+      const result = await this._authService.verifyOtp(data.email, data.otp, data.type);
+
+      if (!result) throw new Error("Verification failed");
+
+      if ("accessToken" in result && "refreshToken" in result) {
+        res.cookie("accessToken", result.accessToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: parseInt(process.env.ACCESS_TOKEN_MAX_AGE || "900000", 10),
+        });
+
+        res.cookie("refreshToken", result.refreshToken, {
+          httpOnly: true,
+          secure: process.env.NODE_ENV === "production",
+          sameSite: "strict",
+          maxAge: parseInt(process.env.REFRESH_TOKEN_MAX_AGE || "604800000", 10),
+        });
+
+        handleAsync(async () => ({ user: result.user, message: "OTP verified successfully" }))(res);
+        return;
+      }
+
+      handleAsync(async () => result)(res); // For forgot-password OTP flow
+    })(res);
+  }
+  
+
+  resendOtp = (req: Request, res: Response) =>
+    handleAsync(async () => {
+      const data: ResendOtpRequestDTO = req.body;
+      const result = await this._authService.resendOtp(data.email, data.type);
+      if (!result) throw new Error("OTP could not be resent");
+      return { message: result.message };
+    })(res);
+
+  resetPassword = (req: Request, res: Response) =>
+    handleAsync(async () => {
+      const data: ResetPasswordRequestDTO = req.body;
+      const result = await this._authService.resetPassword(data.email, data.password);
+      if (!result) throw new Error("Password could not be reset");
+      return { message: result.message };
+    })(res);
+
+
+  googleSignin = async(req: Request, res: Response): Promise<void> =>{   
+      const user = req.user as IUser;
+      if (!user) throw new Error("Google login failed");
+
+      const refreshToken = generateRefreshToken({ id: user.id, role: user.role });
+
+      res.cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
+        sameSite: "strict",
+        maxAge: parseInt(process.env.REFRESH_TOKEN_MAX_AGE || "604800000", 10),
+      });
+
+      res.redirect(`${process.env.CLIENT_URL}/login?googleSuccess=true`);
+      return;
+  }
 }
