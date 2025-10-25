@@ -1,16 +1,16 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { FaGraduationCap } from "react-icons/fa";
-import { FcGoogle } from "react-icons/fc";
 import { isValidEmail, isValidName, isStrongPassword } from "../../utils/validators";
 import { toast, Toaster } from "react-hot-toast";
 import { useAuthStore } from "../../store/authStore";
 import { useNavigate } from "react-router-dom";
+import AuthLayout from "./authLayout";
+import { FcGoogle } from "react-icons/fc";
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
-  const { signup,isLoading } = useAuthStore();
+  const { signup } = useAuthStore();
 
   const [formData, setFormData] = useState({
     name: "",
@@ -49,18 +49,26 @@ const Signup: React.FC = () => {
     if (!validate()) return;
 
     try {
-      useAuthStore.setState({isLoading:true})
       const response = await signup(
         formData.name,
         formData.email,
         formData.password,
         formData.confirmPassword
       );
+
+      if (!response.success) {
+        if (response.errors) {
+          response.errors.forEach(err => toast.error(`${err.field}: ${err.message}`));
+        } else {
+          toast.error(response.message);
+        }
+        return;
+      }
+
       toast.success("OTP sent to your email 📩");
-      navigate(`/verify-otp?email=${response.email}&type=signup`);
-    } catch (error: any) {
-      console.error("Signup error:", error.response?.data);
-      toast.error(error?.response?.data?.error || "Signup failed ❌");
+      navigate(`/verify-otp?email=${response.data?.email}&type=signup`);
+    } catch (err: unknown) {
+      toast.error(err instanceof Error ? err.message : "Unexpected error");
     } finally {
       useAuthStore.setState({isLoading:false})
     }
@@ -76,70 +84,30 @@ useEffect(() => {
   }
 }, []);
 
-
-
-  function handleGoogle(){
-    window.location.href = "http://localhost:5000/api/auth/google";
-  }
+function handleGoogle(){
+  window.location.href = "http://localhost:5000/api/auth/google";
+}
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-br from-blue-950 via-purple-950 to-black text-white">
-
-      <div className="flex flex-1 items-center justify-center p-6">
-        <div className="bg-white/10 backdrop-blur-md rounded-3xl p-10 shadow-2xl w-full max-w-md">
-          {/* Logo */}
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <FaGraduationCap className="w-10 h-10 text-amber-400 animate-bounce" />
-            <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-yellow-300 via-pink-400 to-indigo-400 bg-clip-text text-transparent">
-              TutorLink
-            </h1>
-          </div>
-
-          {/* Heading */}
-          <h2 className="text-2xl font-bold text-center mb-4">Create Account</h2>
-          <p className="text-center text-gray-300 mb-6">
-            Sign up to start your learning journey
-          </p>
+    <>
+      <AuthLayout title="Create Your Account" subtitle="Sign up to start your learning journey" >
 
           {/* Signup Form */}
           <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-            <Input
-              name="name"
-              type="text"
-              placeholder="Full Name"
-              className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
-              value={formData.name}
-              onChange={handleChange}
+            <Input name="name" type="text" placeholder="Full Name" className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
+              value={formData.name} onChange={handleChange}
             />
-            <Input
-              name="email"
-              type="email"
-              placeholder="Email"
-              className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
-              value={formData.email}
-              onChange={handleChange}
+            <Input name="email" type="email" placeholder="Email" className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
+              value={formData.email} onChange={handleChange}
             />
-            <Input
-              name="password"
-              type="password"
-              placeholder="Password"
-              className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
-              value={formData.password}
-              onChange={handleChange}
+            <Input name="password" type="password" placeholder="Password" className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
+              value={formData.password} onChange={handleChange}
             />
-            <Input
-              name="confirmPassword"
-              type="password"
-              placeholder="Confirm Password"
-              className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
-              value={formData.confirmPassword}
-              onChange={handleChange}
+            <Input name="confirmPassword" type="password" placeholder="Confirm Password" className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
+              value={formData.confirmPassword} onChange={handleChange}
             />
 
-            <Button
-              type="submit"
-              className="rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 text-white py-4 font-bold hover:scale-105 hover:shadow-lg transition"
-            >
+            <Button type="submit" className="rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 text-white py-4 font-bold hover:scale-105 hover:shadow-lg transition" >
               Sign Up
             </Button>
           </form>
@@ -158,27 +126,20 @@ useEffect(() => {
             <span className="text-sm text-gray-400">or</span>
             <span className="flex-grow h-px bg-gray-600"></span>
           </div>
-
-          {/* Google Signup */}
+          
+          {/* Google Login */}
           <Button
-            onClick={()=>handleGoogle()}
+          onClick={()=>handleGoogle()}
             type="button"
             className="w-full rounded-xl bg-white text-gray-900 px-4 py-3 flex items-center justify-center gap-3 hover:bg-gray-100 transition"
           >
             <FcGoogle className="w-6 h-6" />
-            Sign up with Google
+            Continue with Google
           </Button>
-        </div>
-      </div>
 
       <Toaster position="top-center" reverseOrder={false} />
-{isLoading && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/20">
-    <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-  </div>
-)}
-    </div>
+    </AuthLayout>
+    </>
   );
 };
-
 export default Signup;

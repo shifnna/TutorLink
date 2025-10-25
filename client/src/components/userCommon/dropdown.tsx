@@ -1,66 +1,38 @@
-import React, { useState } from "react";
-import { Button } from "../ui/button";
-import { Input } from "../ui/input";
-import { FaBell, FaGraduationCap, FaUserCircle } from "react-icons/fa";
-import { HiOutlineAdjustments } from "react-icons/hi";
+import { useState } from 'react'
+import { FaBell, FaUserCircle } from 'react-icons/fa';
 import { toast, Toaster } from "react-hot-toast";
-import { useAuthStore } from "../../store/authStore";
-import { useNavigate } from "react-router-dom";
-import ApplicationModal from "../../pages/tutors/applicationModal";
-import { authService } from "../../services/authService";
+import { Button } from '../ui/button';
+import { useNavigate } from 'react-router-dom';
+import { authService } from '../../services/authService';
+import { useAuthStore } from '../../store/authStore';
+import ApplicationModal from '../../pages/tutors/applicationModal';
 
-const Header: React.FC = () => {
-  const { search, setSearch, user, logout } = useAuthStore();
-  const [menuOpen, setMenuOpen] = useState(false);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [showAdminMsg, setShowAdminMsg] = useState(false);
-  const navigate = useNavigate();
 
-  const closeModal = () => setIsModalOpen(false);
-  const openModal = () => setIsModalOpen(true);
+const Dropdown = () => {
+    const [menuOpen, setMenuOpen] = useState(false);
+    const [showAdminMsg, setShowAdminMsg] = useState(false);
+    const [isModalOpen, setIsModalOpen] = useState(false);
 
-  async function handleLogout() {
+    const closeModal = () => setIsModalOpen(false);
+    const openModal = () => setIsModalOpen(true);
+
+    const { user, logout } = useAuthStore();
+    const navigate = useNavigate();
+
+    async function handleLogout() {
     try {
-      const response = await authService.logout(); // remove cookies
-      logout(); // remove from store
-      navigate("/");
-      toast.success(response.message);
+      await authService.logout();
+      await logout();
+      navigate("/login");
+      toast.success('Logout successful');
     } catch (err) {
       console.error("Logout failed:", err);
     }
-  }
-
+    }
   return (
-    <div className="w-full bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 text-gray-900" onClick={closeModal}>
-      <header className="sticky top-0 z-50 bg-gradient-to-r from-gray-900 via-purple-950 to-black shadow-md rounded-b-2xl">
-        <div className="flex items-center justify-between px-6 md:px-12 py-4">
-
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <FaGraduationCap className="w-8 h-8 text-amber-400 animate-bounce" />
-            <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-pink-400 to-indigo-600">
-              TutorLink
-            </h1>
-          </div>
-
-          {/* Search */}
-          <div className="flex-1 flex justify-center items-center relative">
-            <div className="w-full max-w-3xl relative">
-              <Input
-                placeholder="Search tutors by name..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-full px-6 py-3 text-white bg-white/10 focus:ring-2 focus:ring-indigo-400 shadow-sm"
-              />
-              <HiOutlineAdjustments className="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-white cursor-pointer hover:text-gray-200 transition" />
-            </div>
-          </div>
-
-          {/* Right Icons */}
           <div className="flex items-center gap-4 relative">
             <FaBell className="w-6 h-6 text-white cursor-pointer hover:text-gray-300 transition" />
 
-            {/* User Dropdown */}
             <div className="relative">
               <FaUserCircle
                 className="w-8 h-8 text-white cursor-pointer"
@@ -70,7 +42,7 @@ const Header: React.FC = () => {
               {menuOpen && (
                 <div className="absolute right-0 mt-3 w-72 bg-white rounded-xl shadow-lg p-4 z-50">
                   <p className="font-bold text-gray-800">{user?.name || ""}</p>
-                  <p className="text-sm text-yellow-600 mb-3">{user?.role || ""}</p>
+                  <p className="font-bold tracking-tight bg-gradient-to-r from-yellow-600 via-pink-700 to-indigo-900 bg-clip-text text-transparent shining-text">{user?.role || ""}</p>
 
                   {/* Tutor Application Section */}
                   {user?.role === "client" && (
@@ -112,7 +84,7 @@ const Header: React.FC = () => {
 
                           {/* Resubmit Button */}
                           <Button
-                            onClick={openModal}
+                            onClick={()=>openModal()}
                             className="w-full mt-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-medium"
                           >
                             Resubmit Application
@@ -123,8 +95,8 @@ const Header: React.FC = () => {
                       {/* No Application */}
                       {!user.tutorApplication?.status && (
                         <Button
-                          onClick={openModal}
-                          className="w-full bg-gradient-to-r from-blue-900 via-purple-800 to-pink-700 text-white rounded-lg font-medium"
+                          onClick={(e)=>{e.stopPropagation(); openModal(); setMenuOpen(false)}}
+                          className=" mb-2 w-full bg-gradient-to-r from-blue-900 via-purple-800 to-pink-700 text-white rounded-lg font-medium"
                         >
                           Become a Tutor
                         </Button>
@@ -140,6 +112,13 @@ const Header: React.FC = () => {
                   )}
 
                   {/* Other Options */}
+                  <Button
+                    variant="outline"
+                    className="w-full mb-2 rounded-lg border-gray-300 hover:bg-gray-100 hover:border-gray-400"
+                    onClick={()=>navigate("/user-profile")}
+                  >
+                    Profile
+                  </Button>
                   <Button
                     variant="outline"
                     className="w-full mb-2 rounded-lg border-gray-300 hover:bg-gray-100 hover:border-gray-400"
@@ -161,15 +140,12 @@ const Header: React.FC = () => {
                   </Button>
                 </div>
               )}
-            </div>
+            </div>  
+            <ApplicationModal isOpen={isModalOpen} onClose={closeModal} />  
+            <Toaster position="top-center" reverseOrder={false} />         
           </div>
-        </div>
-      </header>
+          
+  )
+}
 
-      <Toaster position="top-center" reverseOrder={false} />
-      <ApplicationModal isOpen={isModalOpen} onClose={closeModal} />
-    </div>
-  );
-};
-
-export default Header;
+export default Dropdown

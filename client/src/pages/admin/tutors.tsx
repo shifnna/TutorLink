@@ -1,80 +1,82 @@
 import { useEffect, useState } from "react";
-import { FaSearch } 
-from "react-icons/fa";
-import Header from "../../components/admin/header";
-import TableList from "../../components/admin/tableList";
-import { IUserWithTutor } from "../../types/IUser";
+import Header from "../../components/adminCommon/header";
+import TableList from "../../components/adminCommon/tableList";
+import { IUser } from "../../types/IUser";
 import { adminService } from "../../services/adminService";
+import SearchBar from "../../components/adminCommon/searchBar";
 
 const TutorsPage: React.FC = () => {
   const [search, setSearch] = useState("");
-  const [tutors, setTutors] = useState<IUserWithTutor[]>([]);
+  const [tutors, setTutors] = useState<IUser[]>([]);
 
-  useEffect(()=>{
-    const fetchTutors = async()=>{
+  useEffect(() => {
+    const fetchTutors = async () => {
       try {
-        const data = await adminService.getAllTutors();
-        setTutors(
-          data.map((u:any)=>({
-            id: u._id,
-            name: u.name,
-            email: u.email,
-            role: u.role,
-            isBlocked: u.isBlocked || false,
-            isVerified: u.isVerified,
-            joinedDate: new Date(u.createdAt).toLocaleDateString(),
-            profileImage: u.profileImage || null,
-            tutorProfile: u.tutorProfile || null,
-          }))as IUserWithTutor[]
-        )
+        const res = await adminService.getAllTutors();
+        if (res.success && res.data) {
+          setTutors(
+            res.data.map((u) => ({
+              id: u.id,
+              name: u.name,
+              email: u.email,
+              role: u.role,
+              isBlocked: u.isBlocked || false,
+              isVerified: u.isVerified,
+              joinedDate: u.createdAt
+                ? new Date(u.createdAt).toLocaleDateString()
+                : "Unknown",
+              profileImage: u.profileImage || null,
+              tutorProfile: u.tutorProfile || null,
+            }))
+          );
+        } else {
+          console.error(res.message || "Failed to load tutors");
+          setTutors([]);
+        }
       } catch (error) {
-        console.error("Failed to load users:", error);
+        console.error("Failed to load tutors:", error);
+        setTutors([]);
       }
-    }
-    fetchTutors();
-  },[])
+    };
 
-    const handleToggleStatus = async (id: string) => {
-    try {     
-      if(window.confirm("are you sure?")){
-      const updatedUser = await adminService.toggleUserStatus(id);
-      setTutors((prev) =>
-        prev.map((u) => (u.id === id ? { ...u, isBlocked: updatedUser.isBlocked } : u)) // Update local state with backend value
-      );
+    fetchTutors();
+  }, []);
+
+  const handleToggleStatus = async (id: string) => {
+    try {
+      console.log('id:',id)
+      if (window.confirm("Are you sure?")) {
+        const updatedUser = await adminService.toggleUserStatus(id);
+        if (updatedUser.success && updatedUser.data) {
+          setTutors((prev) =>
+            prev.map((u) =>
+              u.id === id ? { ...u, isBlocked: updatedUser.data!.isBlocked } : u
+            )
+          );
+        }
       }
     } catch (err) {
       console.error("Failed to toggle status:", err);
     }
   };
 
-
-  //// Filter users based on search input
   const filteredUsers = tutors.filter(
     (tutor) =>
       tutor.name.toLowerCase().includes(search.toLowerCase()) ||
       tutor.email.toLowerCase().includes(search.toLowerCase())
   );
 
-  
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-950 to-black text-white p-8">
-      {/* Header */}
       <Header name={"Tutors"} />
 
-      {/* Search Bar */}
-      <div className="flex items-center gap-3 bg-white/10 px-4 py-3 rounded-xl border border-purple-800/40 mb-6">
-        <FaSearch className="text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search by name or email..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="bg-transparent outline-none text-white flex-1 placeholder-gray-400"
-        />
-      </div>
+      <SearchBar
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search by name or email..."
+      />
 
-      {/* Users List */}
-      <TableList users={filteredUsers} handleToggleStatus={handleToggleStatus}/>
+      <TableList users={filteredUsers} handleToggleStatus={handleToggleStatus} />
     </div>
   );
 };

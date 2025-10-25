@@ -4,7 +4,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { toast, Toaster } from "react-hot-toast";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { FaGraduationCap } from "react-icons/fa";
+import AuthLayout from "./authLayout";
 
 const VerifyOtp: React.FC = () => {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
@@ -51,8 +51,16 @@ const VerifyOtp: React.FC = () => {
         toast.success("OTP verified!");
         navigate(`/reset-password?email=${email}`);
       }
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || err.message || "Verification failed ❌");
+    } catch (err: unknown) {
+      //// Narrow the error type safely
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else if (typeof err === "object" && err !== null && "response" in err) {
+        const e = err as { response?: { data?: { message?: string } } };
+        toast.error(e.response?.data?.message || "Something went wrong!");
+      } else {
+        toast.error("Something went wrong!");
+      }
     }
   }
 
@@ -62,8 +70,16 @@ const VerifyOtp: React.FC = () => {
     try {
       await resendOtp(email, type);
       toast.success("OTP resent! 📩");
-    } catch (err: any) {
-      toast.error(err.response?.data?.error || err.message || "OTP resend failed ❌");
+    } catch (err: unknown) {
+      //// Narrow the error type safely
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else if (typeof err === "object" && err !== null && "response" in err) {
+        const e = err as { response?: { data?: { message?: string } } };
+        toast.error(e.response?.data?.message || "Something went wrong!");
+      } else {
+        toast.error("Something went wrong!");
+      }
     }
   }
 
@@ -77,25 +93,8 @@ const VerifyOtp: React.FC = () => {
 
   
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-br from-blue-950 via-purple-900 to-black text-white">
-      {/* Right side OTP form */}
-      <div className="flex flex-1 items-center justify-center p-6">
-        <div className="bg-white/10 backdrop-blur-md rounded-3xl p-10 shadow-2xl w-full max-w-md">
-          {/* Logo */}
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <FaGraduationCap className="w-10 h-10 text-amber-400 animate-bounce" />
-            <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-yellow-300 via-pink-400 to-indigo-400 bg-clip-text text-transparent">
-              TutorLink
-            </h1>
-          </div>
-
-          {/* Heading */}
-          <h2 className="text-2xl font-bold text-center mb-4">
-            {type === "signup" ? "Verify Your Account" : "Reset Your Password"}
-          </h2>
-          <p className="text-center text-gray-300 mb-6">
-            Enter the OTP sent to <span className="text-yellow-300">{email}</span>
-          </p>
+    <>
+      <AuthLayout title={type === "signup" ? "Verify Your Account" : "Reset Your Password"} subtitle={`Enter the OTP sent to <span className="text-yellow-300">${email}</span>`} >
 
           {/* OTP Form */}
           <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
@@ -137,11 +136,10 @@ const VerifyOtp: React.FC = () => {
             </>
             )}
           </p>
-        </div>
-      </div>
 
       <Toaster position="top-center" reverseOrder={false} />
-    </div>
+    </AuthLayout>
+    </>
   );
 };
 

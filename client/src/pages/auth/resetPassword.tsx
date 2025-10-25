@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
-import { FaGraduationCap } from "react-icons/fa";
 import { toast, Toaster } from "react-hot-toast";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
+import AuthLayout from "./authLayout";
 
 const ResetPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -36,29 +36,22 @@ const ResetPassword: React.FC = () => {
       await resetPassword(email, formData.password, formData.confirmPassword);
       toast.success("Password reset successfully ✅");
       navigate("/login");
-    } catch (error: any) {
-      toast.error(error.response?.data?.error || "Reset failed ❌");
+    } catch (err: unknown) {
+      //// Narrow the error type safely
+      if (err instanceof Error) {
+        toast.error(err.message);
+      } else if (typeof err === "object" && err !== null && "response" in err) {
+        const e = err as { response?: { data?: { message?: string } } };
+        toast.error(e.response?.data?.message || "Something went wrong!");
+      } else {
+        toast.error("Something went wrong!");
+      }
     }
   }
 
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen bg-gradient-to-br from-blue-950 via-purple-900 to-black text-white">
-       {/* Right side (reset password card) */}
-      <div className="flex flex-1 items-center justify-center p-6">
-        <div className="bg-white/10 backdrop-blur-md rounded-3xl p-10 shadow-2xl w-full max-w-md">
-          {/* Logo */}
-          <div className="flex items-center justify-center gap-3 mb-8">
-            <FaGraduationCap className="w-10 h-10 text-amber-400 animate-bounce" />
-            <h1 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-yellow-300 via-pink-400 to-indigo-400 bg-clip-text text-transparent">
-              TutorLink
-            </h1>
-          </div>
-
-          {/* Heading */}
-          <h2 className="text-2xl font-bold text-center mb-4">Reset Password</h2>
-          <p className="text-center text-gray-300 mb-6">
-            Set a new password for <span className="text-yellow-400">{email}</span>
-          </p>
+    <>
+      <AuthLayout title="Reset Password" subtitle="Set a new password" >
 
           {/* Reset Password Form */}
           <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
@@ -93,11 +86,10 @@ const ResetPassword: React.FC = () => {
               Log In
             </a>
           </p>
-        </div>
-      </div>
-
+          
       <Toaster position="top-center" reverseOrder={false} />
-    </div>
+    </AuthLayout>
+    </>
   );
 };
 

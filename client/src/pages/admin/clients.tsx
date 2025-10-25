@@ -1,55 +1,63 @@
 import { useState, useEffect } from "react";
-import {FaSearch} from "react-icons/fa";
-import Header from "../../components/admin/header";
+import Header from "../../components/adminCommon/header";
 import { IUser } from "../../types/IUser";
-import TableList from "../../components/admin/tableList";
+import TableList from "../../components/adminCommon/tableList";
 import { adminService } from "../../services/adminService";
-
+import SearchBar from "../../components/adminCommon/searchBar";
 
 const ClientsPage: React.FC = () => {
   const [users, setUsers] = useState<IUser[]>([]);
   const [search, setSearch] = useState("");
 
-
   useEffect(() => {
     const fetchClients = async () => {
       try {
-        const data = await adminService.getAllClients();
-        setUsers(
-          data.map((u: any) => ({
-            id: u._id,
-            name: u.name,
-            email: u.email,
-            role: u.role,
-            isBlocked: u.isBlocked || false,
-            isVerified: u.isVerified,
-            joinedDate: new Date(u.createdAt).toLocaleDateString(),
-          }))
-        );
+        const response = await adminService.getAllClients();
+        if (response.success && response.data) {
+          setUsers(
+            response.data.map((u) => ({
+              id: u.id,
+              name: u.name,
+              email: u.email,
+              role: u.role,
+              isBlocked: u.isBlocked || false,
+              isVerified: u.isVerified,
+              joinedDate: u.createdAt
+                ? new Date(u.createdAt).toLocaleDateString()
+                : "Unknown",
+              profileImage: u.profileImage || null,
+              tutorProfile: u.tutorProfile || null,
+            }))
+          );
+        } else {
+          setUsers([]);
+          console.error(response.message || "Failed to fetch users");
+        }
       } catch (err) {
         console.error("Failed to load users:", err);
       }
     };
-
     fetchClients();
   }, []);
 
-
   const handleToggleStatus = async (id: string) => {
-    try {    
-      if(window.confirm("are you sure?")){
-      const updatedUser = await adminService.toggleUserStatus(id);
-      setUsers((prev) =>
-        prev.map((u) => (u.id === id ? { ...u, isBlocked: updatedUser.isBlocked } : u)) // Update local state with backend value
-      );
-      }       
+    try {
+      if (window.confirm("Are you sure?")) {
+        const response = await adminService.toggleUserStatus(id);
+        const updatedUser = response.data;
+        if (!updatedUser) {
+          console.error("No user returned from backend");
+          return;
+        }
+        setUsers((prev) =>
+          prev.map((u) => (u.id === id ? { ...u, isBlocked: updatedUser.isBlocked } : u))
+        );
+      }
     } catch (err) {
       console.error("Failed to toggle status:", err);
     }
   };
 
-
-  //// Filter users based on search input
   const filteredUsers = users.filter(
     (user) =>
       user.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -57,25 +65,14 @@ const ClientsPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-950 to-black text-white p-8">
-      {/* Header */}
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-950 to-black text-white px-4 py-8 md:px-12 md:py-10">
       <Header name={"Clients"} />
-
-      {/* Search Bar */}
-      <div className="flex items-center gap-3 bg-white/10 px-4 py-3 rounded-xl border border-purple-800/40 mb-6">
-        <FaSearch className="text-gray-400" />
-        <input
-          type="text"
-          placeholder="Search by name or email..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="bg-transparent outline-none text-white flex-1 placeholder-gray-400"
-        />
-      </div>
-
-      {/* Users List */}
-      <TableList users={filteredUsers} handleToggleStatus={handleToggleStatus}/>
-      
+      <SearchBar
+        value={search}
+        onChange={(e) => setSearch(e.target.value)}
+        placeholder="Search by name or email..."
+      />
+      <TableList users={filteredUsers} handleToggleStatus={handleToggleStatus} />
     </div>
   );
 };

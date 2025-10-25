@@ -1,6 +1,7 @@
 export interface ITutorApplication {
   _id: string;
-  tutorId: {
+  tutorId?: {
+    isVerified: boolean;
     tutorApplication: any;
     _id: string;
     name: string;
@@ -13,13 +14,29 @@ export interface ITutorApplication {
   experienceLevel: string;
   gender: string;
   occupation: string;
-  profileImage: string;
+  profileImage: string ;
   certificates: string[];
   accountHolder: string;
   accountNumber: string;
   bankName: string;
   ifsc: string;
   createdAt: string;
+}
+
+export interface ITutorApplicationForm {
+  description: string;
+  languages: string[];
+  education: string;
+  skills: string[];
+  experienceLevel: string;
+  gender: string;
+  occupation: string;
+  profileImage: File | null;   //// Before upload
+  certificates: File[];        // //Before upload
+  accountHolder: string;
+  accountNumber: string;
+  bankName: string;
+  ifsc: string;
 }
 
 export interface IApplicationModal {

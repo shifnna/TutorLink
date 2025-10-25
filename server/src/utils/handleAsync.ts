@@ -1,5 +1,4 @@
-import { Response } from "express";
-import { STATUS_CODES } from "../utils/constants";
+import { NextFunction, Response } from "express";
 
 /**
  * Handles async controller logic and sends standardized response
@@ -9,17 +8,13 @@ import { STATUS_CODES } from "../utils/constants";
  */
 
 export const handleAsync = <T>(controllerFn: () => Promise<T>) =>
-  async (res: Response): Promise<void> => {
+  async (res: Response, next: NextFunction): Promise<void> => {
     try {
       const data = await controllerFn();
-      if (!res.headersSent) {
-        res.status(STATUS_CODES.SUCCESS).json(data);
-      }
-      
-    } catch (err: unknown) {
-      const errorMessage =
-        err instanceof Error ? err.message : "Unknown error occurred";
-      console.error('Error in handleAsync:', err);
-      res.status(STATUS_CODES.SERVER_ERROR).json(errorMessage);
+      if (!res.headersSent)
+        res.status(200).json(data);
+    } catch (err) {
+      next(err)
     }
   };
+

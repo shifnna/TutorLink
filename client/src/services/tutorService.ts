@@ -1,45 +1,54 @@
 import axiosClient from "../api/axiosClient";
 import { uploadFileToS3 } from "../api/uploadToS3";
-import { IS3UploadResponse, ITutorApplication } from "../types/ITutorApplication";
+import { ITutor } from "../types/ITutor";
+import { IS3UploadResponse, ITutorApplication, ITutorApplicationForm } from "../types/ITutorApplication";
+import { handleApi, ICommonResponse } from "../utils/apiHelper";
+import { ROUTES } from "../utils/constants";
 
 export const tutorService = {
     
-    getPresignedUrl : async (fileName:string,fileType:string): Promise <IS3UploadResponse> =>{
-        const {data} = await axiosClient.post("/api/tutor/upload/presign", {fileName,fileType});
-        return data;
-    },
+    getPresignedUrl : async (fileName:string,fileType:string): Promise <ICommonResponse<IS3UploadResponse>> => ////last promise optional (not set in authservice)
+      handleApi<IS3UploadResponse>(axiosClient.post( `${ROUTES.TUTOR_API}/upload/presign`, {fileName,fileType})),
+        
 
-    applyForTutor : async (payload : ITutorApplication | FormData) =>{
-        const {data} = await axiosClient.post("/api/tutor/apply-for-tutor",payload);
-        return data;
-    },
+    applyForTutor: async (payload: ITutorApplication | FormData): Promise<ICommonResponse<ITutorApplication>> =>
+      handleApi<ITutorApplication>(axiosClient.post( `${ROUTES.TUTOR_API}/apply-for-tutor`, payload)),
 
-    getAllTutors: async () => {
-        const response = await axiosClient.get("/api/tutor/get-tutors");
-        return response.data.tutors;
-    },
+
+    getAllTutors: async () : Promise <ICommonResponse<ITutor[]>> =>
+      handleApi<ITutor[]>(axiosClient.get( `${ROUTES.TUTOR_API}/get-tutors`)),
     
 
-    apply: async (formData:any) => {
-        // upload profile image
-        const profileImageUrl = formData.profileImage ? await uploadFileToS3(formData.profileImage) : null;
+    apply: async (formData: ITutorApplicationForm):  Promise<ICommonResponse<ITutorApplication>> => {
+      if (!formData.profileImage) {
+       throw new Error("Profile image is required");
+      }
 
-        // upload certificates
-        const certificatesUrls: string[] = [];
-        if(formData.certificates.length){
-            for(const file of formData.certificates){
-                const url = await uploadFileToS3(file);
-                certificatesUrls.push(url);
-            }
-        }
+      // upload profile image
+      const profileImageUrl = await uploadFileToS3(formData.profileImage);
 
-        // build final payload
-        const payload: ITutorApplication = {
-            ...formData,
-            profileImage : profileImageUrl,
-            certificates : certificatesUrls, 
-        }
+      // upload certificates
+      const certificatesUrls: string[] = await Promise.all(
+        formData.certificates.map(file => uploadFileToS3(file))
+      );
 
-        return tutorService.applyForTutor(payload);
-    }
+      // build final payload as Partial
+    const payload: Partial<ITutorApplication> = {
+      description: formData.description,
+      languages: formData.languages,
+      education: formData.education,
+      skills: formData.skills,
+      experienceLevel: formData.experienceLevel,
+      gender: formData.gender,
+      occupation: formData.occupation,
+      profileImage: profileImageUrl,
+      certificates: certificatesUrls,
+      accountHolder: formData.accountHolder,
+      accountNumber: formData.accountNumber,
+      bankName: formData.bankName,
+      ifsc: formData.ifsc,
+    };
+    return tutorService.applyForTutor(payload as ITutorApplication);
+}
+
 }

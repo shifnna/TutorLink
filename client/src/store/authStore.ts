@@ -1,131 +1,110 @@
 import { create } from "zustand";
 import { IAuthState } from "../types/IAuthState";
 import { authService } from "../services/authService";
+import { IUser } from "../types/IUser";
+import { ITutorApplicationForm } from "../types/ITutorApplication";
 
 export const useAuthStore = create<IAuthState>()(
-    (set) => ({
-      user: null,
-      isLoading: false,
-      isAuthenticated: false,
-      search: "",
-      blocked: false,
-      accessToken: null,
-      
-      setUser: (user: any) => set({ user, blocked: !!user?.blocked }),
+  (set) => ({
+    user: null,
+    isLoading: false,
+    isAuthenticated: false,
+    search: "",
+    blocked: false,
 
-      setSearch: (term) => set({ search: term }),
+    setUser: (user: IUser) => set({ user, blocked: !!user?.isBlocked }),
 
-      fetchUser: async () => {
-        try {
-          set({ isLoading: true});
-          const response = await authService.fetchUser ();
-          const isBlocked = !!response.user?.blocked;
-          set({ user: response.user, isAuthenticated: !isBlocked, blocked: isBlocked, isLoading: false });
-        } catch (error: any) {
-          set({ user: null, isLoading: false });
-          if (error?.response?.status === 401) {
-            set({ isAuthenticated: false, blocked: false });
-          } else if (error?.response?.status === 403) {
-            set({ isAuthenticated: true, blocked: true });
-          } else {
-            set({ isAuthenticated: false, blocked: false });
-          }
-        }
-      },
+    setSearch: (term) => set({ search: term }),
 
-      signup: async (name, email, password, confirmPassword) => {
-        try {
-          set({ isLoading: true });
-          const response = await authService.signup({name,email,password,confirmPassword,});
+    fetchUser: async () => {
+      set({ isLoading: true });
+      const response = await authService.fetchUser();
+      set({ isLoading: false });
 
-          set({user: response.user,isAuthenticated: true,isLoading: false});
+      if (!response.success || !response.data || !response.data) {
+        set({ user: null, isAuthenticated: false, blocked: false });
+        throw new Error(response.message);
+      }
 
-          return response;
-        } catch (error: any) {
-          set({isLoading: false});
-          throw error;
-        }
-      },
+      const user : IUser = response.data;
+      const blocked : boolean = !!user?.isBlocked;
+      set({ user, blocked, isAuthenticated: !blocked });
+    },
 
-      verifyOtp: async (email: string, otp: string, type: string) => {
-        try {
-          set({ isLoading: true });
-          const response = await authService.verifyOtp({ email, otp, type });
-          set({user: response.user,isAuthenticated: type === "signup",isLoading: false,});
-          return response;
-        } catch (error: any) {
-          set({isLoading: false});
-          throw error;
-        }
-      },
+    signup: async (name, email, password, confirmPassword) => {
+      set({ isLoading: true });
+      const response = await authService.signup({ name, email, password, confirmPassword });
+      set({ isLoading: false });
 
-      resendOtp: async (email: string, type: string) => {
-        try {
-          set({ isLoading: true});
-          const response = await authService.resendOtp({ email, type });
-          set({ isLoading: false });
-          return response;
-        } catch (error: any) {
-          set({isLoading: false});
-          throw error;
-        }
-      },
+      if (!response.success || !response.data) throw new Error(response.message);
 
-      login: async (email, password) => {
-        try {
-          set({ isLoading: true});
-          const response = await authService.login({ email, password });
+      set({ user: response.data, isAuthenticated: true });
+      return response;
+    },
 
-          set({user: response.user,isAuthenticated: true,isLoading: false,accessToken: response.accessToken});
+    login: async (email, password) => {
+      set({ isLoading: true });
+      const response = await authService.login({ email, password });
+      set({ isLoading: false });
 
-          return response;
-        } catch (error: any) {
-          set({isLoading: false});
-          throw error;
-        }
-      },
+      if (!response.success || !response.data) throw new Error(response.message);
 
-      requestPasswordReset: async (email: string, type: string) => {
-        try {
-          const response = await authService.resendOtp({ email, type });
-          return response;
-        } catch (error) {
-          throw error;
-        }
-      },
+      set({ user: response.data, isAuthenticated: true });
+      return response;
+    },
 
-      resetPassword: async (email: string, password: string, confirmPassword:string) => {
-        try {
-          set({ isLoading: true});
-          const response = await authService.resetPassword({email,password,confirmPassword});
-          set({ isLoading: false });
-          return response;
-        } catch (error: any) {
-          set({isLoading: false});
-          throw error;
-        }
-      },
+    verifyOtp: async (email, otp, type) => {
+      set({ isLoading: true });
+      const response = await authService.verifyOtp({ email, otp, type });
+      set({ isLoading: false });
 
-      logout: async () => {
-        try {   
-          const response = await authService.logout();
-          set({ user: null, isAuthenticated: false,accessToken:null });
-          return response;
-        } catch (error) {
-          throw error;
-        }
-      },
+      if (!response.success) throw new Error(response.message);
 
-      applyForTutor: async ( description: string, languages: string, education: string, skills: string, experienceLevel: string, gender: string, occupation: string, profileImage: string | null, certificates: string | null, accountHolder: string, accountNumber: number, bankName: string, ifsc: string ) => {
-        try {
-          set({ isLoading: true});
-          const response = await authService.applyForTutor({ description,languages,education,skills,experienceLevel,gender,occupation,profileImage,certificates,accountHolder,accountNumber,bankName,ifsc,
-          });
-          set({ isLoading: false });
-          return response;
-        } catch (error) {
-          throw error;
-        }
-      },
-    }),
+      const user = response.data?.user;
+      set({ user , isAuthenticated: type === "signup" });
+      return {
+       user,
+       success: response.success,
+      };
+    },
+
+    resendOtp: async (email, type) => {
+      set({ isLoading: true });
+      const response = await authService.resendOtp({ email, type });
+      set({ isLoading: false });
+
+      if (!response.success) throw new Error(response.message);
+      return response.data!;
+    },
+
+    requestPasswordReset: async (email, type) => {
+      const response = await authService.resendOtp({ email, type });
+      if (!response.success) throw new Error(response.message);
+      return response.data!;
+    },
+
+    resetPassword: async (email, password, confirmPassword) => {
+      set({ isLoading: true });
+      const response = await authService.resetPassword({ email, password, confirmPassword });
+      set({ isLoading: false });
+
+      if (!response.success) throw new Error(response.message);
+      return response.data!;
+    },
+
+    logout: async () => {
+      const response = await authService.logout();
+      if (!response.success) throw new Error(response.message);
+      set({ user: null, isAuthenticated: false });
+    },
+
+    applyForTutor: async (payload: ITutorApplicationForm) => {
+      set({ isLoading: true });
+      const response = await authService.applyForTutor(payload);
+      set({ isLoading: false });
+
+      if (!response.success) throw new Error(response.message);
+      return response.data!;
+    },
+  })
 );

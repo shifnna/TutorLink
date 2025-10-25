@@ -10,10 +10,13 @@ import AdminDashboard from "../pages/admin/dashboard";
 import TutorApplications from "../pages/admin/applicaions";
 import ClientsPage from "../pages/admin/clients";
 import TutorsPage from "../pages/admin/tutors";
-import GuestRoute from "../components/guestRoute";
-import ProtectedRoute from "../components/protectedRoute";
-import Unauthorized from "../pages/auth/unAuthorized";
-import Blocked from "../pages/auth/blocked";
+import GuestRoute from "./guestRoute";
+import ProtectedRoute from "./protectedRoute";
+import Unauthorized from "../pages/security/unAuthorized";
+import Blocked from "../pages/security/blocked";
+import SessionManagement from "../pages/tutors/sessionManagement";
+import UserProfile from "../pages/tutors/userProfile";
+
 
 function AppRoutes() {
   return (
@@ -31,6 +34,8 @@ function AppRoutes() {
             <Route path="/reset-password" element={<ResetPassword/>} />
 
             <Route path="/explore-tutors" element={<ProtectedRoute><ExploreTutors/></ProtectedRoute>} />
+            <Route path="/user-profile" element={<ProtectedRoute><UserProfile/></ProtectedRoute>} />
+            <Route path="/session-management" element={<ProtectedRoute><SessionManagement/></ProtectedRoute>} />
 
             <Route path="/admin-dashboard" element={<ProtectedRoute role="admin"><AdminDashboard/></ProtectedRoute>} />
             <Route path="/admin-dashboard/applications" element={<ProtectedRoute role="admin"><TutorApplications/></ProtectedRoute>} />
@@ -43,4 +48,4 @@ function AppRoutes() {
   )
 }
 
-export default AppRoutes
+export default AppRoutes;

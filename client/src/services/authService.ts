@@ -1,61 +1,35 @@
 import axiosClient from "../api/axiosClient";
-
-interface SignupData {
-  name: string;
-  email: string;
-  password: string;
-  confirmPassword: string;
-}
-
-interface LoginData {
-  email: string;
-  password: string;
-}
+import { IUser } from "../types/IUser";
+import { ITutorApplicationForm, ITutorApplication } from "../types/ITutorApplication";
+import { LoginData, ResendOtpPayload, SignupData, VerifyOtpData, ResetPasswordData } from "../types/IAuthState";
+import { handleApi } from "../utils/apiHelper";
+import { ROUTES } from "../utils/constants";
 
 export const authService = {
-  fetchUser: async () => {
-    const response = await axiosClient.get("/api/auth/me");
-    return response.data;
-  },
-
-  signup: async (data: SignupData) => {
-    const response = await axiosClient.post("/api/auth/signup", data);
-    return response.data; 
-  },
-
-  login: async (data: LoginData) => {
-    const response = await axiosClient.post("/api/auth/login", data);
-    return response.data; 
-  },
-
-  verifyOtp: async (data: { email: string; otp: string, type:string }) => {
-  const response = await axiosClient.post("/api/auth/verify-otp", data)
-  return response.data;
-  },
-
-  resendOtp: async (data:any) => { //same for send otp to reset pass
-  const response = await axiosClient.post("/api/auth/resend-otp", data)
-  return response.data;
-  },
+  fetchUser: async () => 
+    handleApi<IUser>(axiosClient.get("/api/auth/me")),
   
-  resetPassword: async (data: { email: string; password: string; confirmPassword:string }) => {
-  const response = await axiosClient.post("/api/auth/reset-password", data);
-  return response.data;
-  },
+  signup: async (data: SignupData) => 
+    handleApi<IUser>(axiosClient.post( `${ROUTES.AUTH_API}/signup`, data)),
 
-  logout: async ()=>{
-    const response = await axiosClient.post("/api/auth/logout")
-    return response.data;
-  },
+  login: async (data: LoginData) => 
+    handleApi<IUser>(axiosClient.post( `${ROUTES.AUTH_API}/login`, data)),
 
-  applyForTutor: async (data:{description: string,languages: string,education: string,skills: string,experienceLevel: string,gender: string,occupation: string,profileImage: string | null,certificates: string | null,accountHolder: string,accountNumber: number,bankName: string,ifsc: string})=>{
-    const response = await axiosClient.post("/api/user/apply-for-tutor",data)
-    return response.data;
-  },
+  verifyOtp: async (data: VerifyOtpData) => 
+    handleApi<{ user: IUser }>(axiosClient.post( `${ROUTES.AUTH_API}/verify-otp`, data)),
 
-  refresh: async ()=>{
-    const response = await axiosClient.post("/api/auth/refresh",{});
-    return response.data;
-  }
+  resendOtp: async (data: ResendOtpPayload) => 
+    handleApi<{ message: string }>(axiosClient.post( `${ROUTES.AUTH_API}/resend-otp`, data)),
 
+  resetPassword: async (data: ResetPasswordData) => 
+    handleApi<{ message: string }>(axiosClient.post( `${ROUTES.AUTH_API}/reset-password`, data)),
+
+  logout: async () => 
+    handleApi<null>(axiosClient.post( `${ROUTES.AUTH_API}/logout`)),
+
+  applyForTutor: async (data: ITutorApplicationForm) => 
+    handleApi<ITutorApplication>(axiosClient.post( `${ROUTES.AUTH_API}/apply-for-tutor`, data)),
+
+  refresh: async () => 
+    handleApi<{ accessToken: string }>(axiosClient.post( `${ROUTES.AUTH_API}/refresh`, {})),
 };

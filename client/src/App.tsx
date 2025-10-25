@@ -1,4 +1,4 @@
-import { useAuthInit } from "./components/AuthInitializer";
+import { useAuthInit } from "./hooks/AuthInitializer";
 import AppRoutes from "./routes/AppRoutes";
 
 function App() {

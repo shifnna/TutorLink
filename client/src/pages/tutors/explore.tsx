@@ -1,29 +1,36 @@
 import React, { useEffect, useState } from "react";
 import { Button } from "../../components/ui/button";
-import Header from "../../components/common/Header"; // ✅ import your new header
+import Header from "../../components/userCommon/Header";
 import { ITutor } from "../../types/ITutor";
 import { useAuthStore } from "../../store/authStore";
 import { tutorService } from "../../services/tutorService";
 
 const ExploreTutors: React.FC = () => {
-  // const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
+  //// const [selectedFilters, setSelectedFilters] = useState<string[]>([]);
   const [tutors, setTutors] = useState<ITutor[]>([]);
-  const { search } = useAuthStore(); // ✅ subscribe to search state
+  const { search } = useAuthStore();
 
-  useEffect(() => {
+  const [loading, setLoading] = useState(true);
+
+useEffect(() => {
   const fetchTutors = async () => {
     try {
       const response = await tutorService.getAllTutors();
-      setTutors(response);
+      if (response.success && response.data) setTutors(response.data);
     } catch (err) {
       console.error("Failed to fetch tutors", err);
+    } finally {
+      setLoading(false);
     }
   };
-    fetchTutors();
-  }, []);
+  fetchTutors();
+}, []);
+
+if (loading) return <p className="text-center mt-10">Loading tutors...</p>;
 
 
-  const subjects = ["Mathematics", "Physics", "Chemistry", "English", "Biology", "Computer Science"];
+
+  // const subjects = ["Mathematics", "Physics", "Chemistry", "English", "Biology", "Computer Science"];
 
   // const toggleFilter = (subject: string) => {
   //   setSelectedFilters(prev =>
@@ -32,17 +39,13 @@ const ExploreTutors: React.FC = () => {
   // };
 
   const filteredTutors = tutors.filter((tutor) => {
-    const name =
-      typeof tutor.tutorId === "object" && tutor.tutorId?.name
-        ? tutor.tutorId.name
-        : "Tutor";
+    const name = typeof tutor.tutorId === "object" && tutor.tutorId?.name? tutor.tutorId.name : "Tutor";
     return name.toLowerCase().startsWith(search.toLowerCase());
   });
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 text-gray-900">
       
-      {/* Use the new Header component */}
       <Header />
 
       {/* Caption */}

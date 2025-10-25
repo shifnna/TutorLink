@@ -16,9 +16,9 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [formData, setFormData] = useState({
     description: "",
-    languages: "",
+    languages: [],
     education: "",
-    skills: "",
+    skills: [],
     experienceLevel: "",
     gender: "",
     occupation: "",
@@ -78,10 +78,14 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
     if (!validateStep()) return;
     try {
       useAuthStore.setState({isLoading:true})
-      await tutorService.apply(formData);
-      toast.success("Application submitted successfully!");
+      const response = await tutorService.apply(formData);
+      if(response){
+        toast.success("Application submitted successfully!");
+      }
       const updatedUser = await authService.fetchUser();
-      useAuthStore.getState().setUser(updatedUser.user);
+      if (updatedUser.success && updatedUser.data) {
+        useAuthStore.getState().setUser(updatedUser.data);
+      }
       onClose();
     } catch (err:any) {
       const errorMessage =

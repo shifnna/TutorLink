@@ -3,8 +3,13 @@ import { tutorService } from "../services/tutorService";
 export async function uploadFileToS3(file: File): Promise<string> {
   try {
     const safeFileName = file.name.replace(/\s+/g, "_").replace(/[^a-zA-Z0-9_\-\.]/g, "");
-    const { url, key } = await tutorService.getPresignedUrl(safeFileName, file.type);
-    // Upload file to S3
+    const presignedResponse = await tutorService.getPresignedUrl(safeFileName, file.type);
+
+if (!presignedResponse.success || !presignedResponse.data) {
+  throw new Error(presignedResponse.message || "Failed to get presigned URL");
+}
+
+const { url, key } = presignedResponse.data;
     await fetch(url, {
       method: "PUT",
       body: file,

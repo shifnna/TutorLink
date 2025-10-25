@@ -1,3 +1,5 @@
+import { ITutorApplication } from "./ITutorApplication";
+
 export interface IUser {
   id: string;
   name: string;
@@ -6,8 +8,10 @@ export interface IUser {
   isBlocked: boolean;
   isVerified: boolean,
   joinedDate: string;
-  profileImage: string;
-  tutorApplication?: { status:"Pending" | "Rejected" | "Approved" | null , adminMessage?: string}
+  profileImage: string | null;
+  tutorApplication?: { status:"Pending" | "Rejected" | "Approved" | null , adminMessage?: string},
+  createdAt?: string;
+  tutorProfile?: ITutorApplication | null;
 }
 
 export interface ITutorProfile {

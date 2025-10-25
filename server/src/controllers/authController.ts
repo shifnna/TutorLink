@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "inversify";
 import { TYPES } from "../types/types";
 import { IAuthService } from "../services/interfaces/IAuthService";
@@ -16,14 +16,14 @@ export class AuthController implements IAuthController {
     private readonly _authService: IAuthService
   ) {}
 
-  signup = (req: Request, res: Response) =>
+  signup = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(() => {
         const data: SignupRequestDTO = req.body;
         return this._authService.signup(data.name,data.email,data.password,data.confirmPassword)
-    })(res);
+    })(res,next);
 
 
-  login = async (req: Request, res: Response): Promise<void> => { 
+  login = async (req: Request, res: Response, next: NextFunction): Promise<void> => { 
       const data : LoginRequestDTO = req.body;
       const result = await this._authService.login( data.email, data.password);
 
@@ -44,18 +44,18 @@ export class AuthController implements IAuthController {
         maxAge: parseInt(process.env.REFRESH_TOKEN_MAX_AGE || "604800000", 10),
       });
 
-      handleAsync( async ()=> result)(res);
+      handleAsync( async ()=> result)(res,next);
   }
       
   
-  getMe = (req: Request, res: Response) =>
+  getMe = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async() => {
       if (!req.user) throw new Error("User not authenticated");
       return req.user as IUser;
-    })(res);
+    })(res,next);
 
     
-  refresh = async (req: Request, res: Response): Promise<void> =>{
+  refresh = async (req: Request, res: Response, next: NextFunction): Promise<void> =>{
       const refreshToken = req.cookies?.refreshToken;
       if (!refreshToken) throw new Error("No refresh token");
 
@@ -68,16 +68,16 @@ export class AuthController implements IAuthController {
         sameSite: "strict",
         maxAge: parseInt(process.env.ACCESS_TOKEN_MAX_AGE || "900000", 10),
       });
-    handleAsync(async()=> accessToken )(res);
+    handleAsync(async()=> accessToken )(res,next);
   }
 
-  logout = async(req: Request, res: Response): Promise<void> =>{
+  logout = async(req: Request, res: Response, next: NextFunction): Promise<void> =>{
     res.clearCookie("accessToken");
     res.clearCookie("refreshToken");
-    handleAsync(async() => ( {message: "Logged out successfully"} ))(res);
+    handleAsync(async() => ( {message: "Logged out successfully"} ))(res,next);
   }
 
-  verifyOtp = async (req: Request, res: Response): Promise<void> =>{
+  verifyOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> =>{
     handleAsync(async () => {
       const data: VerifyOtpRequestDTO = req.body;
       const result = await this._authService.verifyOtp(data.email, data.otp, data.type);
@@ -99,30 +99,30 @@ export class AuthController implements IAuthController {
           maxAge: parseInt(process.env.REFRESH_TOKEN_MAX_AGE || "604800000", 10),
         });
 
-        handleAsync(async () => ({ user: result.user, message: "OTP verified successfully" }))(res);
+        handleAsync(async () => ({ user: result.user, message: "OTP verified successfully" }))(res,next);
         return;
       }
 
-      handleAsync(async () => result)(res); // For forgot-password OTP flow
-    })(res);
+      handleAsync(async () => result)(res,next); // For forgot-password OTP flow
+    })(res,next);
   }
   
 
-  resendOtp = (req: Request, res: Response) =>
+  resendOtp = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async () => {
       const data: ResendOtpRequestDTO = req.body;
       const result = await this._authService.resendOtp(data.email, data.type);
       if (!result) throw new Error("OTP could not be resent");
       return { message: result.message };
-    })(res);
+    })(res,next);
 
-  resetPassword = (req: Request, res: Response) =>
+  resetPassword = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async () => {
       const data: ResetPasswordRequestDTO = req.body;
       const result = await this._authService.resetPassword(data.email, data.password);
       if (!result) throw new Error("Password could not be reset");
       return { message: result.message };
-    })(res);
+    })(res,next);
 
 
   googleSignin = async(req: Request, res: Response): Promise<void> =>{   

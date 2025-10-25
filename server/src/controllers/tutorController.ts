@@ -1,4 +1,4 @@
-import { Request, Response } from "express";
+import { NextFunction, Request, Response } from "express";
 import { ITutorController } from "./interfaces/ITutorController";
 import { inject, injectable } from "inversify";
 import { TYPES } from "../types/types";
@@ -16,15 +16,15 @@ export class TutorController implements ITutorController {
   ) {}
 
 
-  getPresignedUrl = (req: Request, res: Response) =>
+  getPresignedUrl = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async()=>{
       const data : PresignedUrlRequestDTO = req.body;
       const presignedUrl = await this._tutorService.getPresignedUrl(data.fileName, data.fileType);
       res.status(STATUS_CODES.SUCCESS).json(presignedUrl);
-    })(res);
+    })(res,next);
 
 
-  applyForTutor = (req: Request, res: Response) =>
+  applyForTutor = (req: Request, res: Response, next: NextFunction) =>
     handleAsync( async()=>{
       const userId = (req as AuthRequest).user!.id;
       const data: ApplyTutorRequestDTO = req.body;
@@ -34,17 +34,13 @@ export class TutorController implements ITutorController {
         tutor 
       };
       return response;
-    })(res);
+    })(res,next);
 
 
-  getAllTutors = (req: Request, res: Response) =>
+  getAllTutors = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async()=>{
       const tutors = await this._tutorService.getAllTutors();
-      const response = {
-        success: true, 
-        data : tutors, 
-      };
-      return response;
-    })(res);
+      return tutors;
+    })(res,next);
 
 }

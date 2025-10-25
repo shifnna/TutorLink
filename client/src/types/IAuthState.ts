@@ -1,4 +1,40 @@
+import { ICommonResponse } from "../utils/apiHelper";
+import { ITutorApplication, ITutorApplicationForm } from "./ITutorApplication";
 import { IUser } from "./IUser";
+
+export interface ResendOtpPayload {
+  email: string;
+  type?: string;
+}
+
+export interface SignupData {
+  name: string;
+  email: string;
+  password: string;
+  confirmPassword: string;
+}
+
+export interface LoginData {
+  email: string;
+  password: string;
+}
+
+export interface VerifyOtpData {
+  email: string;
+  otp : string;
+  type : string;
+}
+
+export interface ResetPasswordData {
+  password: string;
+  email: string;
+  confirmPassword: string;
+}
+
+export interface AuthSuccessData { 
+  user?: IUser; 
+  success?: boolean 
+}
 
 export interface IAuthState {
   user: IUser | null;
@@ -6,41 +42,27 @@ export interface IAuthState {
   isAuthenticated: boolean;
   search: string;
   blocked: boolean;
-  accessToken: string | null;
   
-  setUser: (user: any) => void,
+  setUser: (user: IUser) => void,
 
   setSearch: (term: string) => void;
 
   fetchUser: () => Promise<void>,
 
-  signup: ( name: string, email: string, password: string, confirmPassword: string) => Promise<any>;
+  signup: ( name: string, email: string, password: string, confirmPassword: string) => Promise<ICommonResponse<IUser>>;
 
-  verifyOtp: (email: string, otp: string, type: string) => Promise<any>;
+  verifyOtp: (email: string, otp: string, type: string) => Promise<AuthSuccessData>;
 
-  resendOtp: (email: string, type:string) => Promise<any>;
+  resendOtp: (email: string, type:string) => Promise<{ message: string }>;
 
-  login: (email: string, password: string) => Promise<any>;
+  login: (email: string, password: string) => Promise<ICommonResponse<IUser>>;
 
-  requestPasswordReset : (email:string,type:string) => Promise<any>;
+  requestPasswordReset : (email:string,type:string) => Promise<{ message: string }>;
 
-  resetPassword : (email:string, password:string, confirmPassword:string) => Promise<any>;
+  resetPassword : (email:string, password:string, confirmPassword:string) => Promise<{ message: string }>;
 
-  logout: () => void;
+  logout: () => Promise<void>;
 
-  applyForTutor: (
-    description: string,
-    languages: string,
-    education: string,
-    skills: string,
-    experienceLevel: string,
-    gender: string,
-    occupation: string,
-    profileImage: string | null,
-    certificates: string | null,
-    accountHolder: string,
-    accountNumber: number,
-    bankName: string,
-    ifsc: string
-  ) => Promise<any>;
+  applyForTutor: ( payload:ITutorApplicationForm ) => Promise<ITutorApplication>;
 }
+
