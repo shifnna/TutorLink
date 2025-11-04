@@ -32,6 +32,12 @@ import { AdminRepository } from "../repositories/adminRepository";
 import { TutorModel } from "../models/tutor";
 import { AdminService } from "../services/adminService";
 
+import { ISlotController } from "../controllers/interfaces/ISlotController";
+import { SlotController } from "../controllers/slotController";
+import { ISlotService } from "../services/interfaces/ISlotService";
+import { SlotService } from "../services/slotService";
+import { SlotRepository } from "../repositories/slotRepostory";
+
 const container = new Container();
 
 container.bind<IAuthController>(TYPES.IAuthController).to(AuthController);
@@ -51,5 +57,9 @@ container.bind<IAdminService>(TYPES.IAdminService).to(AdminService);
 container.bind<typeof UserModel>(TYPES.IUserModel).toConstantValue(UserModel);
 
 container.bind<S3Service>(TYPES.IS3Service).to(S3Service)
+
+container.bind<ISlotController>(TYPES.ISlotController).to(SlotController);
+container.bind<ISlotService>(TYPES.ISlotService).to(SlotService)
+container.bind<ISlotRepository>(TYPES.ISlotRepository).to(SlotRepository);
 
 export default container;

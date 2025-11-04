@@ -24,22 +24,25 @@ export class TutorController implements ITutorController {
     })(res,next);
 
 
-  applyForTutor = (req: Request, res: Response, next: NextFunction) =>
-    handleAsync( async()=>{
-      const userId = (req as AuthRequest).user!.id;
-      const data: ApplyTutorRequestDTO = req.body;
-      const tutor = await this._tutorService.applyForTutor(userId, data);
-      const response: TutorSuccessResponseDTO = {
-        message: "Tutor profile created successfully", 
-        tutor 
-      };
-      return response;
-    })(res,next);
+  applyForTutor = (req: Request, res: Response, next: NextFunction) => {
+  return handleAsync(async () => {
+    const userId = (req as AuthRequest).user!.id;
+    const data: ApplyTutorRequestDTO = req.body;
+    const tutor = await this._tutorService.applyForTutor(userId, data);
+    const response: TutorSuccessResponseDTO = {
+      message: "Tutor profile created successfully",
+      tutor,
+    };
+    return response;
+  })(res, next);
+};
+
 
 
   getAllTutors = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async()=>{
-      const tutors = await this._tutorService.getAllTutors();
+      const authReq = req as AuthRequest;
+      const tutors = await this._tutorService.getAllTutors(authReq.user?._id as string);
       return tutors;
     })(res,next);
 

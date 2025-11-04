@@ -68,3 +68,12 @@ export const adminOnly: RequestHandler = (req, res, next) => {
   }
   next();
 };
+
+
+export const tutorOnly: RequestHandler = (req,res,next) =>{
+  const authReq = req as AuthRequest;
+  if(authReq.user?.role !== "tutor"){
+    return res.status(STATUS_CODES.FORBIDDEN).json({ message: "Tutors only" })
+  }
+  next();
+}

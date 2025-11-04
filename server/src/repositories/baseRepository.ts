@@ -1,4 +1,4 @@
-import { Document, FilterQuery, Model, UpdateQuery } from "mongoose";
+import { Document, FilterQuery, Model, QueryOptions, SortOrder, UpdateQuery } from "mongoose";
 
 export class BaseRepository <T extends Document> {
     protected model:Model<T>
@@ -11,12 +11,25 @@ export class BaseRepository <T extends Document> {
         return await doc.save();
     }
 
+    async createMany(data: Partial<T>[]): Promise<T[]> {
+      const docs = await this.model.insertMany(data);
+      return docs as unknown as T[];
+    }
+
     async findOne(filter:FilterQuery<T>): Promise<T | null>{
         return this.model.findOne(filter);
     }
 
     async findByIdAndUpdate(id: string, update: UpdateQuery<T>, options = { new: true }): Promise<T | null> {
         return this.model.findByIdAndUpdate(id, update, options);
+    }
+
+    async findByIdAndDelete(id: string): Promise<void> {
+        await this.model.findByIdAndDelete(id);
+    }
+
+    async deleteMany(filter: FilterQuery<T>): Promise<void> {
+        await this.model.deleteMany(filter);
     }
 
     async findById(id:string): Promise<T | null>{
@@ -27,8 +40,10 @@ export class BaseRepository <T extends Document> {
         return this.model.findOne({email});
     }
 
-    async findAll(filter: FilterQuery<T> ={}): Promise<T[]>{
-        return this.model.find(filter);
+    async findAll(filter: FilterQuery<T>,sort?: Record<string, SortOrder>,options?: QueryOptions): Promise<T[]>{
+        const query = this.model.find(filter, null, options);
+        if (sort) query.sort(sort);
+        return query.exec();
     }
 
     async count(filter: FilterQuery<T> = {}): Promise<number>{
@@ -42,6 +57,5 @@ export class BaseRepository <T extends Document> {
     async updateById(id: string, updateData: Partial<T>, options = { new: true }): Promise<T | null> {
        return this.model.findByIdAndUpdate(id, updateData, options);
     }
-
 
 }
