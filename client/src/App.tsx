@@ -11,7 +11,11 @@ function App() {
       </div>
     );
 
-  return <AppRoutes />;
+  return (
+    <>
+      <AppRoutes />
+    </>
+  );
 }
 
 export default App;

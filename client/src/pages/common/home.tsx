@@ -1,13 +1,13 @@
-import { Button } from "../components/ui/button";
-import { Card, CardContent } from "../components/ui/card";
+import { Button } from "../../components/ui/button";
+import { Card, CardContent } from "../../components/ui/card";
 import { Search, MessageSquare, BookOpen } from "lucide-react";
 import { FaFacebook, FaInstagram, FaLinkedin, FaYoutube, FaGraduationCap } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
-import { useAuthStore } from "../store/authStore";
-import { toast, Toaster } from "react-hot-toast";
+import { useAuthStore } from "../../store/authStore";
+import  toast, {Toaster } from "react-hot-toast";
 import { useState } from "react";
-import ApplicationModal from "./tutors/applicationModal";
-import Dropdown from "../components/userCommon/dropdown";
+import ApplicationModal from "../client/applicationModal";
+import Dropdown from "../../components/userCommon/dropdown";
 
 const Home: React.FC = () => {
   const navigate = useNavigate();

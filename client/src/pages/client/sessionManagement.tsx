@@ -4,7 +4,7 @@ import { useAuthStore } from "../../store/authStore";
 import UserSidebar from "../../components/userCommon/sidebar";
 import { getAllSessions } from "../../services/sessionService";
 
-const TutorSessionManagement: React.FC = () => {
+const ClientSessionManagement: React.FC = () => {
   const { user } = useAuthStore();
   const [sessions, setSessions] = useState<ISession[]>([]);
 
@@ -20,14 +20,15 @@ const TutorSessionManagement: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-[#0a0118] via-[#160733] to-[#1a002e] text-white">
       <UserSidebar />
+
       <main className="flex-1 p-10 overflow-y-auto">
         <h1 className="text-3xl font-extrabold mb-6 bg-gradient-to-r from-yellow-400 via-pink-400 to-indigo-400 bg-clip-text text-transparent">
-          Session Management
+          My Booked Sessions
         </h1>
-        <SessionTable sessions={sessions} refreshSessions={fetchSessions} role="tutor" />
+        <SessionTable sessions={sessions} refreshSessions={fetchSessions} role="client" />
       </main>
     </div>
   );
 };
 
-export default TutorSessionManagement;
+export default ClientSessionManagement;

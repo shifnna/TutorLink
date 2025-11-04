@@ -8,9 +8,9 @@ export interface ITutorApplication {
     email: string;
   };
   description: string;
-  languages: string[];
+  languages: string | string[];
   education: string;
-  skills: string[];
+  skills: string | string[];
   experienceLevel: string;
   gender: string;
   occupation: string;
@@ -25,9 +25,9 @@ export interface ITutorApplication {
 
 export interface ITutorApplicationForm {
   description: string;
-  languages: string[];
+  languages:string |  string[];
   education: string;
-  skills: string[];
+  skills: string | string[];
   experienceLevel: string;
   gender: string;
   occupation: string;

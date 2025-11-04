@@ -1,4 +1,3 @@
-// src/utils/apiHelper.ts
 import axios, { AxiosError } from "axios";
 
 export interface ICommonResponse<T> {
