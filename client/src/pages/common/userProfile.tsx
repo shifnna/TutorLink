@@ -1,5 +1,5 @@
 import React from "react";
-import TutorSidebar from "../../components/tutorCommon/sidebar";
+import UserSidebar from "../../components/userCommon/sidebar";
 import { Toaster } from "react-hot-toast";
 import { motion } from "framer-motion";
 
@@ -7,7 +7,7 @@ const UserProfile: React.FC = () => {
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-[#0a0118] via-[#160733] to-[#1a002e] text-white">
       <Toaster position="top-center" />
-      <TutorSidebar />
+      <UserSidebar />
 
       <main className="flex-1 p-10 overflow-y-auto">
         <motion.section

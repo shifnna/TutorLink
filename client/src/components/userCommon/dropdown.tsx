@@ -5,7 +5,7 @@ import { Button } from '../ui/button';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '../../services/authService';
 import { useAuthStore } from '../../store/authStore';
-import ApplicationModal from '../../pages/tutors/applicationModal';
+import ApplicationModal from '../../pages/client/applicationModal';
 
 
 const Dropdown = () => {
@@ -55,7 +55,7 @@ const Dropdown = () => {
                       )}
 
                       {/* Rejected */}
-                      {user.tutorApplication?.status === "Rejected" && (
+                      {user.tutorApplication?.status === "Rejected" &&  (
                         <div className="p-3 bg-red-100 rounded-lg border-l-4 border-red-500 text-red-800 font-medium space-y-2">
                           <p>
                             Your tutor application was rejected by the admin.
@@ -114,20 +114,20 @@ const Dropdown = () => {
                   {/* Other Options */}
                   <Button
                     variant="outline"
-                    className="w-full mb-2 rounded-lg border-gray-300 hover:bg-gray-100 hover:border-gray-400"
+                    className="text-black w-full mb-2 rounded-lg border-gray-300 hover:bg-gray-100 hover:border-gray-400"
                     onClick={()=>navigate("/user-profile")}
                   >
                     Profile
                   </Button>
                   <Button
                     variant="outline"
-                    className="w-full mb-2 rounded-lg border-gray-300 hover:bg-gray-100 hover:border-gray-400"
+                    className="text-black w-full mb-2 rounded-lg border-gray-300 hover:bg-gray-100 hover:border-gray-400"
                   >
                     Messages
                   </Button>
                   <Button
                     variant="outline"
-                    className="w-full mb-2 rounded-lg border-gray-300 hover:bg-gray-100 hover:border-gray-400"
+                    className="text-black w-full mb-2 rounded-lg border-gray-300 hover:bg-gray-100 hover:border-gray-400"
                   >
                     Settings
                   </Button>

@@ -1,8 +1,8 @@
-import Home from "../pages/home";
+import Home from "../pages/common/home";
 import Signup from "../pages/auth/signup";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Login from "../pages/auth/login";
-import ExploreTutors from "../pages/tutors/explore";
+import ExploreTutors from "../pages/common/exploreTutors";
 import VerifyOtp from "../pages/auth/verifyOtp";
 import ForgotPassword from "../pages/auth/forgotPassword";
 import ResetPassword from "../pages/auth/resetPassword";
@@ -14,8 +14,10 @@ import GuestRoute from "./guestRoute";
 import ProtectedRoute from "./protectedRoute";
 import Unauthorized from "../pages/security/unAuthorized";
 import Blocked from "../pages/security/blocked";
-import SessionManagement from "../pages/tutors/sessionManagement";
-import UserProfile from "../pages/tutors/userProfile";
+import TutorSessionManagement from "../pages/tutors/sessionManagement";
+import UserProfile from "../pages/common/userProfile";
+import SlotManagement from "../pages/tutors/slotManagement";
+import ClientSessionManagement from "../pages/client/sessionManagement";
 
 
 function AppRoutes() {
@@ -35,7 +37,9 @@ function AppRoutes() {
 
             <Route path="/explore-tutors" element={<ProtectedRoute><ExploreTutors/></ProtectedRoute>} />
             <Route path="/user-profile" element={<ProtectedRoute><UserProfile/></ProtectedRoute>} />
-            <Route path="/session-management" element={<ProtectedRoute><SessionManagement/></ProtectedRoute>} />
+            <Route path="/tutor/session-management" element={<ProtectedRoute role="tutor"><TutorSessionManagement/></ProtectedRoute>} />
+            <Route path="/client/session-management" element={<ProtectedRoute role="client"><ClientSessionManagement/></ProtectedRoute>} />
+            <Route path="/slot-management" element={<ProtectedRoute><SlotManagement/></ProtectedRoute>} />
 
             <Route path="/admin-dashboard" element={<ProtectedRoute role="admin"><AdminDashboard/></ProtectedRoute>} />
             <Route path="/admin-dashboard/applications" element={<ProtectedRoute role="admin"><TutorApplications/></ProtectedRoute>} />
