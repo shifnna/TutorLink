@@ -1,7 +1,7 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, Document, ObjectId, Types } from "mongoose";
 
 export interface ITutor extends Document {
-  tutorId: string;
+  tutorId: Types.ObjectId;
   description: string;
   languages: string[];
   education: string;
@@ -20,7 +20,7 @@ export interface ITutor extends Document {
 
 const TutorSchema = new Schema<ITutor>(
   {
-    tutorId: { type: String, ref: "User", required: true },
+    tutorId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     description: { type: String, required: true },
     languages: [String],
     education: String,

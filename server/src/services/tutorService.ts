@@ -21,13 +21,13 @@ export class TutorService implements ITutorService {
     return this._s3Service.getPresignedUrl(fileName, fileType);
   }
 
-       async applyForTutor(userId: string, body: ApplyTutorRequestDTO): Promise<ITutor> {
+  async applyForTutor(userId: string, body: ApplyTutorRequestDTO): Promise<ITutor> {
 
        const appData: Partial<ITutor> = {
-         tutorId: userId,
+         tutorId: new Types.ObjectId(userId),
          description: body.description,
-         languages: body.languages.split(",").map(s => s.trim()),
-         skills: body.skills.split(",").map(s => s.trim()),
+         languages: Array.isArray(body.languages) ? body.languages: body.languages.split(",").map((s) => s.trim()),
+         skills: Array.isArray(body.skills)? body.skills: body.skills.split(",").map((s) => s.trim()),
          education: body.education,
          experienceLevel: body.experienceLevel,
          gender: body.gender,
@@ -59,12 +59,11 @@ export class TutorService implements ITutorService {
          console.error("Error in applyForTutor:", err);
          throw err;  
        }
-     }
+  }
      
 
-  async getAllTutors(): Promise<ITutor[]> {
-    const tutors : ITutor[] = await this._tutorRepo.findAllApproved()
-
+  async getAllTutors(currentTutorId?: string): Promise<ITutor[]> {
+    const tutors : ITutor[] = await this._tutorRepo.findAllApproved(currentTutorId)
     return Promise.all(
       tutors.map(async (tutor: ITutor ) => {
         let profileImageUrl: string | null = null;
@@ -78,7 +77,6 @@ export class TutorService implements ITutorService {
             tutor.certificates.map((key: string) => this._s3Service.generatePresignedUrl(key))
           );
         }
-
         return {
           ...tutor.toObject(),
           profileImage: profileImageUrl,

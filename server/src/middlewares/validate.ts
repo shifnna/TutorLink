@@ -4,6 +4,19 @@ import { STATUS_CODES } from "../utils/constants";
 
 export const validate = (schema: ZodObject<ZodRawShape>) =>
   (req: Request, res: Response, next: NextFunction) => {
+    if (!req.body) req.body = {};
+    
+    //// Convert single string fields to arrays if necessary
+    if (req.body.languages && typeof req.body.languages === "string") {
+      req.body.languages = [req.body.languages];
+    }
+    if (req.body.skills && typeof req.body.skills === "string") {
+      req.body.skills = [req.body.skills];
+    }
+    if (req.body.certificates && typeof req.body.certificates === "string") {
+      req.body.certificates = [req.body.certificates];
+    }
+
     const result = schema.safeParse({
       body: req.body,
       query: req.query,
@@ -11,11 +24,13 @@ export const validate = (schema: ZodObject<ZodRawShape>) =>
     });
 
     if (!result.success) {
-      const errors = result.error.issues.map(issue => ({
+      const errors = result.error.issues.map((issue) => ({
         field: issue.path.join("."),
         message: issue.message,
       }));
 
+      console.error("Zod Validation Errors:", errors); 
+      
       return res.status(STATUS_CODES.BAD_REQUEST).json({
         success: false,
         message: "Validation failed",
