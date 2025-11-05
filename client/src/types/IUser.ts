@@ -1,7 +1,7 @@
 import { ITutorApplication } from "./ITutorApplication";
 
 export interface IUser {
-  _id: any;
+  _id?: string;
   id: string;
   name: string;
   email: string;

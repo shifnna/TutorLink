@@ -21,6 +21,10 @@ export class TutorService implements ITutorService {
     return this._s3Service.getPresignedUrl(fileName, fileType);
   }
 
+  async getTutorProfile(userId: string): Promise<ITutor | null> {
+    return await this._tutorRepo.findOne({ tutorId: userId });
+  }
+
   async applyForTutor(userId: string, body: ApplyTutorRequestDTO): Promise<ITutor> {
 
        const appData: Partial<ITutor> = {
@@ -46,7 +50,6 @@ export class TutorService implements ITutorService {
 
        try {
          const tutor = await this._tutorRepo.create(appData);
-         console.log("Tutor created successfully:", tutor._id);
 
          await this._userRepo.findByIdAndUpdate(userId, { 
            tutorProfile: tutor._id as Types.ObjectId, 

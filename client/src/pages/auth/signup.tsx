@@ -94,16 +94,16 @@ function handleGoogle(){
 
           {/* Signup Form */}
           <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-            <Input name="name" type="text" placeholder="Full Name" className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
+            <Input name="name" type="text" placeholder="Full Name" className="rounded-xl px-6 py-4 text-white focus:ring-2 focus:ring-indigo-500"
               value={formData.name} onChange={handleChange}
             />
-            <Input name="email" type="email" placeholder="Email" className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
+            <Input name="email" type="email" placeholder="Email" className="rounded-xl px-6 py-4 text-white focus:ring-2 focus:ring-indigo-500"
               value={formData.email} onChange={handleChange}
             />
-            <Input name="password" type="password" placeholder="Password" className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
+            <Input name="password" type="password" placeholder="Password" className="rounded-xl px-6 py-4 text-white focus:ring-2 focus:ring-indigo-500"
               value={formData.password} onChange={handleChange}
             />
-            <Input name="confirmPassword" type="password" placeholder="Confirm Password" className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
+            <Input name="confirmPassword" type="password" placeholder="Confirm Password" className="rounded-xl px-6 py-4 text-white focus:ring-2 focus:ring-indigo-500"
               value={formData.confirmPassword} onChange={handleChange}
             />
 
@@ -131,7 +131,7 @@ function handleGoogle(){
           <Button
           onClick={()=>handleGoogle()}
             type="button"
-            className="w-full rounded-xl bg-white text-gray-900 px-4 py-3 flex items-center justify-center gap-3 hover:bg-gray-100 transition"
+            className="w-full rounded-xl bg-white text-black px-4 py-3 flex items-center justify-center gap-3 hover:bg-gray-100 transition"
           >
             <FcGoogle className="w-6 h-6" />
             Continue with Google

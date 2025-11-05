@@ -1,14 +1,13 @@
 import { Dialog } from "@headlessui/react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { FaCamera, FaTimes } from "react-icons/fa";
-import { Toaster,toast } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 import { IApplicationModal } from "../../types/ITutorApplication";
 import { useAuthStore } from "../../store/authStore";
 import { tutorService } from "../../services/tutorService";
 import { authService } from "../../services/authService";
-
 
 const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
   const { isLoading } = useAuthStore();
@@ -16,9 +15,9 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [formData, setFormData] = useState({
     description: "",
-    languages: [],
+    languages: [] as string[],
     education: "",
-    skills: [],
+    skills: [] as string[],
     experienceLevel: "",
     gender: "",
     occupation: "",
@@ -30,91 +29,163 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
     ifsc: "",
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+  useEffect(() => {
+  const prefillFromDB = async () => {
+    try {
+      const response = await tutorService.getTutorProfile();
+      if (response.success && response.data) {
+        const t = response.data;
+
+        const normalizeToArray = (value: string | string[] | undefined): string[] => {
+          if (!value) return [];
+          return Array.isArray(value)
+            ? value
+            : value.split(",").map((v) => v.trim()).filter(Boolean);
+        };
+
+        setFormData({
+          description: t.description || "",
+          languages: normalizeToArray(t.languages),
+          education: t.education || "",
+          skills: normalizeToArray(t.skills),
+          experienceLevel: t.experienceLevel || "",
+          gender: t.gender || "",
+          occupation: t.occupation || "",
+          profileImage: null, 
+          certificates: [],
+          accountHolder: t.accountHolder || "",
+          accountNumber: t.accountNumber || "",
+          bankName: t.bankName || "",
+          ifsc: t.ifsc || "",
+        });
+      } else {
+        console.log("No tutor data found — starting fresh");
+      }
+    } catch (err) {
+      console.error("Failed to prefill tutor profile:", err);
+    }
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>, field: "profileImage" | "certificates") => {
+  if (isOpen) prefillFromDB();
+}, [isOpen]);
+
+
+  const handleChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  ) => {
+    const { name, value } = e.target;
+    if (name === "languages" || name === "skills") {
+      setFormData({
+        ...formData,
+        [name]: value.split(",").map((v) => v.trim()).filter(Boolean),
+      });
+    } else {
+      setFormData({ ...formData, [name]: value });
+    }
+    setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  const handleFileChange = (
+    e: React.ChangeEvent<HTMLInputElement>,
+    field: "profileImage" | "certificates"
+  ) => {
     if (!e.target.files) return;
     if (field === "profileImage") {
       setFormData({ ...formData, profileImage: e.target.files[0] });
+      setErrors((prev) => ({ ...prev, profileImage: "" }));
     } else {
-      setFormData({ ...formData, certificates: [...formData.certificates, ...Array.from(e.target.files)]});
+      setFormData({
+        ...formData,
+        certificates: [...formData.certificates, ...Array.from(e.target.files)],
+      });
+      setErrors((prev) => ({ ...prev, certificates: "" }));
     }
   };
 
+
   const validateStep = () => {
-    let newErrors: { [key: string]: string } = {};
+    const newErrors: { [key: string]: string } = {};
 
     if (step === 1) {
       if (!formData.profileImage) newErrors.profileImage = "Profile image is required";
-      if (!formData.description) newErrors.description = "Description is required";
-      if (!formData.languages) newErrors.languages = "Languages are required";
+      if (!formData.description.trim()) newErrors.description = "Description is required";
+      if (formData.languages.length === 0)
+        newErrors.languages = "At least one language is required";
+      if (!formData.gender) newErrors.gender = "Gender is required";
     }
 
     if (step === 2) {
-      if (!formData.education) newErrors.education = "Education is required";
-      if (!formData.skills) newErrors.skills = "Skills are required";
-      if (!formData.experienceLevel) newErrors.experienceLevel = "Experience level is required";
-      if (formData.certificates.length === 0) newErrors.certificates = "At least one certificate is required";
-      if (!formData.occupation) newErrors.occupation = "Occupation is required";
+      if (!formData.education.trim()) newErrors.education = "Education is required";
+      if (formData.skills.length === 0) newErrors.skills = "At least one skill is required";
+      if (!formData.experienceLevel)
+        newErrors.experienceLevel = "Experience level is required";
+      if (formData.certificates.length === 0)
+        newErrors.certificates = "At least one certificate is required";
+      if (!formData.occupation.trim()) newErrors.occupation = "Occupation is required";
     }
 
     if (step === 3) {
-      if (!formData.accountHolder) newErrors.accountHolder = "Account holder name is required";
-      if (!formData.accountNumber) newErrors.accountNumber = "Account number is required";
-      if (!formData.bankName) newErrors.bankName = "Bank name is required";
-      if (!formData.ifsc) newErrors.ifsc = "IFSC code is required";
+      if (!formData.accountHolder.trim())
+        newErrors.accountHolder = "Account holder name is required";
+      if (!formData.accountNumber.trim())
+        newErrors.accountNumber = "Account number is required";
+      if (!formData.bankName.trim()) newErrors.bankName = "Bank name is required";
+      if (!formData.ifsc.trim()) newErrors.ifsc = "IFSC code is required";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const nextStep = () => { if (validateStep()) setStep((prev) => prev + 1)};
+  const nextStep = () => {
+    if (validateStep()) setStep((prev) => prev + 1);
+  };
   const prevStep = () => setStep((prev) => prev - 1);
 
+  //Submit form & auto-close modal
   const handleSubmit = async () => {
     if (!validateStep()) return;
-    try {
-      useAuthStore.setState({isLoading:true})
-      const response = await tutorService.apply(formData);
-      if(response){
-        toast.success("Application submitted successfully!");
+    useAuthStore.setState({ isLoading: true });
+
+    const response = await tutorService.apply(formData);
+
+    if (!response.success) {
+      if (response.errors?.length) {
+        toast.error(response.errors[0].message);
+      } else {
+        toast.error(response.message || "Submission failed!");
       }
-      const updatedUser = await authService.fetchUser();
-      if (updatedUser.success && updatedUser.data) {
-        useAuthStore.getState().setUser(updatedUser.data);
-      }
-      onClose();
-    } catch (err:any) {
-      const errorMessage =
-      err.response?.data?.error ||
-      "Something went wrong!";
-    toast.error(errorMessage);
-    } finally {
-      useAuthStore.setState({isLoading:false})
+      useAuthStore.setState({ isLoading: false });
+      return;
     }
+
+    toast.success(response.message || "Application submitted successfully!");
+
+    // Refresh user data (in case tutor status changed)
+    await authService.fetchUser();
+
+    useAuthStore.setState({ isLoading: false });
+
+    // ✅ Auto close modal after short delay
+    setTimeout(() => {
+      onClose();
+    }, 500);
   };
 
   return (
     <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      {/* Background overlay */}
       <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
 
-      {/* Modal wrapper */}
       <div className="fixed inset-0 flex items-center justify-center p-4">
         <div
           className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-8 max-h-[90vh] overflow-y-auto relative"
           onClick={(e) => e.stopPropagation()}
         >
-          {/* ❌ Close button */}
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
           >
-              <FaTimes size={20} />
-
+            <FaTimes size={20} />
           </button>
 
           {/* Stepper */}
@@ -126,11 +197,9 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
             <span className={step === 3 ? "text-purple-700" : ""}>Payment Info</span>
           </div>
 
-          {/* Steps */}
           {/* Step 1 */}
           {step === 1 && (
             <div className="space-y-3">
-              {/* Profile Image */}
               <div className="flex flex-col items-center relative">
                 {formData.profileImage ? (
                   <img
@@ -143,11 +212,17 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
                     <FaCamera className="text-2xl" />
                   </div>
                 )}
-                <input type="file" accept="image/*" onChange={(e) => handleFileChange(e, "profileImage")} className="mt-2" />
-                {errors.profileImage && <p className="text-red-500 text-sm">{errors.profileImage}</p>}
+                <input
+                  type="file"
+                  accept="image/*"
+                  onChange={(e) => handleFileChange(e, "profileImage")}
+                  className="mt-2"
+                />
+                {errors.profileImage && (
+                  <p className="text-red-500 text-sm">{errors.profileImage}</p>
+                )}
               </div>
 
-              {/* Description */}
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">Description</label>
                 <textarea
@@ -157,24 +232,26 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
                   onChange={handleChange}
                   className="w-full border rounded-lg p-3 h-24"
                 />
-                {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+                {errors.description && (
+                  <p className="text-red-500 text-sm">{errors.description}</p>
+                )}
               </div>
 
-              {/* Languages */}
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">Languages</label>
                 <Input
                   type="text"
                   name="languages"
                   placeholder="E.g. English, Hindi, French"
-                  value={formData.languages}
+                  value={formData.languages.join(", ")}
                   onChange={handleChange}
                   className="h-12"
                 />
-                {errors.languages && <p className="text-red-500 text-sm">{errors.languages}</p>}
+                {errors.languages && (
+                  <p className="text-red-500 text-sm">{errors.languages}</p>
+                )}
               </div>
 
-              {/* Gender */}
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">Gender</label>
                 <select
@@ -188,11 +265,16 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
                   <option value="Female">Female</option>
                   <option value="Other">Other</option>
                 </select>
+                {errors.gender && (
+                  <p className="text-red-500 text-sm">{errors.gender}</p>
+                )}
               </div>
 
-              {/* Next button */}
               <div className="flex justify-end">
-                <Button className="bg-gradient-to-r from-purple-700 to-pink-600 text-white px-6 py-2 rounded-lg shadow" onClick={nextStep}>
+                <Button
+                  className="bg-gradient-to-r from-purple-700 to-pink-600 text-white px-6 py-2 rounded-lg shadow"
+                  onClick={nextStep}
+                >
                   Continue →
                 </Button>
               </div>
@@ -204,37 +286,94 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
             <div className="space-y-5">
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">Education</label>
-                <Input type="text" name="education" placeholder="Your highest qualification" value={formData.education} onChange={handleChange} className="h-12" />
+                <Input
+                  type="text"
+                  name="education"
+                  placeholder="Your highest qualification"
+                  value={formData.education}
+                  onChange={handleChange}
+                  className="h-12"
+                />
+                {errors.education && (
+                  <p className="text-red-500 text-sm">{errors.education}</p>
+                )}
               </div>
 
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">Skills</label>
-                <Input type="text" name="skills" placeholder="E.g. Math, Science, Coding" value={formData.skills} onChange={handleChange} className="h-12" />
+                <Input
+                  type="text"
+                  name="skills"
+                  placeholder="E.g. Math, Science, Coding"
+                  value={formData.skills.join(", ")}
+                  onChange={handleChange}
+                  className="h-12"
+                />
+                {errors.skills && (
+                  <p className="text-red-500 text-sm">{errors.skills}</p>
+                )}
               </div>
 
               <div>
-                <label className="block font-semibold text-gray-700 mb-1">Experience Level</label>
-                <select name="experienceLevel" value={formData.experienceLevel} onChange={handleChange} className="w-full border rounded-lg p-3 h-12">
+                <label className="block font-semibold text-gray-700 mb-1">
+                  Experience Level
+                </label>
+                <select
+                  name="experienceLevel"
+                  value={formData.experienceLevel}
+                  onChange={handleChange}
+                  className="w-full border rounded-lg p-3 h-12"
+                >
                   <option value="">Select...</option>
                   <option value="Beginner">Beginner</option>
                   <option value="Intermediate">Intermediate</option>
                   <option value="Expert">Expert</option>
                 </select>
+                {errors.experienceLevel && (
+                  <p className="text-red-500 text-sm">{errors.experienceLevel}</p>
+                )}
               </div>
+
+             
 
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">Certificates</label>
-                <input type="file" multiple accept=".pdf,.jpg,.png" onChange={(e) => handleFileChange(e, "certificates")} />
+                <input
+                  type="file"
+                  multiple
+                  accept=".pdf,.jpg,.png"
+                  onChange={(e) => handleFileChange(e, "certificates")}
+                />
+                {errors.certificates && (
+                  <p className="text-red-500 text-sm">{errors.certificates}</p>
+                )}
               </div>
 
               <div>
                 <label className="block font-semibold text-gray-700 mb-1">Occupation</label>
-                <Input type="text" name="occupation" placeholder="E.g. Teacher, Lecturer" value={formData.occupation} onChange={handleChange} className="h-12" />
+                <Input
+                  type="text"
+                  name="occupation"
+                  placeholder="E.g. Teacher, Lecturer"
+                  value={formData.occupation}
+                  onChange={handleChange}
+                  className="h-12"
+                />
+                {errors.occupation && (
+                  <p className="text-red-500 text-sm">{errors.occupation}</p>
+                )}
               </div>
 
               <div className="flex justify-between">
-                <Button variant="outline" className="px-6 py-2 rounded-lg" onClick={prevStep}>← Back</Button>
-                <Button className="bg-gradient-to-r from-purple-700 to-pink-600 text-white px-6 py-2 rounded-lg shadow" onClick={nextStep}>Continue →</Button>
+                <Button variant="outline" className="px-6 py-2 rounded-lg" onClick={prevStep}>
+                  ← Back
+                </Button>
+                <Button
+                  className="bg-gradient-to-r from-purple-700 to-pink-600 text-white px-6 py-2 rounded-lg shadow"
+                  onClick={nextStep}
+                >
+                  Continue →
+                </Button>
               </div>
             </div>
           )}
@@ -242,41 +381,50 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
           {/* Step 3 */}
           {step === 3 && (
             <div className="space-y-5">
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">Account Holder Name</label>
-                <Input type="text" name="accountHolder" placeholder="Enter name" value={formData.accountHolder} onChange={handleChange} className="h-12" />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">Account Number</label>
-                <Input type="text" name="accountNumber" placeholder="Enter account number" value={formData.accountNumber} onChange={handleChange} className="h-12" />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">Bank Name</label>
-                <Input type="text" name="bankName" placeholder="Enter bank name" value={formData.bankName} onChange={handleChange} className="h-12" />
-              </div>
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">IFSC Code</label>
-                <Input type="text" name="ifsc" placeholder="Enter IFSC" value={formData.ifsc} onChange={handleChange} className="h-12" />
-              </div>
+              {[
+                { name: "accountHolder", label: "Account Holder Name", placeholder: "Enter name" },
+                { name: "accountNumber", label: "Account Number", placeholder: "Enter account number" },
+                { name: "bankName", label: "Bank Name", placeholder: "Enter bank name" },
+                { name: "ifsc", label: "IFSC Code", placeholder: "Enter IFSC" },
+              ].map(({ name, label, placeholder }) => (
+                <div key={name}>
+                  <label className="block font-semibold text-gray-700 mb-1">{label}</label>
+                  <Input
+                    type="text"
+                    name={name}
+                    placeholder={placeholder}
+                    value={(formData as any)[name]}
+                    onChange={handleChange}
+                    className="h-12"
+                  />
+                  {errors[name] && (
+                    <p className="text-red-500 text-sm">{errors[name]}</p>
+                  )}
+                </div>
+              ))}
 
               <div className="flex justify-between">
-                <Button variant="outline" className="px-6 py-2 rounded-lg" onClick={prevStep}>← Back</Button>
-                <Button className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-6 py-2 rounded-lg shadow" onClick={handleSubmit}>
+                <Button variant="outline" className="px-6 py-2 rounded-lg" onClick={prevStep}>
+                  ← Back
+                </Button>
+                <Button
+                  className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-6 py-2 rounded-lg shadow"
+                  onClick={handleSubmit}
+                >
                   Submit Application
                 </Button>
               </div>
             </div>
           )}
         </div>
-{isLoading && (
-  <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/20">
-    <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
-  </div>
-)}
+
+        {isLoading && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/20">
+            <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+          </div>
+        )}
       </div>
+      <Toaster position="top-center" reverseOrder={false} />
     </Dialog>
   );
 };

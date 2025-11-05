@@ -18,21 +18,30 @@ export const tutorService = {
     getAllTutors: async () : Promise <ICommonResponse<ITutor[]>> =>
       handleApi<ITutor[]>(axiosClient.get( `${ROUTES.TUTOR_API}/get-tutors`)),
     
+  getTutorProfile: async (): Promise<ICommonResponse<ITutorApplication>> => {
+  const response = await handleApi<{ success: boolean; message: string; data: ITutorApplication }>(
+    axiosClient.get(`${ROUTES.TUTOR_API}/profile`)
+  );
+  return {
+    ...response,
+    data: response.data?.data || null,
+  };
+},
 
-    apply: async (formData: ITutorApplicationForm):  Promise<ICommonResponse<ITutorApplication>> => {
-      if (!formData.profileImage) {
-       throw new Error("Profile image is required");
-      }
 
-      // upload profile image
-      const profileImageUrl = await uploadFileToS3(formData.profileImage);
 
-      // upload certificates
-      const certificatesUrls: string[] = await Promise.all(
-        formData.certificates.map(file => uploadFileToS3(file))
-      );
+    apply: async (formData: ITutorApplicationForm): Promise<ICommonResponse<ITutorApplication>> => {
+    try {
+    if (!formData.profileImage) {
+      throw new Error("Profile image is required");
+    }
 
-      // build final payload as Partial
+    const profileImageUrl = await uploadFileToS3(formData.profileImage);
+
+    const certificatesUrls: string[] = await Promise.all(
+      formData.certificates.map(file => uploadFileToS3(file))
+    );
+
     const payload: Partial<ITutorApplication> = {
       description: formData.description,
       languages: formData.languages,
@@ -49,6 +58,11 @@ export const tutorService = {
       ifsc: formData.ifsc,
     };
     return tutorService.applyForTutor(payload as ITutorApplication);
-}
+  } catch (err) {
+    console.error("Error applying for tutor:", err);
+    return { success: false, message: "File upload failed", data: null };
+  }
+},
+
 
 }

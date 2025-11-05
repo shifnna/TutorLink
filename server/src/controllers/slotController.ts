@@ -6,6 +6,7 @@ import { handleAsync } from "../utils/handleAsync";
 import { NextFunction, Request, Response } from "express";
 import { AuthRequest } from "../middlewares/authMiddleware";
 import { ISlotRepository } from "../repositories/interfaces/ISlotRepository";
+import { CreateSlotRuleDto } from "../dtos/tutor/slotRuleDTO";
 
 export class SlotController implements ISlotController {
   constructor(
@@ -17,8 +18,8 @@ export class SlotController implements ISlotController {
     handleAsync(async () => {
       const { user } = req as AuthRequest;
       if (!user) throw new Error("Tutor not authenticated");
-      const ruleData = {
-        tutorId: user._id,
+      const ruleData : CreateSlotRuleDto = {
+        tutorId: user._id as string,
         selectedDays: req.body.days,
         startTime: req.body.startTime,
         endTime: req.body.endTime,
@@ -46,9 +47,9 @@ export class SlotController implements ISlotController {
   getSlots = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async () => {
       const { user } = req as AuthRequest;
-      if (!user) throw new Error("Tutor not authenticated");
+      if (!user) throw { statusCode: 401, message: "Tutor not authenticated" };
       const slots = await this._slotRepo.findAll({ tutorId: user._id });
-      return { success: true, message: "Fetched slots", data: slots };
+      return {message: "Fetched slots", data: slots };
     })(res, next);
 
     

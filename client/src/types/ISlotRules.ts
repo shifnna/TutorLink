@@ -9,6 +9,7 @@ export interface ISlot {
 }
 
 export interface ISlotRule{
+  selectedDays?: string[];
   days: string[];
   startTime: string;
   endTime: string;

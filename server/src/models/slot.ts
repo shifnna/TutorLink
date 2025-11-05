@@ -5,7 +5,8 @@ export interface ISlot extends Document {
   day: string;
   startTime: string;
   endTime: string;
-  isBooked: boolean;
+  isBooked?: boolean;
+  amount?: number;
 }
 
 const SlotSchema = new Schema<ISlot>(
@@ -15,6 +16,7 @@ const SlotSchema = new Schema<ISlot>(
     startTime: { type: String, required: true },
     endTime: { type: String, required: true },
     isBooked: { type: Boolean, default: false },
+    amount: { type: Number, default: 0 },
   },
   { timestamps: true }
 );

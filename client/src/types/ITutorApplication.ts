@@ -44,9 +44,13 @@ export interface IApplicationModal {
   onClose: () => void;
 }
 
+export interface IS3UploadData {
+  url: string;
+  key: string;
+}
+
 export interface IS3UploadResponse {
-  url: string;    
-  key: string;      
-  bucket?: string; 
-  expiresIn?: number;
+  success: boolean;
+  message: string;
+  data: IS3UploadData;
 }

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import TutorSidebar from "../../components/userCommon/sidebar";
+import UserSidebar from "../../components/userCommon/sidebar";
 import { Button } from "../../components/ui/button";
 import { toast, Toaster } from "react-hot-toast";
 import { Calendar, Trash2, Edit } from "lucide-react";
 import { createSlotRule, getSlots, deleteSlot, getSlotRule} from "../../services/slotService";
+import { ISlot, ISlotRule } from "../../types/ISlotRules";
 
 const daysOfWeek = [
   "Monday",
@@ -23,8 +24,8 @@ const SlotManagement: React.FC = () => {
   const [duration, setDuration] = useState(60);
   const [amount, setAmount] = useState(0);
   const [durationUnit, setDurationUnit] = useState("minutes");
-  const [generatedSlots, setGeneratedSlots] = useState<any[]>([]);
-  const [existingRule, setExistingRule] = useState<any | null>(null);
+  const [generatedSlots, setGeneratedSlots] = useState<ISlot[]>([]);
+  const [existingRule, setExistingRule] = useState<ISlotRule | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [loading, setLoading] = useState(false);
 
@@ -48,6 +49,8 @@ const SlotManagement: React.FC = () => {
         setDuration(res.data.data.duration || 60);
         setDurationUnit(res.data.data.durationUnit || "minutes");
         setAmount(res.data.data.amount || 0);
+      }else if (!res.success) {
+        toast.error(`${res.statusCode ?? 400}: ${res.message}`);
       }
     } catch (err) {
       console.error(err);
@@ -61,6 +64,7 @@ const SlotManagement: React.FC = () => {
         setGeneratedSlots(res.data.data);
       } else {
         setGeneratedSlots([]);
+        if (!res.success) toast.error(`${res.statusCode}: ${res.message}`);
       }
     } catch (error) {
       console.error(error);
@@ -124,7 +128,7 @@ const SlotManagement: React.FC = () => {
 
   return (
     <div className="flex min-h-screen bg-gradient-to-br from-[#0a0118] via-[#160733] to-[#1a002e] text-white relative">
-      <TutorSidebar />
+      <UserSidebar />
 
       <main className="flex-1 p-10 overflow-y-auto relative">
         <motion.section

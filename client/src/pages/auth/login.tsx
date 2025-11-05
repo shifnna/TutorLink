@@ -102,7 +102,7 @@ const Login: React.FC = () => {
           name="email"
           type="email"
           placeholder="Email"
-          className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
+          className="rounded-xl px-6 py-4 text-white focus:ring-2 focus:ring-indigo-500"
           onChange={handleChange}
           value={formData.email}
         />
@@ -110,7 +110,7 @@ const Login: React.FC = () => {
           name="password"
           type="password"
           placeholder="Password"
-          className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
+          className="rounded-xl px-6 py-4 text-white focus:ring-2 focus:ring-indigo-500"
           onChange={handleChange}
           value={formData.password}
         />

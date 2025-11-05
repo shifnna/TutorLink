@@ -1,8 +1,8 @@
 import cron from "node-cron";
-import SlotRuleModel from "../models/slotRule";
 import { TYPES } from "../types/types";
 import container from "../container/inversify.config";
 import { ISlotService } from "../services/interfaces/ISlotService";
+import { SlotRuleModel } from "../models/slotRule";
 
 
 //// Run every day at midnight

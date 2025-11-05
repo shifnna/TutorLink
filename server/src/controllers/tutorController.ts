@@ -17,11 +17,17 @@ export class TutorController implements ITutorController {
 
 
   getPresignedUrl = (req: Request, res: Response, next: NextFunction) =>
-    handleAsync(async()=>{
-      const data : PresignedUrlRequestDTO = req.body;
-      const presignedUrl = await this._tutorService.getPresignedUrl(data.fileName, data.fileType);
-      res.status(STATUS_CODES.SUCCESS).json(presignedUrl);
-    })(res,next);
+  handleAsync(async () => {
+    const data: PresignedUrlRequestDTO = req.body;
+    const presignedUrl = await this._tutorService.getPresignedUrl(data.fileName, data.fileType);
+
+    return {
+      success: true,
+      message: "Presigned URL generated successfully",
+      data: presignedUrl,
+    };
+  })(res, next);
+
 
 
   applyForTutor = (req: Request, res: Response, next: NextFunction) => {
@@ -38,6 +44,21 @@ export class TutorController implements ITutorController {
 };
 
 
+ getTutorProfile = (req: Request, res: Response, next: NextFunction) =>
+  handleAsync(async () => {
+    const userId = (req as AuthRequest).user!.id;
+    const tutor = await this._tutorService.getTutorProfile(userId);
+
+    if (!tutor) {
+      return { success: false, message: "Tutor profile not found", data: null };
+    }
+
+    return {
+      success: true,
+      message: "Tutor profile fetched successfully",
+      data: tutor,
+    };
+  })(res, next);
 
   getAllTutors = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async()=>{

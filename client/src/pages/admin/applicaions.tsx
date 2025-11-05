@@ -6,10 +6,27 @@ import { adminService } from "../../services/adminService";
 import SearchBar from "../../components/adminCommon/searchBar";
 import TableList from "../../components/adminCommon/tableList";
 
+interface IConfirmModal {
+  isOpen: boolean;
+  type: "approve" | "reject" | null;
+  userId: string | null;
+}
+
 const TutorApplications: React.FC = () => {
   const [applications, setApplications] = useState<ITutorApplication[]>([]);
   const [search, setSearch] = useState("");
-  const [reasonModal, setReasonModal] = useState<{ isOpen: boolean; message: string }>({ isOpen: false, message: "" });
+  const [reasonModal, setReasonModal] = useState<{ isOpen: boolean; message: string }>({
+    isOpen: false,
+    message: "",
+  });
+
+  const [confirmModal, setConfirmModal] = useState<IConfirmModal>({
+    isOpen: false,
+    type: null,
+    userId: null,
+  });
+
+  const [rejectReason, setRejectReason] = useState("");
 
   useEffect(() => {
     const fetchApplications = async () => {
@@ -29,45 +46,48 @@ const TutorApplications: React.FC = () => {
     fetchApplications();
   }, []);
 
-  const handleApprove = async (userId: string) => {
+  const refreshList = async () => {
+    const updated = await adminService.getAllTutorApplications();
+    setApplications(updated.success && updated.data ? updated.data : []);
+  };
+
+  const handleApprove = async () => {
+    if (!confirmModal.userId) return;
     try {
-      if (window.confirm("Are you sure to Approve this application?")) {
-        const res = await adminService.approveTutor(userId);
-        if (res.success) {
-          toast.success("Tutor approved successfully!");
-          const updated = await adminService.getAllTutorApplications();
-          setApplications(updated.success && updated.data ? updated.data : []);
-        } else {
-          toast.error("Having some issues to approve");
-        }
+      const res = await adminService.approveTutor(confirmModal.userId);
+      if (res.success) {
+        toast.success("Tutor approved successfully!");
+        await refreshList();
+      } else {
+        toast.error("Having some issues to approve");
       }
     } catch (err) {
-      if (err instanceof Error) toast.error(err.message);
-      else toast.error("Something went wrong!");
+      toast.error(err instanceof Error ? err.message : "Something went wrong!");
+    } finally {
+      setConfirmModal({ isOpen: false, type: null, userId: null });
     }
   };
 
-  const handleReject = async (userId: string) => {
-    if (window.confirm("Are you sure to Reject this application?")) {
-      const message = prompt("Enter rejection message for this tutor:");
-      if (!message) {
-        toast.error("Rejection message cannot be empty!");
-        return;
-      }
+  const handleReject = async () => {
+    if (!confirmModal.userId) return;
+    if (!rejectReason.trim()) {
+      toast.error("Rejection message cannot be empty!");
+      return;
+    }
 
-      try {
-        const res = await adminService.rejectTutor(userId, message);
-        if (res.success) {
-          toast.success("Tutor rejected successfully!");
-          const updated = await adminService.getAllTutorApplications();
-          setApplications(updated.success && updated.data ? updated.data : []);
-        } else {
-          toast.error("Having some issues to reject");
-        }
-      } catch (err) {
-        if (err instanceof Error) toast.error(err.message);
-        else toast.error("Something went wrong!");
+    try {
+      const res = await adminService.rejectTutor(confirmModal.userId, rejectReason);
+      if (res.success) {
+        toast.success("Tutor rejected successfully!");
+        await refreshList();
+      } else {
+        toast.error("Having some issues to reject");
       }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : "Something went wrong!");
+    } finally {
+      setRejectReason("");
+      setConfirmModal({ isOpen: false, type: null, userId: null });
     }
   };
 
@@ -87,7 +107,6 @@ const TutorApplications: React.FC = () => {
       app.tutorId?.email.toLowerCase().includes(search.toLowerCase());
 
     const notApproved = status !== "Approved";
-
     return matchesSearch && notApproved;
   });
 
@@ -127,7 +146,10 @@ const TutorApplications: React.FC = () => {
                 <h2 className="text-2xl font-bold mb-1">{tutor.tutorId?.name}</h2>
                 <p className="text-gray-300">{tutor.tutorId?.email}</p>
                 <p className="text-sm text-gray-400 mt-1">
-                  Status: <span className="font-medium text-purple-400">{status || "Pending"}</span>
+                  Status:{" "}
+                  <span className="font-medium text-purple-400">
+                    {status || "Pending"}
+                  </span>
                 </p>
               </div>
 
@@ -137,14 +159,16 @@ const TutorApplications: React.FC = () => {
                 <p><span className="font-semibold text-gray-400">Occupation:</span> {tutor.occupation}</p>
                 <p><span className="font-semibold text-gray-400">Education:</span> {tutor.education}</p>
                 <p><span className="font-semibold text-gray-400">Experience:</span> {tutor.experienceLevel}</p>
-                <p><span className="font-semibold text-gray-400">Languages:</span> {Array.isArray(tutor.languages)?tutor.languages?.join(", "):tutor.languages}</p>
-                <p><span className="font-semibold text-gray-400">Skills:</span> {Array.isArray(tutor.skills)?tutor.skills?.join(", "):tutor.skills}</p>
+                <p><span className="font-semibold text-gray-400">Languages:</span> {Array.isArray(tutor.languages) ? tutor.languages.join(", ") : tutor.languages}</p>
+                <p><span className="font-semibold text-gray-400">Skills:</span> {Array.isArray(tutor.skills) ? tutor.skills.join(", ") : tutor.skills}</p>
               </div>
 
               {/* Description */}
               <div>
                 <h3 className="font-semibold text-gray-300 mb-1">Description:</h3>
-                <p className="text-gray-400 text-sm leading-relaxed">{tutor.description || "No description provided."}</p>
+                <p className="text-gray-400 text-sm leading-relaxed">
+                  {tutor.description || "No description provided."}
+                </p>
               </div>
 
               {/* Certificates */}
@@ -183,13 +207,25 @@ const TutorApplications: React.FC = () => {
               {isPending && (
                 <div className="flex flex-wrap justify-center gap-4 mt-6">
                   <button
-                    onClick={() => handleApprove(tutor.tutorId?._id || tutor._id)}
+                    onClick={() =>
+                      setConfirmModal({
+                        isOpen: true,
+                        type: "approve",
+                        userId: tutor.tutorId?._id || tutor._id,
+                      })
+                    }
                     className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg font-bold w-[120px] sm:w-auto"
                   >
                     Approve
                   </button>
                   <button
-                    onClick={() => handleReject(tutor.tutorId?._id || tutor._id)}
+                    onClick={() =>
+                      setConfirmModal({
+                        isOpen: true,
+                        type: "reject",
+                        userId: tutor.tutorId?._id || tutor._id,
+                      })
+                    }
                     className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg font-bold w-[120px] sm:w-auto"
                   >
                     Reject
@@ -204,6 +240,65 @@ const TutorApplications: React.FC = () => {
           );
         }}
       />
+
+      {/* Confirmation Modal */}
+      {confirmModal.isOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black/70 z-50">
+          <div className="bg-gray-900 text-white p-6 rounded-2xl w-11/12 max-w-md relative shadow-2xl">
+            <button
+              className="absolute top-3 right-3 text-gray-400 hover:text-red-500 transition text-2xl"
+              onClick={() => setConfirmModal({ isOpen: false, type: null, userId: null })}
+            >
+              ✖
+            </button>
+
+            {confirmModal.type === "approve" ? (
+              <>
+                <h2 className="text-xl font-bold mb-4">Approve Tutor</h2>
+                <p className="text-gray-300 mb-6">Are you sure you want to approve this tutor?</p>
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setConfirmModal({ isOpen: false, type: null, userId: null })}
+                    className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleApprove}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg"
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h2 className="text-xl font-bold mb-4">Reject Tutor</h2>
+                <textarea
+                  placeholder="Enter rejection reason..."
+                  value={rejectReason}
+                  onChange={(e) => setRejectReason(e.target.value)}
+                  className="w-full h-24 p-3 rounded-lg bg-gray-800 text-gray-200 border border-gray-700 mb-4"
+                />
+                <div className="flex justify-end gap-3">
+                  <button
+                    onClick={() => setConfirmModal({ isOpen: false, type: null, userId: null })}
+                    className="bg-gray-700 hover:bg-gray-600 text-white px-4 py-2 rounded-lg"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleReject}
+                    className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+                  >
+                    Confirm
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Rejection Reason Modal */}
       {reasonModal.isOpen && (

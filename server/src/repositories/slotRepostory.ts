@@ -1,3 +1,4 @@
+import { CreateSlotRuleDto } from "../dtos/tutor/slotRuleDTO";
 import { ISlot, SlotModel } from "../models/slot";
 import { ISlotRule, SlotRuleModel } from "../models/slotRule";
 import { BaseRepository } from "./baseRepository";
@@ -8,7 +9,7 @@ export class SlotRepository extends BaseRepository<ISlot> implements ISlotReposi
     super(SlotModel)
   }
 
-  async saveRules(ruleData: any): Promise<ISlotRule> {
+  async saveRules(ruleData: CreateSlotRuleDto): Promise<ISlotRule> {
     const existing = await SlotRuleModel.findOne({ tutorId: ruleData.tutorId });
     if (existing) {
       return await SlotRuleModel.findByIdAndUpdate(existing._id, ruleData, { new: true }) as ISlotRule;

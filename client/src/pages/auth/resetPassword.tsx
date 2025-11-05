@@ -34,7 +34,7 @@ const ResetPassword: React.FC = () => {
 
     try {
       await resetPassword(email, formData.password, formData.confirmPassword);
-      toast.success("Password reset successfully ✅");
+      toast.success("Password reset successfully");
       navigate("/login");
     } catch (err: unknown) {
       //// Narrow the error type safely
@@ -59,7 +59,7 @@ const ResetPassword: React.FC = () => {
               type="password"
               name="password"
               placeholder="New Password"
-              className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
+              className="rounded-xl px-6 py-4 text-white focus:ring-2 focus:ring-indigo-500"
               value={formData.password}
               onChange={handleChange}
             />
@@ -67,7 +67,7 @@ const ResetPassword: React.FC = () => {
               type="password"
               name="confirmPassword"
               placeholder="Confirm Password"
-              className="rounded-xl px-6 py-4 text-gray-800 focus:ring-2 focus:ring-indigo-500"
+              className="rounded-xl px-6 py-4 text-white focus:ring-2 focus:ring-indigo-500"
               value={formData.confirmPassword}
               onChange={handleChange}
             />

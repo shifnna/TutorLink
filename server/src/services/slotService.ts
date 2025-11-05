@@ -4,13 +4,14 @@ import { TYPES } from "../types/types";
 import { ISlotRepository } from "../repositories/interfaces/ISlotRepository";
 import { Types } from "mongoose";
 import { SessionModel } from "../models/session";
+import { ISlotRule } from "../models/slotRule";
 
 export class SlotService implements ISlotService {
   constructor(
     @inject(TYPES.ISlotRepository) private readonly _slotRepo: ISlotRepository
   ) {}
 
-  async generateSlotsFromRule(rule: any) {
+  async generateSlotsFromRule(rule: ISlotRule) {
     const { tutorId, selectedDays, startTime, endTime, duration, durationUnit, amount } = rule;
 
     const durationInMinutes = durationUnit === "hours" ? duration * 60 : duration;
