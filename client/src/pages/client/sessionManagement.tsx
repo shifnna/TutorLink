@@ -3,13 +3,15 @@ import SessionTable, { ISession } from "../../components/userCommon/sessionTable
 import { useAuthStore } from "../../store/authStore";
 import UserSidebar from "../../components/userCommon/sidebar";
 import { getAllSessions } from "../../services/sessionService";
+import { motion } from "framer-motion";
+import { Toaster } from "react-hot-toast";
 
 const ClientSessionManagement: React.FC = () => {
   const { user } = useAuthStore();
   const [sessions, setSessions] = useState<ISession[]>([]);
 
   const fetchSessions = async () => {
-    const res = await getAllSessions(user?._id)
+    const res = await getAllSessions(user?._id);
     setSessions(res.data?.data || []);
   };
 
@@ -18,14 +20,51 @@ const ClientSessionManagement: React.FC = () => {
   }, [user]);
 
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-[#0a0118] via-[#160733] to-[#1a002e] text-white">
+    <div className="flex min-h-screen bg-slate-50 text-slate-900">
+      <Toaster position="top-center" />
       <UserSidebar />
 
-      <main className="flex-1 p-10 overflow-y-auto">
-        <h1 className="text-3xl font-extrabold mb-6 bg-gradient-to-r from-yellow-400 via-pink-400 to-indigo-400 bg-clip-text text-transparent">
-          My Booked Sessions
-        </h1>
-        <SessionTable sessions={sessions} refreshSessions={fetchSessions} role="client" />
+      <main className="flex-1 px-8 py-10 overflow-y-auto">
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+          className="max-w-7xl mx-auto"
+        >
+          {/* HEADER SECTION */}
+          <div className="mb-10">
+            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
+              My Sessions
+            </h1>
+            <p className="text-slate-500 mt-2 text-sm">
+              View and manage all your booked sessions in one place.
+            </p>
+          </div>
+
+          {/* CARD WRAPPER */}
+          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+
+            {/* TOP BAR */}
+            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
+              <h2 className="text-sm font-semibold text-slate-700">
+                Session History
+              </h2>
+
+              <span className="text-xs text-slate-400">
+                {sessions.length} total
+              </span>
+            </div>
+
+            {/* TABLE */}
+            <div className="p-6">
+              <SessionTable
+                sessions={sessions}
+                refreshSessions={fetchSessions}
+                role="client"
+              />
+            </div>
+          </div>
+        </motion.div>
       </main>
     </div>
   );

@@ -1,4 +1,4 @@
-import { ITutor } from "../../models/tutor";
+import { ITutor } from "../models/tutor";
 
 export interface DashboardStatsResponseDTO {
   totalUsers: number;
@@ -6,4 +6,12 @@ export interface DashboardStatsResponseDTO {
   subscriptions: number;
   revenue: number;
   pendingApplications: ITutor[];
+}
+
+export interface rejectTutorDTO{
+  message:string;
+}
+
+export interface generateLinkDTO{
+  sessionId : string;
 }

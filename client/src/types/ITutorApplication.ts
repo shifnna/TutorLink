@@ -2,7 +2,7 @@ export interface ITutorApplication {
   _id: string;
   tutorId?: {
     isVerified: boolean;
-    tutorApplication: any;
+    tutorApplication: TutorApplicationInfo;
     _id: string;
     name: string;
     email: string;
@@ -21,6 +21,11 @@ export interface ITutorApplication {
   bankName: string;
   ifsc: string;
   createdAt: string;
+}
+
+export interface TutorApplicationInfo {
+  status: "Pending" | "Approved" | "Rejected";
+  adminMessage?: string;
 }
 
 export interface ITutorApplicationForm {

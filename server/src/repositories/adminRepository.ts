@@ -1,9 +1,9 @@
 import { inject } from "inversify";
 import { ITutor, TutorModel } from "../models/tutor";
-import { IUser, UserModel } from "../models/user";
 import { IAdminRepository } from "./interfaces/IAdminRepository";
 import { injectable } from "inversify";
 import { TYPES } from "../types/types";
+import { ISession, SessionModel } from "../models/session";
 
 @injectable()
 export class AdminRepository implements IAdminRepository {
@@ -12,5 +12,16 @@ export class AdminRepository implements IAdminRepository {
   async findPendingTutors(): Promise<ITutor[]>{
     return this._tutorModel.find({ adminApproved: false }).populate("tutorId", "name email tutorApplication").sort({ createdAt: -1 });
   }  
+
+  async getAllSession(): Promise<ISession[]>{
+    let sessions = await SessionModel.find()
+      .populate({
+        path: "tutorId",
+        populate: { path: "tutorId", select: "name email" }  
+      })
+      .populate("userId", "name email")
+      .sort({ createdAt: -1 });
+    return sessions;
+  }
   
 }

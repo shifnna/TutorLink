@@ -22,7 +22,11 @@ interface SessionTableProps {
   role: "tutor" | "client";
 }
 
-const SessionTable: React.FC<SessionTableProps> = ({ sessions, refreshSessions, role }) => {
+const SessionTable: React.FC<SessionTableProps> = ({
+  sessions,
+  refreshSessions,
+  role,
+}) => {
   const [searchText, setSearchText] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("All");
   const [sortOrder, setSortOrder] = useState<"asc" | "desc">("asc");
@@ -45,6 +49,7 @@ const SessionTable: React.FC<SessionTableProps> = ({ sessions, refreshSessions, 
         (s) =>
           (filterStatus === "All" || s.status === filterStatus) &&
           (s.userId?.name?.toLowerCase().includes(searchText.toLowerCase()) ||
+            s.tutorId?.name?.toLowerCase().includes(searchText.toLowerCase()) ||
             s.status.toLowerCase().includes(searchText.toLowerCase()))
       )
       .sort((a, b) => {
@@ -54,137 +59,144 @@ const SessionTable: React.FC<SessionTableProps> = ({ sessions, refreshSessions, 
         const dateTimeB = new Date(
           `${b.date.split("T")[0]}T${convertTo24Hour(b.startTime)}`
         ).getTime();
-        return sortOrder === "asc" ? dateTimeA - dateTimeB : dateTimeB - dateTimeA;
+        return sortOrder === "asc"
+          ? dateTimeA - dateTimeB
+          : dateTimeB - dateTimeA;
       });
   }, [sessions, filterStatus, searchText, sortOrder]);
 
   const handleCancelSession = async (id: string) => {
     try {
       await cancelSession(id);
-      toast.success("Session cancelled successfully!");
+      toast.success("Session cancelled");
       refreshSessions();
     } catch {
-      toast.error("Failed to cancel session.");
+      toast.error("Failed to cancel");
     }
   };
 
   return (
     <motion.section
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.6 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="space-y-6"
     >
       {/* 🔹 Controls */}
-      <div className="flex flex-wrap items-center gap-4 mb-6">
+      <div className="flex flex-wrap items-center gap-4">
         <input
           type="text"
-          className="flex-1 max-w-2xl px-6 py-3 rounded-xl border border-purple-700 bg-black/40 text-white focus:outline-none focus:ring-2 focus:ring-pink-500 placeholder-gray-400"
-          placeholder={`Search by ${role === "tutor" ? "student" : "tutor"} or status...`}
+          placeholder={`Search by ${
+            role === "tutor" ? "student" : "tutor"
+          } or status...`}
           value={searchText}
           onChange={(e) => setSearchText(e.target.value)}
+          className="w-full max-w-md px-4 py-2.5 rounded-lg border border-slate-400 bg-white text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
         />
-      </div>
 
-      {/* 🔹 Filters */}
-      <div className="flex flex-wrap gap-3 mb-6 items-center">
         <div className="flex items-center gap-2">
-          <Filter className="w-5 h-5 text-pink-400" />
+          <Filter className="w-4 h-4 text-slate-500" />
           <select
             value={filterStatus}
             onChange={(e) => setFilterStatus(e.target.value)}
-            className="bg-black/40 border border-purple-700 text-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pink-400"
+            className="border border-slate-400 bg-white text-sm rounded-lg px-3 py-2"
           >
-            <option value="All">All Sessions</option>
+            <option value="All">All</option>
             <option value="Upcoming">Upcoming</option>
             <option value="Completed">Completed</option>
             <option value="Cancelled">Cancelled</option>
           </select>
         </div>
 
-        <div className="flex items-center gap-2">
-          <label className="text-sm text-gray-400">Sort by:</label>
-          <select
-            value={sortOrder}
-            onChange={(e) => setSortOrder(e.target.value as "asc" | "desc")}
-            className="bg-black/40 border border-purple-700 text-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-pink-400"
-          >
-            <option value="asc">Earliest First</option>
-            <option value="desc">Latest First</option>
-          </select>
-        </div>
+        <select
+          value={sortOrder}
+          onChange={(e) =>
+            setSortOrder(e.target.value as "asc" | "desc")
+          }
+          className="border border-slate-400 bg-white text-sm rounded-lg px-3 py-2"
+        >
+          <option value="asc">Earliest</option>
+          <option value="desc">Latest</option>
+        </select>
       </div>
 
       {/* 🔹 Table */}
-      <div className="overflow-hidden rounded-2xl border border-purple-800/40 bg-gradient-to-b from-black/30 via-purple-950/30 to-black/40 backdrop-blur-md shadow-lg">
-        <table className="w-full text-left text-sm">
-          <thead className="bg-purple-900/40 text-gray-300">
+      <div className="overflow-hidden rounded-xl border border-slate-300 bg-white">
+        <table className="w-full text-sm">
+          <thead className="bg-slate-100 text-slate-600">
             <tr>
-              <th className="py-3 px-4">{role === "tutor" ? "Student" : "Tutor"}</th>
-              <th className="py-3 px-4">Date</th>
-              <th className="py-3 px-4">Time</th>
-              <th className="py-3 px-4">Status</th>
-              <th className="py-3 px-4 text-right">Actions</th>
+              <th className="px-4 py-3 text-left">
+                {role === "tutor" ? "Student" : "Tutor"}
+              </th>
+              <th className="px-4 py-3 text-left">Date</th>
+              <th className="px-4 py-3 text-left">Time</th>
+              <th className="px-4 py-3 text-left">Status</th>
+              <th className="px-4 py-3 text-right">Actions</th>
             </tr>
           </thead>
+
           <tbody>
             {filteredSessions.length > 0 ? (
-              filteredSessions.map((session) => (
+              filteredSessions.map((s) => (
                 <tr
-                  key={session._id}
-                  className="border-b border-gray-800 hover:bg-purple-900/20 transition"
+                  key={s._id}
+                  className="border-t border-slate-100 hover:bg-slate-50 transition"
                 >
-                  <td className="py-3 px-4">
+                  <td className="px-4 py-3">
                     {role === "tutor"
-                      ? session.userId?.name
-                      : session.tutorId?.name}
+                      ? s.userId?.name
+                      : s.tutorId?.name}
                   </td>
-                  <td className="py-3 px-4">
-                    {new Date(session.date).toLocaleDateString()}
+                  <td className="px-4 py-3">
+                    {new Date(s.date).toLocaleDateString()}
                   </td>
-                  <td className="py-3 px-4">
-                    {session.startTime} - {session.endTime}
+                  <td className="px-4 py-3">
+                    {s.startTime} - {s.endTime}
                   </td>
-                  <td
-                    className={`py-3 px-4 font-semibold ${
-                      session.status === "Upcoming"
-                        ? "text-yellow-400"
-                        : session.status === "Completed"
-                        ? "text-green-400"
-                        : "text-red-400"
-                    }`}
-                  >
-                    {session.status}
+                  <td className="px-4 py-3">
+                    <span
+                      className={`text-xs px-2 py-1 rounded-full font-medium ${
+                        s.status === "Upcoming"
+                          ? "bg-yellow-100 text-yellow-700"
+                          : s.status === "Completed"
+                          ? "bg-green-100 text-green-700"
+                          : "bg-red-100 text-red-600"
+                      }`}
+                    >
+                      {s.status}
+                    </span>
                   </td>
-                  <td className="py-3 px-4 text-right flex gap-2 justify-end">
-                    {session.status === "Upcoming" && (
+
+                  <td className="px-4 py-3 text-right space-x-2">
+                    {s.status === "Upcoming" && (
                       <>
-                        {role==="tutor" && (<Button className="bg-gradient-to-r from-blue-700 via-purple-700 to-pink-700 text-white px-3 py-1 rounded-full text-sm hover:scale-105">
-                          Start
-                        </Button>)}
+                        {role === "tutor" && (
+                          <Button size="sm">
+                            Start
+                          </Button>
+                        )}
+
                         <Button
+                          size="sm"
                           variant="outline"
                           onClick={() => {
-                            setSelectedSessionId(session._id);
+                            setSelectedSessionId(s._id);
                             setConfirmModal(true);
                           }}
-                          className="border-pink-400 text-pink-400 px-3 py-1 rounded-full text-sm hover:bg-pink-900/40"
                         >
                           Cancel
                         </Button>
                       </>
-                    )}
-                    {session.status === "Cancelled" && (
-                      <span className="text-gray-400 text-xs italic pr-3">
-                        No actions
-                      </span>
                     )}
                   </td>
                 </tr>
               ))
             ) : (
               <tr>
-                <td colSpan={6} className="py-10 text-center text-gray-400 italic">
-                  No sessions found
+                <td
+                  colSpan={5}
+                  className="text-center py-10 text-slate-400"
+                >
+                  No sessions available yet
                 </td>
               </tr>
             )}
@@ -192,43 +204,41 @@ const SessionTable: React.FC<SessionTableProps> = ({ sessions, refreshSessions, 
         </table>
       </div>
 
-      {/* 🔹 Confirmation Modal */}
+      {/* 🔹 Modal */}
       <AnimatePresence>
         {confirmModal && (
           <motion.div
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm flex justify-center items-center z-50"
+            className="fixed inset-0 bg-black/30 flex items-center justify-center z-50"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
           >
             <motion.div
-              className="bg-white rounded-2xl p-6 w-full max-w-sm text-center shadow-2xl border border-gray-200"
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              className="bg-white p-6 rounded-xl shadow-lg w-full max-w-sm text-center"
+              initial={{ scale: 0.95 }}
+              animate={{ scale: 1 }}
             >
-              <h3 className="text-xl font-semibold text-gray-800 mb-4">
-                Confirm Cancellation
+              <h3 className="font-semibold mb-3">
+                Cancel session?
               </h3>
-              <p className="text-gray-600 mb-6">
-                Are you sure you want to cancel this session?
+              <p className="text-sm text-slate-500 mb-6">
+                This action cannot be undone.
               </p>
-              <div className="flex justify-center gap-4">
+
+              <div className="flex justify-center gap-3">
                 <Button
-                  onClick={() => {
-                    if (selectedSessionId) handleCancelSession(selectedSessionId);
-                    setConfirmModal(false);
-                  }}
-                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
-                >
-                  Yes, Cancel
-                </Button>
-                <Button
+                  variant="outline"
                   onClick={() => setConfirmModal(false)}
-                  className="bg-gray-400 hover:bg-gray-500 text-white px-4 py-2 rounded-lg"
                 >
                   No
+                </Button>
+                <Button
+                  onClick={() => {
+                    if (selectedSessionId)
+                      handleCancelSession(selectedSessionId);
+                    setConfirmModal(false);
+                  }}
+                >
+                  Yes, Cancel
                 </Button>
               </div>
             </motion.div>

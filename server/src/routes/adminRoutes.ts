@@ -17,4 +17,7 @@ router.patch("/users/:id/toggle",protect,adminOnly,validate(toggleUserSchema), c
 router.patch("/users/approve/:userId",protect,adminOnly,validate(approveTutorSchema), controller.approveTutor);
 router.patch("/users/reject/:userId",protect,adminOnly,validate(rejectTutorSchema), controller.rejectTutor);
 
+router.get("/sessions", protect,adminOnly, controller.getAllSessions);
+router.post("/sessions/generate-video-link", protect,adminOnly, controller.generateLink);
+
 export default router;

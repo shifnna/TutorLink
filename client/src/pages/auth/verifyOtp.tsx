@@ -108,14 +108,14 @@ const VerifyOtp: React.FC = () => {
                   onChange={(e) => handleChange(e.target.value, index)}
                   onKeyDown={(e) => handleKeyDown(e, index)}
                   ref={(el) => {inputRefs.current[index] = el}}
-                  className="w-12 h-12 text-center text-xl rounded-lg text-white focus:ring-2 focus:ring-indigo-500"
+                  className="w-12 h-12 text-center text-xl rounded-lg text-gray-500 focus:ring-2 focus:ring-indigo-500"
                 />
               ))}
             </div>
 
             <Button
               type="submit"
-              className="rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 text-white py-4 font-bold hover:scale-105 hover:shadow-lg transition"
+              className="rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 text-gray-500 py-4 font-bold hover:scale-105 hover:shadow-lg transition"
             >
               Verify OTP
             </Button>

@@ -8,4 +8,6 @@ export interface IAdminController{
     approveTutor : (req: Request, res: Response, next: NextFunction) => void;
     rejectTutor : (req: Request, res: Response, next: NextFunction) => void;
     getDashboardStats : (req: Request, res: Response, next: NextFunction) => void;
+    getAllSessions : (req: Request, res: Response, next: NextFunction) => void;
+    generateLink: (req: Request, res: Response, next: NextFunction) => void;
 }

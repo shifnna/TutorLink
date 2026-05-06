@@ -1,23 +1,44 @@
-import mongoose, { Schema, Document, Types, model } from "mongoose";
+import { Schema, Document, Types, model } from "mongoose";
+import { boolean, string } from "zod";
 
 export interface ISession extends Document {
   tutorId: Types.ObjectId;
   userId: Types.ObjectId;
-  slotId: Types.ObjectId;
+  amount: number;
   date: Date;
   startTime: string;
   endTime: string;
+  payment:{
+    provider: string,
+    orderId: string,
+    paymentId: string,
+    status: string,
+  }
+  videoRoomId?: string;
+  videoRoomUrl?: string;
+  feedback?: { message: string, rating: number, unsatisfied:boolean };
+  paymentStatus?: "HOLD" | "RELEASED" | "REFUNDED";
   status: string;
 }
 
 const SessionSchema = new Schema<ISession>(
   {
-    tutorId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    tutorId: { type: Schema.Types.ObjectId, ref: "Tutor", required: true },
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
-    slotId: { type: Schema.Types.ObjectId, ref: "Slot", required: true },
+    amount: { type: Number, required:true },
     date: { type: Date, required: true },
     startTime: { type: String, required: true },
     endTime: { type: String, required: true },
+    payment: {
+      provider: String,
+      orderId: String,
+      paymentId: String,
+      status: String,
+    },
+    videoRoomId: { type: String, default: null },
+    videoRoomUrl: { type: String, default: null },
+    feedback: { message: { type: String, default: "" }, rating: { type: Number, default: null }, unsatisfied: { type: Boolean, default: false }},
+    paymentStatus: { type: String, enum: ["HOLD", "RELEASED", "REFUNDED"], default: "HOLD"},
     status: { type: String, default: "booked" },
   },
   { timestamps: true }

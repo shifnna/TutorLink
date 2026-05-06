@@ -1,4 +1,6 @@
-import { IUserWithTutorDTO } from "../../dtos/tutor/UserWithTutor";
+import { generateLinkDTO, rejectTutorDTO } from "../../dtos/admin.dto";
+import { IUserWithTutorDTO } from "../../dtos/tutor.dto";
+import { ISession } from "../../models/session";
 import { ITutor } from "../../models/tutor";
 import { IUser } from "../../models/user";
 
@@ -6,10 +8,12 @@ export interface IAdminService {
   getAllClients(): Promise<IUserWithTutorDTO[]>;
   getAllTutors(): Promise<IUserWithTutorDTO[]>;
   approveTutor(tutorId: string): Promise<ITutor>;
-  rejectTutor(userId: string, message: string): Promise<void>;
+  rejectTutor(userId: string, dto: rejectTutorDTO): Promise<void>;
   blockUser(userId: string): Promise<IUser>;
   unblockUser(userId: string): Promise<IUser>;
   getAllTutorApplications(): Promise<ITutor[]>;
   toggleUserStatus(userId: string): Promise<IUser>;
-  getDashboardStats(): Promise<{ totalUsers: number; totalTutors: number; subscriptions: number; revenue: number; pendingApplications: ITutor[] }>
+  getDashboardStats(): Promise<{ totalUsers: number; totalTutors: number; subscriptions: number; revenue: number; pendingApplications: ITutor[] }>;
+  getAllSessions(): Promise<ISession[]>;
+  generateLink(dto: generateLinkDTO): Promise<string>;
 }

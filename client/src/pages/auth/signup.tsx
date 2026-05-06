@@ -94,20 +94,20 @@ function handleGoogle(){
 
           {/* Signup Form */}
           <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-            <Input name="name" type="text" placeholder="Full Name" className="rounded-xl px-6 py-4 text-white focus:ring-2 focus:ring-indigo-500"
+            <Input name="name" type="text" placeholder="Full Name" className="rounded-xl px-6 py-4 text-gray-500 focus:ring-2 focus:ring-indigo-500"
               value={formData.name} onChange={handleChange}
             />
-            <Input name="email" type="email" placeholder="Email" className="rounded-xl px-6 py-4 text-white focus:ring-2 focus:ring-indigo-500"
+            <Input name="email" type="email" placeholder="Email" className="rounded-xl px-6 py-4 text-gray-500 focus:ring-2 focus:ring-indigo-500"
               value={formData.email} onChange={handleChange}
             />
-            <Input name="password" type="password" placeholder="Password" className="rounded-xl px-6 py-4 text-white focus:ring-2 focus:ring-indigo-500"
+            <Input name="password" type="password" placeholder="Password" className="rounded-xl px-6 py-4 text-gray-500 focus:ring-2 focus:ring-indigo-500"
               value={formData.password} onChange={handleChange}
             />
-            <Input name="confirmPassword" type="password" placeholder="Confirm Password" className="rounded-xl px-6 py-4 text-white focus:ring-2 focus:ring-indigo-500"
+            <Input name="confirmPassword" type="password" placeholder="Confirm Password" className="rounded-xl px-6 py-4 text-gray-500 focus:ring-2 focus:ring-indigo-500"
               value={formData.confirmPassword} onChange={handleChange}
             />
 
-            <Button type="submit" className="rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 text-white py-4 font-bold hover:scale-105 hover:shadow-lg transition" >
+            <Button type="submit" className="rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 text-gray-500 py-4 font-bold hover:scale-105 hover:shadow-lg transition" >
               Sign Up
             </Button>
           </form>

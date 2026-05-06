@@ -17,27 +17,22 @@ export const tutorService = {
 
     getAllTutors: async () : Promise <ICommonResponse<ITutor[]>> =>
       handleApi<ITutor[]>(axiosClient.get( `${ROUTES.TUTOR_API}/get-tutors`)),
+
+    getTutorById: async (tutorId: string) : Promise <ICommonResponse<ITutor>> =>
+      handleApi<ITutor>(axiosClient.get(`${ROUTES.TUTOR_API}/get-tutor/${tutorId}`)),
     
-  getTutorProfile: async (): Promise<ICommonResponse<ITutorApplication>> => {
-  const response = await handleApi<{ success: boolean; message: string; data: ITutorApplication }>(
-    axiosClient.get(`${ROUTES.TUTOR_API}/profile`)
-  );
-  return {
-    ...response,
-    data: response.data?.data || null,
-  };
-},
-
-
+    getTutorProfile: async (): Promise<ICommonResponse<ITutorApplication>> => {
+      const response = await handleApi<{ success: boolean; message: string; data: ITutorApplication }>(axiosClient.get(`${ROUTES.TUTOR_API}/profile`));
+      return {
+        ...response,
+        data: response.data?.data || null,
+      };
+    },
 
     apply: async (formData: ITutorApplicationForm): Promise<ICommonResponse<ITutorApplication>> => {
     try {
-    if (!formData.profileImage) {
-      throw new Error("Profile image is required");
-    }
-
+    if (!formData.profileImage) throw new Error("Profile image is required");
     const profileImageUrl = await uploadFileToS3(formData.profileImage);
-
     const certificatesUrls: string[] = await Promise.all(
       formData.certificates.map(file => uploadFileToS3(file))
     );

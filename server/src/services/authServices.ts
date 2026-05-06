@@ -8,30 +8,28 @@ import { TYPES } from "../types/types";
 import { IAuthService } from "./interfaces/IAuthService";
 import { COMMON_ERROR } from "../utils/constants";
 import { generateAccessToken, generateRefreshToken } from "../utils/tokens";
+import { WalletModel } from "../models/wallet";
+import { LoginRequestDTO, ResendOtpRequestDTO, ResetPasswordRequestDTO, SignupRequestDTO, VerifyOtpRequestDTO } from "../dtos/auth.dto";
+import { AuthMapper } from "../mappers/auth.mapper";
 
 @injectable()
 export class AuthService implements IAuthService{
     constructor( @inject(TYPES.IClientRepository) private readonly _userRepo: IClientRepository){}
 
-    async signup(name:string ,email:string ,password:string ,confirmPassword:string ): Promise<IUser | null>{
-        const existingUser = await this._userRepo.findByEmail(email);
+    async signup(dto:SignupRequestDTO): Promise<IUser | null>{
+        const existingUser = await this._userRepo.findByEmail(dto.email);
         if(existingUser){
             throw new Error(COMMON_ERROR.EMAIL_IN_USE);
         }
 
-        const hashedPassword = await bcrypt.hash(password,10);
+        const hashedPassword = await bcrypt.hash(dto.password,10);
 
         const otpCode = Math.floor(100000 + Math.random() * 900000).toString(); 
         const otpExpiry = new Date(Date.now() + 60 * 1000); // 1 mins expiry
 
-        const user:IUser = await this._userRepo.create({
-            name,
-            email,
-            password:hashedPassword,
-            otpCode,
-            otpExpiry,
-            isVerified: false,
-        } as IUser);
+        const mappedData = AuthMapper.toSignupDTO(dto,hashedPassword,otpCode,otpExpiry)
+
+        const user:IUser = await this._userRepo.create(mappedData);
 
         await sendOTP(user.email, otpCode);
 
@@ -39,25 +37,31 @@ export class AuthService implements IAuthService{
     }
 
 
-    async verifyOtp(email: string, otp: string, type:string): Promise<{ user: IUser; refreshToken: string; accessToken:string } | {success:boolean} | null> {
-        const user = await this._userRepo.findByEmail(email);
+    async verifyOtp(dto:VerifyOtpRequestDTO): Promise<{ user: IUser; refreshToken: string; accessToken:string } | {success:boolean} | null> {
+        const user = await this._userRepo.findByEmail(dto.email);
         if (!user) throw new Error(COMMON_ERROR.USER_NOT_FOUND);
 
-        if (user.otpCode !== otp || new Date() > user.otpExpiry!)
+        if (user.otpCode !== dto.otp || new Date() > user.otpExpiry!)
         throw new Error("Invalid or expired OTP");
 
         user.otpCode = undefined;
         user.otpExpiry = undefined;
 
-        if(type==="signup"){
+        if(dto.type==="signup"){
             if (user.isVerified) throw new Error(COMMON_ERROR.ALREADY_VERIFIED);
             user.isVerified = true;
             await user.save();
+            
+            await WalletModel.create({
+               userId: user._id,
+               balance: 0,
+               transactions: [],
+            });
 
-          return { user,refreshToken:generateRefreshToken({id:user.id,role:user.role}),accessToken:generateAccessToken({id:user.id,role:user.role}) };
+          return { user, refreshToken:generateRefreshToken({id:user.id,role:user.role}), accessToken:generateAccessToken({id:user.id,role:user.role}) };
         }
   
-        if(type==="forgot"){
+        if(dto.type==="forgot"){
            await user.save();
            return { success: true };
         } 
@@ -66,22 +70,22 @@ export class AuthService implements IAuthService{
     }
 
 
-    async login(email:string,password:string):Promise<{ user: IUser; refreshToken: string, accessToken: string }>{
-        const user = await this._userRepo.findByEmail(email)
+    async login(dto: LoginRequestDTO):Promise<{ user: IUser; refreshToken: string, accessToken: string }>{
+        const user = await this._userRepo.findByEmail(dto.email)
         if(!user) throw new Error(COMMON_ERROR.INVALID_CREDENTIALS);
 
-        const isPasswordVaild = await bcrypt.compare(password,user.password)
+        const isPasswordVaild = await bcrypt.compare(dto.password,user.password)
         if(!isPasswordVaild) throw new Error(COMMON_ERROR.INVALID_CREDENTIALS);
 
         return {user,refreshToken:generateRefreshToken({id:user.id,role:user.role}),accessToken:generateAccessToken({id:user.id,role:user.role})};
     }
 
 
-    async resendOtp(email: string, type:string):Promise<{ message: string } | null> {
-            const user = await this._userRepo.findByEmail(email);
+    async resendOtp(dto: ResendOtpRequestDTO):Promise<{ message: string } | null> {
+            const user = await this._userRepo.findByEmail(dto.email);
             if (!user) throw new Error(COMMON_ERROR.USER_NOT_FOUND);
 
-            if (type === "signup" && user.isVerified) {
+            if (dto.type === "signup" && user.isVerified) {
             throw new Error(COMMON_ERROR.ALREADY_VERIFIED);
             }
 
@@ -97,11 +101,11 @@ export class AuthService implements IAuthService{
     }
 
     
-    async resetPassword(email: string, password: string):Promise<{ message: string } | null> {
-        const user = await this._userRepo.findByEmail(email);
+    async resetPassword(dto: ResetPasswordRequestDTO):Promise<{ message: string } | null> {
+        const user = await this._userRepo.findByEmail(dto.email);
         if (!user) throw new Error(COMMON_ERROR.USER_NOT_FOUND);
 
-        user.password = await bcrypt.hash(password, 10);
+        user.password = await bcrypt.hash(dto.password, 10);
         await user.save();
 
         return { message: "Password reset successful" };

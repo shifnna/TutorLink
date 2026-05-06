@@ -5,11 +5,17 @@ import { IClientRepository } from "../repositories/interfaces/IClientRepository"
 import { IAdminRepository } from "../repositories/interfaces/IAdminRepository";
 import { IS3Service } from "./interfaces/IS3Service";
 import { IUser } from "../models/user";
-import { ITutor } from "../models/tutor";
+import { ITutor, TutorModel } from "../models/tutor";
 import { COMMON_ERROR } from "../utils/constants";
 import { ITutorRepository } from "../repositories/interfaces/ITutorRepository";
-import { DashboardStatsResponseDTO } from "../dtos/admin/AdminResponseDTO";
-import { IUserWithTutorDTO } from "../dtos/tutor/UserWithTutor";
+import { Types } from "mongoose";
+import { NotificationModel } from "../models/notifications";
+import { io } from "../server";
+import { ISession, SessionModel } from "../models/session";
+import crypto from "crypto";
+import { DashboardStatsResponseDTO, generateLinkDTO, rejectTutorDTO } from "../dtos/admin.dto";
+import { IUserWithTutorDTO } from "../dtos/tutor.dto";
+import { AdminMapper } from "../mappers/admin.mapper";
 
 @injectable()
 export class AdminService implements IAdminService {
@@ -20,75 +26,37 @@ export class AdminService implements IAdminService {
     @inject(TYPES.IS3Service) private readonly s3Service: IS3Service
   ) {}
 
-  async getAllClients(): Promise<IUserWithTutorDTO[]> {
-  const users: IUser[] = await this._userRepo.findAll({ role: "client" });
-
-  return users.map((user) => {
-    const userObj = user.toObject();
-    return {
-      id: userObj._id.toString(), // must have id
-      name: userObj.name,
-      email: userObj.email,
-      role: userObj.role,
-      isBlocked: userObj.isBlocked || false,
-      isVerified: userObj.isVerified,
-      createdAt: userObj.createdAt,
-      profileImage: userObj.profileImage || null,
-      tutorProfile: null, // clients have no tutorProfile
-    };
-  });
-}
-
-
+ 
   async getAllTutors(): Promise<IUserWithTutorDTO[]> {
-  const users: IUser[] = await this._userRepo.findTutorsWithProfile();
+    const users: IUser[] = await this._userRepo.findTutorsWithProfile();
+    return Promise.all(
+    users.map(async (user: IUser) => {
+      let profileImageUrl: string | null = null;
+      let certUrls: string[] = [];
+      let tutorProfile = null;
 
-  return Promise.all(
-  users.map(async (user: IUser) => {
-    let tutorProfileImageUrl: string | null = null;
-    let tutorProfileCertificates: string[] = [];
-    let tutorProfileData: IUserWithTutorDTO["tutorProfile"] = null;
-
-    // Type guard: check if tutorProfile exists and is an object (not ObjectId)
     if (user.tutorProfile && typeof user.tutorProfile !== "string" && "profileImage" in user.tutorProfile) {
-      const tutorProfile = user.tutorProfile as ITutor;
+      const tutorProfile = user.tutorProfile;
 
-      tutorProfileImageUrl = tutorProfile.profileImage
+      profileImageUrl = tutorProfile.profileImage
         ? await this.s3Service.generatePresignedUrl(tutorProfile.profileImage)
         : null;
 
-      if (tutorProfile.certificates?.length) {
-        tutorProfileCertificates = await Promise.all(
-          tutorProfile.certificates.map((key: string) =>
+      certUrls = await Promise.all(
+          (tutorProfile.certificates ?? []).map((key) =>
             this.s3Service.generatePresignedUrl(key)
-          )
-        );
-      }
-
-      tutorProfileData = {
-        ...("toObject" in tutorProfile ? tutorProfile.toObject() : tutorProfile),
-        profileImage: tutorProfileImageUrl,
-        certificates: tutorProfileCertificates,
-      };
+      ));
     }
 
-    const userObj = user.toObject();
+    return AdminMapper.toTutorDTO(user, tutorProfile, profileImageUrl, certUrls);
+    })
+  )}
 
-    return {
-      id: userObj._id.toString(),
-      name: userObj.name,
-      email: userObj.email,
-      role: userObj.role,
-      isBlocked: userObj.isBlocked,
-      isVerified: userObj.isVerified,
-      createdAt: userObj.createdAt,
-      profileImage: tutorProfileImageUrl || userObj.profileImage || null,
-      tutorProfile: tutorProfileData,
-    };
-  })
-);
 
-}
+  async getAllClients(): Promise<IUserWithTutorDTO[]> {
+    const users = await this._userRepo.findAll({ role: "client" });
+    return users.map(AdminMapper.toClientDTO);
+  }
 
 
   async getAllTutorApplications(): Promise<ITutor[]> {
@@ -132,29 +100,69 @@ export class AdminService implements IAdminService {
     if (!user) throw new Error(COMMON_ERROR.USER_NOT_FOUND);
 
     await this._userRepo.updateById(userId,{role:"tutor",tutorApplication:{status:"Approved"}});
-    await this._tutorRepo.findOneAndUpdate({ tutorId: userId },{ adminApproved: true });
+    await this._tutorRepo.findOneAndUpdate({ tutorId: new Types.ObjectId(userId) },{ adminApproved: true });
 
     if (tutor.profileImage) {
       user.profileImage = tutor.profileImage;
       await user.save();
     }
+
+    await NotificationModel.create({
+      userId,
+      title: "Tutor Application Update",
+      message: `Your tutor application is Approved.`,
+    });
+    
+    io.to(userId.toString()).emit("new-notification", {
+      title: "Tutor Application Update",
+      message: `Your tutor application is Approved.`,
+    });
+
     return tutor;
   }
 
-  async rejectTutor(userId: string, message: string): Promise<void> {
+  async rejectTutor(userId: string, dto: rejectTutorDTO): Promise<void> {
     const user = await this._userRepo.findById(userId);
     if (!user) throw new Error(COMMON_ERROR.USER_NOT_FOUND);
 
-    await this._userRepo.updateById(userId, { tutorApplication: { status: "Rejected", adminMessage: message } });
+    await this._userRepo.updateById(userId, { tutorApplication: { status: "Rejected", adminMessage: dto.message } });
+
+    io.to(userId.toString()).emit("new-notification", {
+      title: "Tutor Application Update",
+      message: `Your tutor application is Rejected.`,
+    });
+    
     return;
   }
 
 
   async blockUser(userId: string): Promise<IUser> {
+    await NotificationModel.create({
+      userId,
+      title: "User blocked",
+      message: `Admin blocked You.`,
+    });
+
+    io.to(userId.toString()).emit("new-notification", {
+      title: "User blocked",
+      message:" Admin blocked You.",
+    });
+
     return this._userRepo.updateById(userId,{ isBlocked: true }) as Promise<IUser>;
   }
 
   async unblockUser(userId: string): Promise<IUser> {
+    await NotificationModel.create({
+      userId,
+      title: "User Unblocked",
+      message: `Admin Unblocked You.`,
+    });
+
+    io.to(userId.toString()).emit("new-notification", {
+      title: "User Unblocked",
+      message:" Admin Unblocked You.",
+    });
+
     return this._userRepo.updateById(userId,{ isBlocked: false }) as Promise<IUser>;
   }
 
@@ -170,5 +178,50 @@ export class AdminService implements IAdminService {
       revenue: 0,
       pendingApplications,
     };
+  }
+
+  async getAllSessions(): Promise<ISession[]> {
+    return this._adminRepo.getAllSession();
+  }
+
+  async generateLink(dto : generateLinkDTO ): Promise<string>{
+      const session = await SessionModel.findById(dto.sessionId);
+      if (!session) throw new Error("Session not found");
+
+  
+      const roomId = "room_" + crypto.randomBytes(16).toString("hex");
+      const url = `${process.env.CLIENT_URL}/session/video/${dto.sessionId}/${roomId}`;
+
+      await SessionModel.findByIdAndUpdate(dto.sessionId, { videoRoomId: roomId,videoRoomUrl: url});
+
+    //// SEND NOTIFICATIONS
+    const tutorProfile = await TutorModel.findById(session.tutorId);
+    if (!tutorProfile) throw new Error("Tutor not found");
+
+    const tutorUserId = tutorProfile.tutorId.toString();
+    const userId = session.userId.toString();
+
+    const title = "Video Call Link Ready";
+    const message = "Your tutoring session video link is now available. Click to join.";
+
+    const tutorNoti = await NotificationModel.create({
+      userId: tutorUserId,
+      title,
+      message,
+      link: url,
+    });
+
+    const userNoti = await NotificationModel.create({
+      userId: userId,
+      title,
+      message,
+      link: url,
+    });
+
+    //// emit socket events
+    io.to(tutorUserId).emit("new-notification", tutorNoti);
+    io.to(userId).emit("new-notification", userNoti);
+
+    return url;
   }
 }

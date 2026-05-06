@@ -1,4 +1,4 @@
-// This is where you wire everything together.
+// This is where we wire everything together.
 import { Container } from "inversify";
 import { TYPES } from "../types/types";
 
@@ -36,7 +36,14 @@ import { ISlotController } from "../controllers/interfaces/ISlotController";
 import { SlotController } from "../controllers/slotController";
 import { ISlotService } from "../services/interfaces/ISlotService";
 import { SlotService } from "../services/slotService";
-import { SlotRepository } from "../repositories/slotRepostory";
+import { ISlotRepository } from "../repositories/interfaces/ISlotRepository";
+import { SlotRepository } from "../repositories/slotRepository";
+import { ISessionController } from "../controllers/interfaces/ISessionController";
+import { SessionController } from "../controllers/sessionController";
+import { ISessionService } from "../services/interfaces/ISessionService";
+import { SessionService } from "../services/SessionService";
+import { ISessionRepository } from "../repositories/interfaces/ISessionRepository";
+import { SessionRepository } from "../repositories/SessionRepository";
 
 const container = new Container();
 
@@ -61,5 +68,9 @@ container.bind<S3Service>(TYPES.IS3Service).to(S3Service)
 container.bind<ISlotController>(TYPES.ISlotController).to(SlotController);
 container.bind<ISlotService>(TYPES.ISlotService).to(SlotService)
 container.bind<ISlotRepository>(TYPES.ISlotRepository).to(SlotRepository);
+
+container.bind<ISessionController>(TYPES.ISessionController).to(SessionController);
+container.bind<ISessionService>(TYPES.ISessionService).to(SessionService);
+container.bind<ISessionRepository>(TYPES.ISessionRepository).to(SessionRepository);
 
 export default container;

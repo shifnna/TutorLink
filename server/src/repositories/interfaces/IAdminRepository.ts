@@ -1,7 +1,8 @@
 import { IUser } from "../../models/user";
 import { ITutor } from "../../models/tutor";
+import { ISession } from "../../models/session";
 
 export interface IAdminRepository {
-  // markApproved(userId: string): Promise<ITutor | null>;
+  getAllSession(): Promise<ISession[]>;
   findPendingTutors(): Promise<ITutor[]>;
 }

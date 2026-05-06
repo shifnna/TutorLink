@@ -17,8 +17,12 @@ export class TutorRepository extends BaseRepository<ITutor> implements ITutorRep
     }
     return this.model
       .find(query)
-      .populate("tutorId", "name email")
-      .sort({ createdAt: -1 });
+      .populate("tutorId", "_id name email")
+      .sort({ createdAt: -1 })
+  }
+
+  async findById(id: string): Promise<ITutor | null> {
+    return this.model.findById(id).populate("tutorId","name email profileImage");
   }
 
 }

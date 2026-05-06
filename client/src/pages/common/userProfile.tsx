@@ -5,20 +5,24 @@ import { motion } from "framer-motion";
 
 const UserProfile: React.FC = () => {
   return (
-    <div className="flex min-h-screen bg-gradient-to-br from-[#0a0118] via-[#160733] to-[#1a002e] text-white">
+    <div className="flex min-h-screen bg-slate-50 text-slate-900">
       <Toaster position="top-center" />
       <UserSidebar />
 
-      <main className="flex-1 p-10 overflow-y-auto">
+      <main className="flex-1 px-8 py-10 overflow-y-auto">
         <motion.section
-          initial={{ opacity: 0, y: 20 }}
+          initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
         >
-        <h1 className="text-3xl font-extrabold mb-6 bg-gradient-to-r from-yellow-400 via-pink-400 to-indigo-400 bg-clip-text text-transparent">
+          <h1 className="text-3xl font-bold tracking-tight mb-6">
             Profile
-        </h1>
-        <span>Your profile details will appear here.</span>
+          </h1>
+
+          <div className="bg-white border border-slate-600 rounded-xl p-6 shadow-sm">
+            <p className="text-slate-600 text-sm">
+              Your profile details will appear here.
+            </p>
+          </div>
         </motion.section>
       </main>
     </div>

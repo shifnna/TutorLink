@@ -6,9 +6,12 @@ import { toast, Toaster } from "react-hot-toast";
 import { useAuthStore } from "../../store/authStore";
 import Dropdown from "./dropdown";
 
-const Header: React.FC = () => {
-  const { search, setSearch,} = useAuthStore();
+interface HeaderProps {
+  onToggleFilter?: () => void; // ← ADD THIS
+}
 
+const Header: React.FC<HeaderProps> = ({ onToggleFilter }) => {
+  const { search, setSearch } = useAuthStore();
 
   return (
     <div className="w-full bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 text-gray-900">
@@ -32,7 +35,12 @@ const Header: React.FC = () => {
                 onChange={(e) => setSearch(e.target.value)}
                 className="w-full rounded-full px-6 py-3 text-white bg-white/10 focus:ring-2 focus:ring-indigo-400 shadow-sm"
               />
-              <HiOutlineAdjustments className="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-white cursor-pointer hover:text-gray-200 transition" />
+
+              {/* 🔥 Filter icon now opens the sidebar */}
+              <HiOutlineAdjustments
+                onClick={onToggleFilter}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-white cursor-pointer hover:text-gray-200 transition"
+              />
             </div>
           </div>
 

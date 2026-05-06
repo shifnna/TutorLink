@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import Header from "../../components/adminCommon/header";
 import TableList from "../../components/adminCommon/tableList";
 import { IUser } from "../../types/IUser";
 import { adminService } from "../../services/adminService";
 import SearchBar from "../../components/adminCommon/searchBar";
 import { Dialog } from "@headlessui/react";
 import { Button } from "../../components/ui/button";
+import { motion } from "framer-motion";
 
 const TutorsPage: React.FC = () => {
   const [search, setSearch] = useState("");
@@ -17,31 +17,23 @@ const TutorsPage: React.FC = () => {
 
   useEffect(() => {
     const fetchTutors = async () => {
-      try {
-        const res = await adminService.getAllTutors();
-        if (res.success && res.data) {
-          setTutors(
-            res.data.map((u) => ({
-              id: u.id,
-              name: u.name,
-              email: u.email,
-              role: u.role,
-              isBlocked: u.isBlocked || false,
-              isVerified: u.isVerified,
-              joinedDate: u.createdAt
-                ? new Date(u.createdAt).toLocaleDateString()
-                : "Unknown",
-              profileImage: u.profileImage || null,
-              tutorProfile: u.tutorProfile || null,
-            }))
-          );
-        } else {
-          console.error(res.message || "Failed to load tutors");
-          setTutors([]);
-        }
-      } catch (error) {
-        console.error("Failed to load tutors:", error);
-        setTutors([]);
+      const res = await adminService.getAllTutors();
+      if (res.success && res.data) {
+        setTutors(
+          res.data.map((u) => ({
+            id: u.id,
+            name: u.name,
+            email: u.email,
+            role: u.role,
+            isBlocked: u.isBlocked || false,
+            isVerified: u.isVerified,
+            joinedDate: u.createdAt
+              ? new Date(u.createdAt).toLocaleDateString()
+              : "Unknown",
+            profileImage: u.profileImage || null,
+            tutorProfile: u.tutorProfile || null,
+          }))
+        );
       }
     };
 
@@ -53,23 +45,19 @@ const TutorsPage: React.FC = () => {
   };
 
   const handleToggleStatus = async () => {
-    try {
-      const id = confirmModal.id;
-      if (!id) return;
+    const id = confirmModal.id;
+    if (!id) return;
 
-      const updatedUser = await adminService.toggleUserStatus(id);
-      if (updatedUser.success && updatedUser.data) {
-        setTutors((prev) =>
-          prev.map((u) =>
-            u.id === id ? { ...u, isBlocked: updatedUser.data!.isBlocked } : u
-          )
-        );
-      }
-    } catch (err) {
-      console.error("Failed to toggle status:", err);
-    } finally {
-      setConfirmModal({ open: false, id: "" });
+    const updatedUser = await adminService.toggleUserStatus(id);
+    if (updatedUser.success && updatedUser.data) {
+      setTutors((prev) =>
+        prev.map((u) =>
+          u.id === id ? { ...u, isBlocked: updatedUser.data!.isBlocked } : u
+        )
+      );
     }
+
+    setConfirmModal({ open: false, id: "" });
   };
 
   const filteredUsers = tutors.filter(
@@ -79,44 +67,78 @@ const TutorsPage: React.FC = () => {
   );
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-950 to-black text-white p-8">
-      <Header name={"Tutors"} />
-      <SearchBar
-        value={search}
-        onChange={(e) => setSearch(e.target.value)}
-        placeholder="Search by name or email..."
-      />
-      <TableList users={filteredUsers} handleToggleStatus={handleConfirm} />
+    <div className="px-10 py-10">
 
+      {/* CENTERED CONTAINER */}
+      <div className="max-w-7xl mx-auto space-y-8">
+
+        {/* HEADER */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+        >
+          <h1 className="text-4xl font-extrabold text-slate-900">
+            Tutors
+          </h1>
+          <p className="text-slate-500 mt-1">
+            Manage and monitor all registered tutors
+          </p>
+        </motion.div>
+
+        {/* SEARCH */}
+        <SearchBar
+          value={search}
+          onChange={(e: React.ChangeEvent<HTMLInputElement>) =>
+  setSearch(e.target.value)
+} 
+          placeholder="Search tutors by name or email..."
+        />
+
+        {/* TABLE CARD */}
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100"
+        >
+          <TableList users={filteredUsers} handleToggleStatus={handleConfirm} />
+        </motion.div>
+
+      </div>
+
+      {/* CONFIRM MODAL */}
       <Dialog
         open={confirmModal.open}
         onClose={() => setConfirmModal({ open: false, id: "" })}
-        className="relative z-50"
       >
-        <div className="fixed inset-0 bg-black/60" aria-hidden="true" />
-        <div className="fixed inset-0 flex items-center justify-center p-4">
-          <div className="bg-white rounded-xl shadow-lg w-full max-w-sm p-6 text-center">
-            <h2 className="text-lg font-semibold text-gray-800 mb-4">
+        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+
+        <div className="fixed inset-0 flex items-center justify-center">
+          <div className="bg-white rounded-3xl shadow-xl p-8 w-[360px] text-center border border-slate-100">
+
+            <h2 className="text-xl font-bold text-slate-800 mb-4">
               Confirm Action
             </h2>
-            <p className="text-gray-600 mb-6">
+
+            <p className="text-slate-500 mb-6">
               Are you sure you want to change this tutor’s status?
             </p>
+
             <div className="flex justify-center gap-4">
               <Button
                 onClick={handleToggleStatus}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg"
+                className="bg-red-600 hover:bg-red-700 text-white"
               >
                 Confirm
               </Button>
+
               <Button
-                onClick={() => setConfirmModal({ open: false, id: "" })}
                 variant="outline"
-                className="px-4 py-2 rounded-lg border-gray-300"
+                onClick={() => setConfirmModal({ open: false, id: "" })}
               >
                 Cancel
               </Button>
             </div>
+
           </div>
         </div>
       </Dialog>

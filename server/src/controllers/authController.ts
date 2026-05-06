@@ -6,7 +6,7 @@ import { IAuthController } from "./interfaces/IAuthController";
 import { IUser } from "../models/user";
 import jwt from "jsonwebtoken";
 import { generateAccessToken, generateRefreshToken, JwtPayload } from "../utils/tokens";
-import { LoginRequestDTO, ResendOtpRequestDTO, ResetPasswordRequestDTO, SignupRequestDTO, VerifyOtpRequestDTO } from "../dtos/auth/AuthRequestDTO";
+import { LoginRequestDTO, ResendOtpRequestDTO, ResetPasswordRequestDTO, SignupRequestDTO, VerifyOtpRequestDTO } from "../dtos/auth.dto";
 import { handleAsync } from "../utils/handleAsync";
 
 @injectable()
@@ -17,15 +17,11 @@ export class AuthController implements IAuthController {
   ) {}
 
   signup = (req: Request, res: Response, next: NextFunction) =>
-    handleAsync(() => {
-        const data: SignupRequestDTO = req.body;
-        return this._authService.signup(data.name,data.email,data.password,data.confirmPassword)
-    })(res,next);
+    handleAsync(() => this._authService.signup(req.body))(res,next);
 
 
   login = async (req: Request, res: Response, next: NextFunction): Promise<void> => { 
-      const data : LoginRequestDTO = req.body;
-      const result = await this._authService.login( data.email, data.password);
+      const result = await this._authService.login(req.body);
 
       const accessToken = result.accessToken;
       const refreshToken = result.refreshToken;
@@ -44,7 +40,7 @@ export class AuthController implements IAuthController {
         maxAge: parseInt(process.env.REFRESH_TOKEN_MAX_AGE || "604800000", 10),
       });
 
-      handleAsync( async ()=> result)(res,next);
+      handleAsync(async ()=> result)(res,next);
   }
       
   
@@ -79,8 +75,7 @@ export class AuthController implements IAuthController {
 
   verifyOtp = async (req: Request, res: Response, next: NextFunction): Promise<void> =>{
     handleAsync(async () => {
-      const data: VerifyOtpRequestDTO = req.body;
-      const result = await this._authService.verifyOtp(data.email, data.otp, data.type);
+      const result = await this._authService.verifyOtp(req.body);
 
       if (!result) throw new Error("Verification failed");
 
@@ -110,16 +105,14 @@ export class AuthController implements IAuthController {
 
   resendOtp = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async () => {
-      const data: ResendOtpRequestDTO = req.body;
-      const result = await this._authService.resendOtp(data.email, data.type);
+      const result = await this._authService.resendOtp(req.body);
       if (!result) throw new Error("OTP could not be resent");
       return { message: result.message };
     })(res,next);
 
   resetPassword = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async () => {
-      const data: ResetPasswordRequestDTO = req.body;
-      const result = await this._authService.resetPassword(data.email, data.password);
+      const result = await this._authService.resetPassword(req.body);
       if (!result) throw new Error("Password could not be reset");
       return { message: result.message };
     })(res,next);

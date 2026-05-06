@@ -14,7 +14,6 @@ import {
   FaMoneyBillWave,
   FaCrown,
 } from "react-icons/fa";
-
 import { authService } from "../../services/authService";
 
 const Sidebar: React.FC = () => {
@@ -31,79 +30,56 @@ const Sidebar: React.FC = () => {
     }
   }
 
+  const menuItems = [
+    { icon: FaUsers, label: "Clients", path: "/admin-dashboard/clients" },
+    { icon: FaUsers, label: "Tutors", path: "/admin-dashboard/tutors" },
+    { icon: FaClipboardList, label: "Categories", path: "#" },
+    { icon: FaBox, label: "Sessions", path: "/admin-dashboard/sessions" },
+    { icon: FaComments, label: "Messages", path: "#" },
+    { icon: FaFileAlt, label: "Applications", path: "/admin-dashboard/applications" },
+    { icon: FaMoneyBillWave, label: "Revenue", path: "/admin-dashboard/revenew" },
+    { icon: FaCrown, label: "Subscriptions", path: "#" },
+    { icon: FaChartBar, label: "Reports", path: "#" },
+  ];
+
   return (
-    <aside className="fixed top-0 left-0 w-64 h-screen bg-black/30 backdrop-blur-xl border-r border-violet-800/40 shadow-2xl flex flex-col z-50">
-      {/* Logo */}
-      <div className="flex items-center gap-4 px-7 py-7 border-b border-purple-700/40">
-        <FaGraduationCap className="w-8 h-8 text-amber-400 animate-bounce drop-shadow-xl" />
-        <span className="text-2xl font-extrabold bg-gradient-to-r from-yellow-300 via-pink-400 to-indigo-400 bg-clip-text text-transparent leading-tight tracking-tight">
-          TutorLink Admin
+    <aside className="fixed top-0 left-0 w-64 h-screen bg-white border-r border-slate-200 flex flex-col shadow-sm z-50">
+
+      {/* LOGO */}
+      <div className="flex items-center gap-3 px-6 py-6 border-b border-slate-100">
+        <div className="bg-indigo-600 p-2 rounded-xl shadow-md">
+          <FaGraduationCap className="w-6 h-6 text-white" />
+        </div>
+        <span className="text-xl font-extrabold text-slate-800">
+          Tutor<span className="text-indigo-600">Link</span>
         </span>
       </div>
-      {/* Menu */}
-      <nav className="flex-1 flex flex-col gap-1 px-2 py-6 overflow-y-auto text-base">
-        <a
-          href="/admin-dashboard/clients"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all hover:bg-violet-900/30 hover:text-pink-400"
-        >
-          <FaUsers className="opacity-80" /> Clients
-        </a>
-        <a
-          href="/admin-dashboard/tutors"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all hover:bg-violet-900/30 hover:text-pink-400"
-        >
-          <FaUsers className="opacity-80" /> Tutors
-        </a>
-        <a
-          href="#"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all hover:bg-violet-900/30 hover:text-pink-400"
-        >
-          <FaClipboardList className="opacity-80" /> Categories
-        </a>
-        <a
-          href="#"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all hover:bg-violet-900/30 hover:text-pink-400"
-        >
-          <FaBox className="opacity-80" /> Sessions
-        </a>
-        <a
-          href="#"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all hover:bg-violet-900/30 hover:text-pink-400"
-        >
-          <FaComments className="opacity-80" /> Messages
-        </a>
-        <a
-          href="/admin-dashboard/applications"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all hover:bg-violet-900/30 hover:text-pink-400"
-        >
-          <FaFileAlt className="opacity-80" /> Tutor Applications
-        </a>
-        <a
-          href="#"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all hover:bg-violet-900/30 hover:text-pink-400"
-        >
-          <FaMoneyBillWave className="opacity-80" /> Revenue & Commission
-        </a>
-        <a
-          href="#"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all hover:bg-violet-900/30 hover:text-pink-400"
-        >
-          <FaCrown className="opacity-80" /> Subscriptions
-        </a>
-        <a
-          href="#"
-          className="flex items-center gap-3 px-4 py-3 rounded-xl font-medium transition-all hover:bg-violet-900/30 hover:text-pink-400"
-        >
-          <FaChartBar className="opacity-80" /> Reports
-        </a>
+
+      {/* MENU */}
+      <nav className="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
+        {menuItems.map((item, i) => {
+          const Icon = item.icon;
+
+          return (
+            <a
+              key={i}
+              href={item.path}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-600 font-medium transition-all duration-200 hover:bg-indigo-50 hover:text-indigo-600 group"
+            >
+              <Icon className="text-slate-400 group-hover:text-indigo-600 transition" />
+              {item.label}
+            </a>
+          );
+        })}
       </nav>
-      {/* Logout */}
-      <div className="px-5 py-8 border-t border-purple-700/40">
+
+      {/* LOGOUT */}
+      <div className="p-5 border-t border-slate-100">
         <Button
           onClick={handleLogout}
-          className="w-full flex items-center justify-center gap-3 font-bold bg-gradient-to-r from-pink-500 via-fuchsia-800 to-indigo-500 rounded-xl py-3 hover:from-pink-400 hover:to-indigo-400 transition"
+          className="w-full flex items-center justify-center gap-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl py-3 font-semibold shadow-md"
         >
-          <FaSignOutAlt className="w-5 h-5" /> Logout
+          <FaSignOutAlt /> Logout
         </Button>
       </div>
     </aside>

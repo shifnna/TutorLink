@@ -1,6 +1,6 @@
 export interface ITutor {
   _id: string;
-  tutorId?:{ _id: string; name: string; email?: string } | string // populated user info
+  tutorId:{ _id: string; name: string; email?: string } | null;
   description: string;
   languages: string[];
   education: string;

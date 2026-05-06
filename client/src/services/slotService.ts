@@ -1,5 +1,5 @@
 import axiosClient from "../api/axiosClient";
-import { ISlot, ISlotRule } from "../types/ISlotRules";
+import { ISlotRule } from "../types/ISlotRules";
 import { handleApi, ICommonResponse } from "../utils/apiHelper";
 
 export const createSlotRule = async (data:ISlotRule) => 
@@ -8,8 +8,5 @@ export const createSlotRule = async (data:ISlotRule) =>
 export const getSlotRule = async () =>
   handleApi<ICommonResponse<ISlotRule>>(axiosClient.get("/api/slots/tutor/rule"));
 
-export const getSlots = async () => 
-  handleApi<ICommonResponse<ISlot[]>>(axiosClient.get("/api/slots/tutor"));
-
-export const deleteSlot = async (slotId: string) => 
-  handleApi<ICommonResponse<null>>(axiosClient.delete(`/api/slots/tutor/${slotId}`));
+export const getTutorRuleForClient = async (tutorId: string) =>
+  handleApi<ICommonResponse<ISlotRule>>(axiosClient.get(`/api/slots/client/rule/${tutorId}`));

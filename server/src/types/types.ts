@@ -21,4 +21,8 @@ export const TYPES = {
   ISlotService : Symbol.for("ISlotService"),
   ISlotRepository : Symbol.for("ISlotRepository"),
 
+  ISessionController : Symbol.for("ISessionController"),
+  ISessionService : Symbol.for("ISessionService"),
+  ISessionRepository : Symbol.for("ISessionRepository"),
+
 };

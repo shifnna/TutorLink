@@ -1,5 +1,5 @@
-import { Dialog } from "@headlessui/react";
-import { useEffect, useState } from "react";
+import { Dialog, Transition } from "@headlessui/react";
+import { Fragment, useEffect, useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { FaCamera, FaTimes } from "react-icons/fa";
@@ -30,45 +30,44 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
   });
 
   useEffect(() => {
-  const prefillFromDB = async () => {
-    try {
-      const response = await tutorService.getTutorProfile();
-      if (response.success && response.data) {
-        const t = response.data;
+    const prefillFromDB = async () => {
+      try {
+        const response = await tutorService.getTutorProfile();
+        if (response.success && response.data) {
+          const t = response.data;
 
-        const normalizeToArray = (value: string | string[] | undefined): string[] => {
-          if (!value) return [];
-          return Array.isArray(value)
-            ? value
-            : value.split(",").map((v) => v.trim()).filter(Boolean);
-        };
+          const normalizeToArray = (value: string | string[] | undefined): string[] => {
+            if (!value) return [];
+            return Array.isArray(value)
+              ? value
+              : value.split(",").map((v) => v.trim()).filter(Boolean);
+          };
 
-        setFormData({
-          description: t.description || "",
-          languages: normalizeToArray(t.languages),
-          education: t.education || "",
-          skills: normalizeToArray(t.skills),
-          experienceLevel: t.experienceLevel || "",
-          gender: t.gender || "",
-          occupation: t.occupation || "",
-          profileImage: null, 
-          certificates: [],
-          accountHolder: t.accountHolder || "",
-          accountNumber: t.accountNumber || "",
-          bankName: t.bankName || "",
-          ifsc: t.ifsc || "",
-        });
-      } else {
-        console.log("No tutor data found — starting fresh");
+          setFormData({
+            description: t.description || "",
+            languages: normalizeToArray(t.languages),
+            education: t.education || "",
+            skills: normalizeToArray(t.skills),
+            experienceLevel: t.experienceLevel || "",
+            gender: t.gender || "",
+            occupation: t.occupation || "",
+            profileImage: null,
+            certificates: [],
+            accountHolder: t.accountHolder || "",
+            accountNumber: t.accountNumber || "",
+            bankName: t.bankName || "",
+            ifsc: t.ifsc || "",
+          });
+        } else {
+          console.log("No tutor data found — starting fresh");
+        }
+      } catch (err) {
+        console.error("Failed to prefill tutor profile:", err);
       }
-    } catch (err) {
-      console.error("Failed to prefill tutor profile:", err);
-    }
-  };
+    };
 
-  if (isOpen) prefillFromDB();
-}, [isOpen]);
-
+    if (isOpen) prefillFromDB();
+  }, [isOpen]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
@@ -101,7 +100,6 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
       setErrors((prev) => ({ ...prev, certificates: "" }));
     }
   };
-
 
   const validateStep = () => {
     const newErrors: { [key: string]: string } = {};
@@ -166,266 +164,291 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
 
     useAuthStore.setState({ isLoading: false });
 
-    // ✅ Auto close modal after short delay
+    // Auto close modal after short delay
     setTimeout(() => {
       onClose();
     }, 500);
   };
 
   return (
-    <Dialog open={isOpen} onClose={onClose} className="relative z-50">
-      <div className="fixed inset-0 bg-black/50" aria-hidden="true" />
-
-      <div className="fixed inset-0 flex items-center justify-center p-4">
-        <div
-          className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl p-8 max-h-[90vh] overflow-y-auto relative"
-          onClick={(e) => e.stopPropagation()}
+    <Transition appear show={isOpen} as={Fragment}>
+      <Dialog as="div" className="relative z-50" onClose={onClose}>
+        <Transition.Child
+          as={Fragment}
+          enter="ease-out duration-300"
+          enterFrom="opacity-0"
+          enterTo="opacity-100"
+          leave="ease-in duration-200"
+          leaveFrom="opacity-100"
+          leaveTo="opacity-0"
         >
-          <button
-            onClick={onClose}
-            className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
-          >
-            <FaTimes size={20} />
-          </button>
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+        </Transition.Child>
 
-          {/* Stepper */}
-          <div className="flex items-center justify-center mb-8 text-sm font-bold text-gray-600">
-            <span className={step === 1 ? "text-purple-700" : ""}>Personal Info</span>
-            <span className="mx-2">→</span>
-            <span className={step === 2 ? "text-purple-700" : ""}>Professional Info</span>
-            <span className="mx-2">→</span>
-            <span className={step === 3 ? "text-purple-700" : ""}>Payment Info</span>
-          </div>
+        <div className="fixed inset-0 overflow-y-auto">
+          <div className="flex min-h-full items-center justify-center p-4 text-center">
+            <Transition.Child
+              as={Fragment}
+              enter="ease-out duration-300"
+              enterFrom="opacity-0 scale-95"
+              enterTo="opacity-100 scale-100"
+              leave="ease-in duration-200"
+              leaveFrom="opacity-100 scale-100"
+              leaveTo="opacity-0 scale-95"
+            >
+              <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-3xl bg-white p-8 text-left align-middle shadow-2xl transition-all">
+                <button
+                  onClick={onClose}
+                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+                >
+                  <FaTimes size={20} />
+                </button>
 
-          {/* Step 1 */}
-          {step === 1 && (
-            <div className="space-y-3">
-              <div className="flex flex-col items-center relative">
-                {formData.profileImage ? (
-                  <img
-                    src={URL.createObjectURL(formData.profileImage)}
-                    alt="Preview"
-                    className="w-20 h-20 rounded-full object-cover mb-2"
-                  />
-                ) : (
-                  <div className="w-20 h-20 rounded-full bg-gray-200 flex items-center justify-center mb-2 text-gray-500 relative">
-                    <FaCamera className="text-2xl" />
+                {/* Stepper */}
+                <div className="flex items-center justify-center mb-8 text-sm font-medium text-gray-500">
+                  <span className={`px-2 py-1 rounded-full ${step === 1 ? "bg-blue-100 text-blue-700" : ""}`}>Personal Info</span>
+                  <span className="mx-2 text-gray-300">→</span>
+                  <span className={`px-2 py-1 rounded-full ${step === 2 ? "bg-blue-100 text-blue-700" : ""}`}>Professional Info</span>
+                  <span className="mx-2 text-gray-300">→</span>
+                  <span className={`px-2 py-1 rounded-full ${step === 3 ? "bg-blue-100 text-blue-700" : ""}`}>Payment Info</span>
+                </div>
+
+                {/* Step 1 */}
+                {step === 1 && (
+                  <div className="space-y-6">
+                    <div className="flex flex-col items-center">
+                      {formData.profileImage ? (
+                        <img
+                          src={URL.createObjectURL(formData.profileImage)}
+                          alt="Preview"
+                          className="w-24 h-24 rounded-full object-cover mb-4 border-4 border-blue-100"
+                        />
+                      ) : (
+                        <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-4 border-4 border-gray-200">
+                          <FaCamera className="text-gray-400 text-2xl" />
+                        </div>
+                      )}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={(e) => handleFileChange(e, "profileImage")}
+                        className="text-sm text-gray-600"
+                      />
+                      {errors.profileImage && (
+                        <p className="text-red-500 text-sm mt-2">{errors.profileImage}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block font-medium text-gray-700 mb-2">Description</label>
+                      <textarea
+                        name="description"
+                        placeholder="Tell us a bit about yourself..."
+                        value={formData.description}
+                        onChange={handleChange}
+                        className="w-full border border-gray-200 rounded-xl p-4 h-28 resize-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
+                      />
+                      {errors.description && (
+                        <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block font-medium text-gray-700 mb-2">Languages</label>
+                      <Input
+                        type="text"
+                        name="languages"
+                        placeholder="e.g., English, Hindi, French"
+                        value={formData.languages.join(", ")}
+                        onChange={handleChange}
+                        className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                      />
+                      {errors.languages && (
+                        <p className="text-red-500 text-sm mt-1">{errors.languages}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block font-medium text-gray-700 mb-2">Gender</label>
+                      <select
+                        name="gender"
+                        value={formData.gender}
+                        onChange={handleChange}
+                        className="w-full border border-gray-200 rounded-xl p-3 h-12 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                      >
+                        <option value="">Select...</option>
+                        <option value="Male">Male</option>
+                        <option value="Female">Female</option>
+                        <option value="Other">Other</option>
+                      </select>
+                      {errors.gender && (
+                        <p className="text-red-500 text-sm mt-1">{errors.gender}</p>
+                      )}
+                    </div>
+
+                    <div className="flex justify-end pt-4">
+                      <Button
+                        className="bg-gradient-to-r from-blue-500 to-teal-500 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                        onClick={nextStep}
+                      >
+                        Continue →
+                      </Button>
+                    </div>
                   </div>
                 )}
-                <input
-                  type="file"
-                  accept="image/*"
-                  onChange={(e) => handleFileChange(e, "profileImage")}
-                  className="mt-2"
-                />
-                {errors.profileImage && (
-                  <p className="text-red-500 text-sm">{errors.profileImage}</p>
+
+                {/* Step 2 */}
+                {step === 2 && (
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block font-medium text-gray-700 mb-2">Education</label>
+                      <Input
+                        type="text"
+                        name="education"
+                        placeholder="Your highest qualification"
+                        value={formData.education}
+                        onChange={handleChange}
+                        className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                      />
+                      {errors.education && (
+                        <p className="text-red-500 text-sm mt-1">{errors.education}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block font-medium text-gray-700 mb-2">Skills</label>
+                      <Input
+                        type="text"
+                        name="skills"
+                        placeholder="e.g., Math, Science, Coding"
+                        value={formData.skills.join(", ")}
+                        onChange={handleChange}
+                        className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                      />
+                      {errors.skills && (
+                        <p className="text-red-500 text-sm mt-1">{errors.skills}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block font-medium text-gray-700 mb-2">Experience Level</label>
+                      <select
+                        name="experienceLevel"
+                        value={formData.experienceLevel}
+                        onChange={handleChange}
+                        className="w-full border border-gray-200 rounded-xl p-3 h-12 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                      >
+                        <option value="">Select...</option>
+                        <option value="Beginner">Beginner</option>
+                        <option value="Intermediate">Intermediate</option>
+                        <option value="Expert">Expert</option>
+                      </select>
+                      {errors.experienceLevel && (
+                        <p className="text-red-500 text-sm mt-1">{errors.experienceLevel}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block font-medium text-gray-700 mb-2">Certificates</label>
+                      <input
+                        type="file"
+                        multiple
+                        accept=".pdf,.jpg,.png"
+                        onChange={(e) => handleFileChange(e, "certificates")}
+                        className="text-sm text-gray-600"
+                      />
+                      {errors.certificates && (
+                        <p className="text-red-500 text-sm mt-1">{errors.certificates}</p>
+                      )}
+                    </div>
+
+                    <div>
+                      <label className="block font-medium text-gray-700 mb-2">Occupation</label>
+                      <Input
+                        type="text"
+                        name="occupation"
+                        placeholder="e.g., Teacher, Lecturer"
+                        value={formData.occupation}
+                        onChange={handleChange}
+                        className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                      />
+                      {errors.occupation && (
+                        <p className="text-red-500 text-sm mt-1">{errors.occupation}</p>
+                      )}
+                    </div>
+
+                    <div className="flex justify-between pt-4">
+                      <Button
+                        variant="outline"
+                        className="px-8 py-3 rounded-xl border-gray-200 hover:bg-gray-50 transition"
+                        onClick={prevStep}
+                      >
+                        ← Back
+                      </Button>
+                      <Button
+                        className="bg-gradient-to-r from-blue-500 to-teal-500 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                        onClick={nextStep}
+                      >
+                        Continue →
+                      </Button>
+                    </div>
+                  </div>
                 )}
-              </div>
 
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">Description</label>
-                <textarea
-                  name="description"
-                  placeholder="Write a short description..."
-                  value={formData.description}
-                  onChange={handleChange}
-                  className="w-full border rounded-lg p-3 h-24"
-                />
-                {errors.description && (
-                  <p className="text-red-500 text-sm">{errors.description}</p>
+                {/* Step 3 */}
+                {step === 3 && (
+                  <div className="space-y-6">
+                    {[
+                      { name: "accountHolder", label: "Account Holder Name", placeholder: "Enter name" },
+                      { name: "accountNumber", label: "Account Number", placeholder: "Enter account number" },
+                      { name: "bankName", label: "Bank Name", placeholder: "Enter bank name" },
+                      { name: "ifsc", label: "IFSC Code", placeholder: "Enter IFSC" },
+                    ].map(({ name, label, placeholder }) => (
+                      <div key={name}>
+                        <label className="block font-medium text-gray-700 mb-2">{label}</label>
+                        <Input
+                          type="text"
+                          name={name}
+                          placeholder={placeholder}
+                          value={formData[name as keyof typeof formData] as string}
+                          onChange={handleChange}
+                          className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                        />
+                        {errors[name] && (
+                          <p className="text-red-500 text-sm mt-1">{errors[name]}</p>
+                        )}
+                      </div>
+                    ))}
+
+                    <div className="flex justify-between pt-4">
+                      <Button
+                        variant="outline"
+                        className="px-8 py-3 rounded-xl border-gray-200 hover:bg-gray-50 transition"
+                        onClick={prevStep}
+                      >
+                        ← Back
+                      </Button>
+                      <Button
+                        className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                        onClick={handleSubmit}
+                      >
+                        Submit Application
+                      </Button>
+                    </div>
+                  </div>
                 )}
-              </div>
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">Languages</label>
-                <Input
-                  type="text"
-                  name="languages"
-                  placeholder="E.g. English, Hindi, French"
-                  value={formData.languages.join(", ")}
-                  onChange={handleChange}
-                  className="h-12"
-                />
-                {errors.languages && (
-                  <p className="text-red-500 text-sm">{errors.languages}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">Gender</label>
-                <select
-                  name="gender"
-                  value={formData.gender}
-                  onChange={handleChange}
-                  className="w-full border rounded-lg p-3 h-12"
-                >
-                  <option value="">Select...</option>
-                  <option value="Male">Male</option>
-                  <option value="Female">Female</option>
-                  <option value="Other">Other</option>
-                </select>
-                {errors.gender && (
-                  <p className="text-red-500 text-sm">{errors.gender}</p>
-                )}
-              </div>
-
-              <div className="flex justify-end">
-                <Button
-                  className="bg-gradient-to-r from-purple-700 to-pink-600 text-white px-6 py-2 rounded-lg shadow"
-                  onClick={nextStep}
-                >
-                  Continue →
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 2 */}
-          {step === 2 && (
-            <div className="space-y-5">
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">Education</label>
-                <Input
-                  type="text"
-                  name="education"
-                  placeholder="Your highest qualification"
-                  value={formData.education}
-                  onChange={handleChange}
-                  className="h-12"
-                />
-                {errors.education && (
-                  <p className="text-red-500 text-sm">{errors.education}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">Skills</label>
-                <Input
-                  type="text"
-                  name="skills"
-                  placeholder="E.g. Math, Science, Coding"
-                  value={formData.skills.join(", ")}
-                  onChange={handleChange}
-                  className="h-12"
-                />
-                {errors.skills && (
-                  <p className="text-red-500 text-sm">{errors.skills}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">
-                  Experience Level
-                </label>
-                <select
-                  name="experienceLevel"
-                  value={formData.experienceLevel}
-                  onChange={handleChange}
-                  className="w-full border rounded-lg p-3 h-12"
-                >
-                  <option value="">Select...</option>
-                  <option value="Beginner">Beginner</option>
-                  <option value="Intermediate">Intermediate</option>
-                  <option value="Expert">Expert</option>
-                </select>
-                {errors.experienceLevel && (
-                  <p className="text-red-500 text-sm">{errors.experienceLevel}</p>
-                )}
-              </div>
-
-             
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">Certificates</label>
-                <input
-                  type="file"
-                  multiple
-                  accept=".pdf,.jpg,.png"
-                  onChange={(e) => handleFileChange(e, "certificates")}
-                />
-                {errors.certificates && (
-                  <p className="text-red-500 text-sm">{errors.certificates}</p>
-                )}
-              </div>
-
-              <div>
-                <label className="block font-semibold text-gray-700 mb-1">Occupation</label>
-                <Input
-                  type="text"
-                  name="occupation"
-                  placeholder="E.g. Teacher, Lecturer"
-                  value={formData.occupation}
-                  onChange={handleChange}
-                  className="h-12"
-                />
-                {errors.occupation && (
-                  <p className="text-red-500 text-sm">{errors.occupation}</p>
-                )}
-              </div>
-
-              <div className="flex justify-between">
-                <Button variant="outline" className="px-6 py-2 rounded-lg" onClick={prevStep}>
-                  ← Back
-                </Button>
-                <Button
-                  className="bg-gradient-to-r from-purple-700 to-pink-600 text-white px-6 py-2 rounded-lg shadow"
-                  onClick={nextStep}
-                >
-                  Continue →
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 3 */}
-          {step === 3 && (
-            <div className="space-y-5">
-              {[
-                { name: "accountHolder", label: "Account Holder Name", placeholder: "Enter name" },
-                { name: "accountNumber", label: "Account Number", placeholder: "Enter account number" },
-                { name: "bankName", label: "Bank Name", placeholder: "Enter bank name" },
-                { name: "ifsc", label: "IFSC Code", placeholder: "Enter IFSC" },
-              ].map(({ name, label, placeholder }) => (
-                <div key={name}>
-                  <label className="block font-semibold text-gray-700 mb-1">{label}</label>
-                  <Input
-                    type="text"
-                    name={name}
-                    placeholder={placeholder}
-                    value={(formData as any)[name]}
-                    onChange={handleChange}
-                    className="h-12"
-                  />
-                  {errors[name] && (
-                    <p className="text-red-500 text-sm">{errors[name]}</p>
-                  )}
-                </div>
-              ))}
-
-              <div className="flex justify-between">
-                <Button variant="outline" className="px-6 py-2 rounded-lg" onClick={prevStep}>
-                  ← Back
-                </Button>
-                <Button
-                  className="bg-gradient-to-r from-green-600 to-blue-600 text-white px-6 py-2 rounded-lg shadow"
-                  onClick={handleSubmit}
-                >
-                  Submit Application
-                </Button>
-              </div>
-            </div>
-          )}
+              </Dialog.Panel>
+            </Transition.Child>
+          </div>
         </div>
 
         {isLoading && (
           <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/20">
-            <div className="w-10 h-10 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
-      </div>
-      <Toaster position="top-center" reverseOrder={false} />
-    </Dialog>
+      </Dialog>
+    </Transition>
   );
 };
 
