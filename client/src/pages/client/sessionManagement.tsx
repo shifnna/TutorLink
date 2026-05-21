@@ -4,15 +4,33 @@ import { useAuthStore } from "../../store/authStore";
 import UserSidebar from "../../components/userCommon/sidebar";
 import { getAllSessions } from "../../services/sessionService";
 import { motion } from "framer-motion";
-import { Toaster } from "react-hot-toast";
+import { toast, Toaster } from "react-hot-toast";
 
 const ClientSessionManagement: React.FC = () => {
   const { user } = useAuthStore();
   const [sessions, setSessions] = useState<ISession[]>([]);
 
-  const fetchSessions = async () => {
-    const res = await getAllSessions(user?._id);
-    setSessions(res.data?.data || []);
+  const fetchSessions =
+  async () => {
+
+    try {
+
+      const res =
+        await getAllSessions();
+
+      console.log(
+        "Client Sessions:",
+        res.data?.data
+      );
+
+      setSessions(
+        res.data?.data || []
+      );
+
+    } catch (error) {
+
+      console.error(error);
+    }
   };
 
   useEffect(() => {

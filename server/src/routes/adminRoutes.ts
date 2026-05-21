@@ -19,5 +19,6 @@ router.patch("/users/reject/:userId",protect,adminOnly,validate(rejectTutorSchem
 
 router.get("/sessions", protect,adminOnly, controller.getAllSessions);
 router.post("/sessions/generate-video-link", protect,adminOnly, controller.generateLink);
+router.post("/sessions/release", protect, adminOnly, controller.releasePayment);
 
 export default router;

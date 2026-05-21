@@ -13,15 +13,19 @@ export class AdminRepository implements IAdminRepository {
     return this._tutorModel.find({ adminApproved: false }).populate("tutorId", "name email tutorApplication").sort({ createdAt: -1 });
   }  
 
-  async getAllSession(): Promise<ISession[]>{
-    let sessions = await SessionModel.find()
-      .populate({
-        path: "tutorId",
-        populate: { path: "tutorId", select: "name email" }  
-      })
-      .populate("userId", "name email")
-      .sort({ createdAt: -1 });
-    return sessions;
-  }
+  async getAllSession(): Promise<ISession[]> {
+  return await SessionModel.find()
+    .populate({
+      path: "tutorId",         // Session → Tutor doc
+      model: "Tutor",
+      populate: { 
+        path: "tutorId",       // Tutor → User doc
+        model: "User",
+        select: "name email" 
+      }
+    })
+    .populate("userId", "name email")
+    .sort({ createdAt: -1 });
+}
   
 }

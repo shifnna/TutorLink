@@ -1,14 +1,23 @@
 import { Types } from "mongoose";
 import { ITutor } from "../models/tutor";
 
-export interface CreateSlotRuleDto {
-  tutorId: Types.ObjectId | string;
-  selectedDays: string[];
+// ======================================
+// BACKEND - dtos/tutor.dto.ts
+// ======================================
+
+export interface IScheduleDto {
+  id?: string;
+  day: string;
   startTime: string;
   endTime: string;
   duration: number;
   durationUnit: string;
   amount: number;
+}
+
+export interface CreateSlotRuleDto {
+  tutorId: string;
+  schedules: IScheduleDto[];
 }
 
 export interface PresignedUrlRequestDTO {

@@ -16,4 +16,5 @@ export interface IAdminService {
   getDashboardStats(): Promise<{ totalUsers: number; totalTutors: number; subscriptions: number; revenue: number; pendingApplications: ITutor[] }>;
   getAllSessions(): Promise<ISession[]>;
   generateLink(dto: generateLinkDTO): Promise<string>;
+  releasePayment(sessionId: string): Promise<void>;
 }

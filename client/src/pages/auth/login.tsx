@@ -7,7 +7,16 @@ import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import AuthLayout from "./authLayout";
 import { FcGoogle } from "react-icons/fc";
-import axiosClient from "../../api/axiosClient";
+
+declare global {
+  interface ImportMetaEnv {
+    readonly VITE_BASE_URL?: string;
+  }
+
+  interface ImportMeta {
+    readonly env: ImportMetaEnv;
+  }
+}
 
 const Login: React.FC = () => {
   const navigate = useNavigate();

@@ -10,8 +10,8 @@ const sessionController = container.get<ISessionController>(TYPES.ISessionContro
 
 router.post("/client/book-session",protect, sessionController.bookSession);
 router.post("/client/verify-payment",protect, sessionController.verifyPayment);
-router.get("/client/sessions/:userId", sessionController.getAllSessions);
-router.post("/client/sessions/feedback", sessionController.sentFeedback);
-router.patch("/client/sessions/cancel/:id", sessionController.cancelSession);
+router.get("/client/sessions",protect, sessionController.getAllSessions);
+router.post("/client/sessions/feedback",protect, sessionController.sentFeedback);
+router.patch("/client/sessions/cancel/:id",protect, sessionController.cancelSession);
 
 export default router;

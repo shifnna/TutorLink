@@ -53,11 +53,39 @@ export class SessionRepository extends BaseRepository<ISession> implements ISess
     await wallet.save();
    }
 
-  async findSessionsByUserId (userId:string): Promise<ISession[]>{
-    return SessionModel.find({ userId })
-      .populate("userId", "name email")
-      .populate("tutorId", "name email")
-      .sort({ date: 1 });
-  }
+  async findSessionsByUserId(
+  userId: string
+): Promise<ISession[]> {
 
+  return await SessionModel.find({
+    userId,
+  })
+    .populate(
+      "userId",
+      "name email profileImage"
+    )
+    .populate(
+      "tutorId",
+      "name email profileImage"
+    )
+    .sort({ date: -1 });
+}
+
+async findSessionsByTutorId(
+  tutorId: string
+): Promise<ISession[]> {
+
+  return await SessionModel.find({
+    tutorId,
+  })
+    .populate(
+      "userId",
+      "name email profileImage"
+    )
+    .populate(
+      "tutorId",
+      "name email profileImage"
+    )
+    .sort({ date: -1 });
+}
 }

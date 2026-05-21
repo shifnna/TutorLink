@@ -17,12 +17,3 @@ export const applyTutorSchema = z.object({
     ifsc: z.string().regex(/^[A-Z]{4}0[A-Z0-9]{6}$/, "Invalid IFSC code"),
   }),
 });
-
-
-
-export const presignSchema = z.object({
-  body: z.object({ 
-  fileName: z.string().min(1, "File name is required"),
-  fileType: z.string().min(1, "File type is required"),
-  })
-});

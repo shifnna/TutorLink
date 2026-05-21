@@ -15,14 +15,14 @@ export class SessionController implements ISessionController{
    
   bookSession = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async () => {
-    const order = this._sessionService.bookSession(req.body.amount);
+    const order = await this._sessionService.bookSession(req.body.amount);
     return { success: true, message: "Order created", data: order };
     })(res, next); 
 
     
   verifyPayment = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async () => {
-      const {user} = req.user as AuthRequest;
+      const {user} = req as AuthRequest;
       const userId = user?._id as string;
 
       const session = await this._sessionService.verifyPayment(req.body,userId);
@@ -30,12 +30,35 @@ export class SessionController implements ISessionController{
     })(res, next);
     
 
-  getAllSessions = (req: Request, res: Response, next: NextFunction) =>
-    handleAsync(async () => {
-      const { userId } = req.params;
-      const sessions = await this._sessionService.getSessionsByUserId(userId);
-      return { success: true, message: "Fetched user sessions", data: sessions };
-    })(res, next);
+ getAllSessions = (
+  req: Request,
+  res: Response,
+  next: NextFunction
+) =>
+  handleAsync(async () => {
+
+    const { user } =
+      req as AuthRequest;
+
+    if (!user) {
+      throw new Error(
+        "Unauthorized"
+      );
+    }
+
+    const sessions =
+      await this._sessionService.getSessionsByUserId(
+        String(user._id),
+        String(user.role)
+      );
+
+    return {
+      success: true,
+      message:
+        "Fetched sessions",
+      data: sessions,
+    };
+  })(res, next);
 
 
   cancelSession = (req: Request, res: Response, next: NextFunction) =>

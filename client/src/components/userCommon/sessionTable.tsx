@@ -66,14 +66,33 @@ const SessionTable: React.FC<SessionTableProps> = ({
   }, [sessions, filterStatus, searchText, sortOrder]);
 
   const handleCancelSession = async (id: string) => {
-    try {
+
+  try {
+
+    const res =
       await cancelSession(id);
-      toast.success("Session cancelled");
-      refreshSessions();
-    } catch {
-      toast.error("Failed to cancel");
+
+    if (!res.success) {
+      toast.error(
+        "Failed to cancel"
+      );
+
+      return;
     }
-  };
+
+    toast.success(
+      "Session cancelled"
+    );
+
+    await refreshSessions();
+
+  } catch {
+
+    toast.error(
+      "Failed to cancel"
+    );
+  }
+};
 
   return (
     <motion.section
@@ -167,26 +186,29 @@ const SessionTable: React.FC<SessionTableProps> = ({
                   </td>
 
                   <td className="px-4 py-3 text-right space-x-2">
-                    {s.status === "Upcoming" && (
-                      <>
-                        {role === "tutor" && (
-                          <Button size="sm">
-                            Start
-                          </Button>
-                        )}
+                    {(s.status === "Confirmed" ||
+  s.status === "Upcoming") && (
+  <>
+    {role === "tutor" && (
+      <Button size="sm">
+        Start
+      </Button>
+    )}
 
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => {
-                            setSelectedSessionId(s._id);
-                            setConfirmModal(true);
-                          }}
-                        >
-                          Cancel
-                        </Button>
-                      </>
-                    )}
+    {role === "client" && (
+      <Button
+        size="sm"
+        variant="outline"
+        onClick={() => {
+          setSelectedSessionId(s._id);
+          setConfirmModal(true);
+        }}
+      >
+        Cancel
+      </Button>
+    )}
+  </>
+)}
                   </td>
                 </tr>
               ))
@@ -222,6 +244,9 @@ const SessionTable: React.FC<SessionTableProps> = ({
               </h3>
               <p className="text-sm text-slate-500 mb-6">
                 This action cannot be undone.
+              </p>
+              <p className="text-sm text-red-500 mb-6">
+                Sorry, Refund will not process for this action.
               </p>
 
               <div className="flex justify-center gap-3">

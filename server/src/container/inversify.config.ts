@@ -26,7 +26,6 @@ import { IAdminController } from "../controllers/interfaces/IAdminController";
 import { AdminController } from "../controllers/adminController";
 import { IAdminService } from "../services/interfaces/IAdminService";
 
-import { S3Service } from "../services/s3Service";
 import { IAdminRepository } from "../repositories/interfaces/IAdminRepository";
 import { AdminRepository } from "../repositories/adminRepository";
 import { TutorModel } from "../models/tutor";
@@ -62,8 +61,6 @@ container.bind<IAdminRepository>(TYPES.IAdminRepository).to(AdminRepository);
 container.bind<IAdminService>(TYPES.IAdminService).to(AdminService);
 
 container.bind<typeof UserModel>(TYPES.IUserModel).toConstantValue(UserModel);
-
-container.bind<S3Service>(TYPES.IS3Service).to(S3Service)
 
 container.bind<ISlotController>(TYPES.ISlotController).to(SlotController);
 container.bind<ISlotService>(TYPES.ISlotService).to(SlotService)

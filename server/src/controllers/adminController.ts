@@ -4,7 +4,6 @@ import { TYPES } from "../types/types";
 import { IAdminController } from "./interfaces/IAdminController";
 import { IAdminService } from "../services/interfaces/IAdminService";
 import { handleAsync } from "../utils/handleAsync";
-import { generateLinkDTO, rejectTutorDTO } from "../dtos/admin.dto";
 
 @injectable()
 export class AdminController implements IAdminController {
@@ -41,7 +40,9 @@ export class AdminController implements IAdminController {
   getAllSessions = async (req: Request, res: Response, next: NextFunction) =>
     handleAsync(()=> this._adminService.getAllSessions())(res,next);
 
-    
+  releasePayment = async (req: Request, res: Response, next: NextFunction) =>
+  handleAsync(() => this._adminService.releasePayment(req.body.sessionId))(res, next);
+
   generateLink = async (req: Request, res: Response, next: NextFunction) =>
     handleAsync(()=> this._adminService.generateLink(req.body))(res,next);
     

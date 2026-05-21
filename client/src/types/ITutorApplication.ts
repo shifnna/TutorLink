@@ -48,14 +48,3 @@ export interface IApplicationModal {
   isOpen: boolean;
   onClose: () => void;
 }
-
-export interface IS3UploadData {
-  url: string;
-  key: string;
-}
-
-export interface IS3UploadResponse {
-  success: boolean;
-  message: string;
-  data: IS3UploadData;
-}

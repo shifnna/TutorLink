@@ -1,15 +1,11 @@
 import axiosClient from "../api/axiosClient";
-import { uploadFileToS3 } from "../api/uploadToS3";
+import { uploadToCloudinary } from "../api/uploadToCloudinary";
 import { ITutor } from "../types/ITutor";
-import { IS3UploadResponse, ITutorApplication, ITutorApplicationForm } from "../types/ITutorApplication";
+import { ITutorApplication, ITutorApplicationForm } from "../types/ITutorApplication";
 import { handleApi, ICommonResponse } from "../utils/apiHelper";
 import { ROUTES } from "../utils/constants";
 
 export const tutorService = {
-    
-    getPresignedUrl : async (fileName:string,fileType:string): Promise <ICommonResponse<IS3UploadResponse>> => ////last promise optional (not set in authservice)
-      handleApi<IS3UploadResponse>(axiosClient.post( `${ROUTES.TUTOR_API}/upload/presign`, {fileName,fileType})),
-        
 
     applyForTutor: async (payload: ITutorApplication | FormData): Promise<ICommonResponse<ITutorApplication>> =>
       handleApi<ITutorApplication>(axiosClient.post( `${ROUTES.TUTOR_API}/apply-for-tutor`, payload)),
@@ -32,9 +28,9 @@ export const tutorService = {
     apply: async (formData: ITutorApplicationForm): Promise<ICommonResponse<ITutorApplication>> => {
     try {
     if (!formData.profileImage) throw new Error("Profile image is required");
-    const profileImageUrl = await uploadFileToS3(formData.profileImage);
+    const profileImageUrl = await uploadToCloudinary(formData.profileImage);
     const certificatesUrls: string[] = await Promise.all(
-      formData.certificates.map(file => uploadFileToS3(file))
+      formData.certificates.map(file => uploadToCloudinary(file))
     );
 
     const payload: Partial<ITutorApplication> = {

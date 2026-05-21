@@ -11,6 +11,16 @@ import toast, { Toaster } from "react-hot-toast";
 import { sentFeedback } from "../../services/clientService";
 import { useNavigate } from "react-router-dom";
 
+declare global {
+  interface ImportMetaEnv {
+    readonly VITE_SOCKET_URL?: string;
+  }
+
+  interface ImportMeta {
+    readonly env: ImportMetaEnv;
+  }
+}
+
 const SIGNALING_SERVER = import.meta.env.VITE_SOCKET_URL;
 
 const VideoCallPage: React.FC = () => {

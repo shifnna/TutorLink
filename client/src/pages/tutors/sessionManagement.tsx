@@ -10,9 +10,34 @@ const TutorSessionManagement: React.FC = () => {
   const { user } = useAuthStore();
   const [sessions, setSessions] = useState<ISession[]>([]);
 
-  const fetchSessions = async () => {
-    const res = await getAllSessions(user?._id);
-    setSessions(res.data?.data || []);
+  const fetchSessions =
+  async () => {
+
+    try {
+
+      if (!user?._id)
+        return;
+
+      const res =
+        await getAllSessions(
+          user._id
+        );
+
+      console.log(
+        "Tutor Sessions:",
+        res.data?.data
+      );
+
+      setSessions(
+        res.data?.data || []
+      );
+
+    } catch (error) {
+
+      console.error(
+        error
+      );
+    }
   };
 
   useEffect(() => {

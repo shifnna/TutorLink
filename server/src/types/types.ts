@@ -15,8 +15,6 @@ export const TYPES = {
   IAdminRepository : Symbol.for("IAdminRepository"),
   IAdminService: Symbol.for("IAdminService"),
 
-  IS3Service : Symbol.for("IS3Service"),
-
   ISlotController : Symbol.for("ISlotController"),
   ISlotService : Symbol.for("ISlotService"),
   ISlotRepository : Symbol.for("ISlotRepository"),

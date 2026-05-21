@@ -3,8 +3,7 @@ import { TYPES } from "../types/types";
 import { IAdminService } from "./interfaces/IAdminService";
 import { IClientRepository } from "../repositories/interfaces/IClientRepository";
 import { IAdminRepository } from "../repositories/interfaces/IAdminRepository";
-import { IS3Service } from "./interfaces/IS3Service";
-import { IUser } from "../models/user";
+import { IUser, UserModel } from "../models/user";
 import { ITutor, TutorModel } from "../models/tutor";
 import { COMMON_ERROR } from "../utils/constants";
 import { ITutorRepository } from "../repositories/interfaces/ITutorRepository";
@@ -16,6 +15,7 @@ import crypto from "crypto";
 import { DashboardStatsResponseDTO, generateLinkDTO, rejectTutorDTO } from "../dtos/admin.dto";
 import { IUserWithTutorDTO } from "../dtos/tutor.dto";
 import { AdminMapper } from "../mappers/admin.mapper";
+import { WalletModel } from "../models/wallet";
 
 @injectable()
 export class AdminService implements IAdminService {
@@ -23,7 +23,6 @@ export class AdminService implements IAdminService {
     @inject(TYPES.IClientRepository) private readonly _userRepo: IClientRepository,
     @inject(TYPES.IAdminRepository) private readonly _adminRepo: IAdminRepository,
     @inject(TYPES.ITutorRepository) private readonly _tutorRepo: ITutorRepository,
-    @inject(TYPES.IS3Service) private readonly s3Service: IS3Service
   ) {}
 
  
@@ -38,14 +37,9 @@ export class AdminService implements IAdminService {
     if (user.tutorProfile && typeof user.tutorProfile !== "string" && "profileImage" in user.tutorProfile) {
       const tutorProfile = user.tutorProfile;
 
-      profileImageUrl = tutorProfile.profileImage
-        ? await this.s3Service.generatePresignedUrl(tutorProfile.profileImage)
-        : null;
+      profileImageUrl = tutorProfile.profileImage || null;
 
-      certUrls = await Promise.all(
-          (tutorProfile.certificates ?? []).map((key) =>
-            this.s3Service.generatePresignedUrl(key)
-      ));
+      certUrls = tutorProfile.certificates || [];
     }
 
     return AdminMapper.toTutorDTO(user, tutorProfile, profileImageUrl, certUrls);
@@ -60,29 +54,19 @@ export class AdminService implements IAdminService {
 
 
   async getAllTutorApplications(): Promise<ITutor[]> {
-    const tutors : ITutor[] = await this._adminRepo.findPendingTutors();
+  const tutors: ITutor[] =
+    await this._adminRepo.findPendingTutors();
 
-    return Promise.all(
-      tutors.map(async (tutor: ITutor ) => {
-        const presignedCerts = await Promise.all(
-          (tutor.certificates || []).map((key: string) =>
-            this.s3Service.generatePresignedUrl(key)
-          )
-        );
+  return tutors.map((tutor: ITutor) => {
+    return {
+      ...tutor.toObject(),
 
-        let profileImageUrl = tutor.profileImage;
-        if (profileImageUrl) {
-          profileImageUrl = await this.s3Service.generatePresignedUrl(profileImageUrl);
-        }
-
-        return {
-          ...tutor.toObject(),
-          profileImage: profileImageUrl,
-          certificates: presignedCerts,
-        };
-      })
-    );
-  }
+      // Already public Cloudinary URLs
+      profileImage: tutor.profileImage || null,
+      certificates: tutor.certificates || [],
+    };
+  });
+}
 
   async toggleUserStatus(userId: string): Promise<IUser> {
     const user = await this._userRepo.findById(userId);
@@ -183,6 +167,68 @@ export class AdminService implements IAdminService {
   async getAllSessions(): Promise<ISession[]> {
     return this._adminRepo.getAllSession();
   }
+
+  async releasePayment(sessionId: string): Promise<void> {
+  const session = await SessionModel.findById(sessionId);
+  if (!session) throw new Error("Session not found");
+
+  if (session.paymentStatus !== "HOLD")
+    throw new Error("Payment is not in HOLD status");
+
+  // session.tutorId is already the User's ObjectId (ref: "User")
+  // so NO need to go through TutorModel at all
+  const tutorUserId = session.tutorId; // ← directly use this
+
+  const adminUser = await UserModel.findOne({ role: "admin" });
+  if (!adminUser) throw new Error("Admin not found");
+
+  const amount = session.amount;
+
+  // Deduct from admin holdBalance
+  await WalletModel.findOneAndUpdate(
+    { userId: adminUser._id },
+    {
+      $inc: { holdBalance: -amount },
+      $push: {
+        transactions: {
+          senderId: adminUser._id,
+          receiverId: tutorUserId,
+          amount,
+          description: "Session payment released to tutor",
+          sessionId: session._id,
+        },
+      },
+    }
+  );
+
+  // Add to tutor's wallet
+  await WalletModel.findOneAndUpdate(
+    { userId: tutorUserId },
+    {
+      $inc: { balance: amount },
+      $push: {
+        transactions: {
+          senderId: adminUser._id,
+          receiverId: tutorUserId,
+          amount,
+          description: "Session payment received",
+          sessionId: session._id,
+        },
+      },
+    },
+    { upsert: true } // creates wallet if tutor has none
+  );
+
+  // Update session
+  await SessionModel.findByIdAndUpdate(sessionId, {
+    paymentStatus: "RELEASED",
+  });
+
+  // Notify tutor
+  const message = `Payment of ₹${amount} has been released to your wallet.`;
+  await NotificationModel.create({ userId: tutorUserId, title: "Payment Released", message });
+  io.to(tutorUserId.toString()).emit("new-notification", { title: "Payment Released", message });
+}
 
   async generateLink(dto : generateLinkDTO ): Promise<string>{
       const session = await SessionModel.findById(dto.sessionId);

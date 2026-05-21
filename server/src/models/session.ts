@@ -1,5 +1,4 @@
 import { Schema, Document, Types, model } from "mongoose";
-import { boolean, string } from "zod";
 
 export interface ISession extends Document {
   tutorId: Types.ObjectId;
@@ -23,7 +22,7 @@ export interface ISession extends Document {
 
 const SessionSchema = new Schema<ISession>(
   {
-    tutorId: { type: Schema.Types.ObjectId, ref: "Tutor", required: true },
+    tutorId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     amount: { type: Number, required:true },
     date: { type: Date, required: true },

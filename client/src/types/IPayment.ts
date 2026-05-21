@@ -37,7 +37,24 @@ export interface RazorpayInstance {
 
 export interface IVerifyPayment {
   razorpay_order_id: string;
+
   razorpay_payment_id: string;
+
   razorpay_signature: string;
-  bookingDetails: BookingDetails;
+
+  bookingDetails: {
+    tutorUserId: string;
+
+    slotId: string;
+
+    date: string;
+    
+    day: string;
+
+    startTime: string;
+
+    endTime: string;
+
+    amount: number;
+  };
 }

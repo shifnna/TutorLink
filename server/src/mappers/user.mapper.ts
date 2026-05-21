@@ -4,7 +4,7 @@ import { verifyPaymentDTO } from "../dtos/client.dto";
 export class UserMapper {
     static toDomain(userId:string, dto:verifyPaymentDTO) {
       return {
-        tutorId: dto.bookingDetails.tutorId,
+        tutorId: dto.bookingDetails.tutorUserId,
         userId :new Types.ObjectId(userId),
         date: dto.bookingDetails.selectedDate,
         startTime: dto.bookingDetails.startTime,
@@ -17,7 +17,7 @@ export class UserMapper {
           status: "Paid"
         },
         paymentStatus: "HOLD" as const,
-        status: "Confirmed",
+        status: "Upcoming",
       }
     }
 }

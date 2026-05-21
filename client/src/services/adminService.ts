@@ -27,16 +27,14 @@ export const adminService = {
   rejectTutor: async (userId: string, message: string): Promise<ICommonResponse<IUser>> =>
     handleApi<IUser>(axiosClient.patch(`${ROUTES.ADMIN_API}/users/reject/${userId}`, { message })),
   
-  
-  getAllSessions: () => handleApi(axiosClient.get("/api/admin/sessions")),
+  getAllSessions: async () => handleApi(axiosClient.get("/api/admin/sessions")),
 
   generateVideoLink: (sessionId: string) =>
     handleApi(axiosClient.post("/api/admin/sessions/generate-video-link", { sessionId })),
 
-  refundAmount: async (id:string,percent:number): Promise<ICommonResponse<IUser[]>> =>
-    handleApi<IUser[]>(axiosClient.get( `${ROUTES.ADMIN_API}/clients`)),
+refundAmount: async (sessionId: string, percent: number) =>
+  handleApi(axiosClient.post(`/api/admin/sessions/refund`, { sessionId, percent })),
 
-  releasePayment: async (id:string): Promise<ICommonResponse<IUser[]>> =>
-    handleApi<IUser[]>(axiosClient.get( `${ROUTES.ADMIN_API}/clients`)),
-
+releasePayment: async (sessionId: string) =>
+  handleApi(axiosClient.post(`/api/admin/sessions/release`, { sessionId })),
 };

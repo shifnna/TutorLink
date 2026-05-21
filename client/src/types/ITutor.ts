@@ -1,6 +1,6 @@
 export interface ITutor {
   _id: string;
-  tutorId:{ _id: string; name: string; email?: string } | null;
+  tutorId:{ _id: string; name: string; email?: string; profileImage:string } | null;
   description: string;
   languages: string[];
   education: string;

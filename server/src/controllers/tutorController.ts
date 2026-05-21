@@ -12,19 +12,6 @@ export class TutorController implements ITutorController {
     @inject(TYPES.ITutorService) private readonly _tutorService: ITutorService
   ) {}
 
-  getPresignedUrl = (req: Request, res: Response, next: NextFunction) =>
-  handleAsync(async () => {
-    const presignedUrl = await this._tutorService.getPresignedUrl(req.body);
-
-    return {
-      success: true,
-      message: "Presigned URL generated successfully",
-      data: presignedUrl,
-    };
-  })(res, next);
-
-
-
   applyForTutor = (req: Request, res: Response, next: NextFunction) => {
     return handleAsync(async () => {
     const userId = (req as AuthRequest).user!.id;

@@ -6,6 +6,17 @@ import { useNotificationStore } from "./store/notificationStore";
 import { io } from "socket.io-client";
 import axiosClient from "./api/axiosClient";
 
+// Provide ImportMeta.env typings for Vite env vars
+declare global {
+  interface ImportMetaEnv {
+    readonly VITE_SOCKET_URL?: string;
+  }
+
+  interface ImportMeta {
+    readonly env: ImportMetaEnv;
+  }
+}
+
 function App() {
   const loading = useAuthInit();
   const { user } = useAuthStore();
