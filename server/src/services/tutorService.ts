@@ -7,6 +7,8 @@ import { IClientRepository } from "../repositories/interfaces/IClientRepository"
 import { Types } from "mongoose";
 import { TutorMapper } from "../mappers/tutor.mapper";
 import { ApplyTutorRequestDTO } from "../dtos/tutor.dto";
+import { ParsedQs } from "qs";
+
 
 @injectable()
 export class TutorService implements ITutorService {
@@ -33,27 +35,29 @@ export class TutorService implements ITutorService {
   }
      
 
-  async getAllTutors(currentTutorId?: string): Promise<ITutor[]> {
-    const tutors : ITutor[] = await this._tutorRepo.findAllApproved(currentTutorId)
-    return Promise.all(
-      tutors.map(async (tutor: ITutor ) => {
-        let profileImage: string | null = null;
-        if (tutor.profileImage) {
-          profileImage = tutor.profileImage || null;
-        }
+  async getAllTutors(
+  currentTutorId?: string,
+  query?: ParsedQs
+): Promise<ITutor[]> {
 
-        let certificates: string[] = [];
-        if (tutor.certificates?.length > 0) {
-          certificates = tutor.certificates;
-        }
-        return {
-          ...tutor.toObject(),
-          profileImage: profileImage,
-          certificates,
-        };
-      })
-    );
-  }
+  const tutors = await this._tutorRepo.findAllApproved(
+    currentTutorId,
+    query
+  );
+
+  return tutors.map((tutor: ITutor) => {
+
+    return {
+      ...tutor.toObject(),
+
+      profileImage:
+        tutor.profileImage || null,
+
+      certificates:
+        tutor.certificates || [],
+    };
+  });
+}
 
   async getTutorById(tutorId: string): Promise<ITutor | null> {
   const tutor = await this._tutorRepo.findById(tutorId);

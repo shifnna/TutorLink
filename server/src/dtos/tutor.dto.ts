@@ -1,10 +1,6 @@
 import { Types } from "mongoose";
 import { ITutor } from "../models/tutor";
 
-// ======================================
-// BACKEND - dtos/tutor.dto.ts
-// ======================================
-
 export interface IScheduleDto {
   id?: string;
   day: string;
@@ -77,3 +73,10 @@ export interface IUserWithTutorDTO {
   } | null;
 }
 
+export interface TutorResponseDTO
+  extends Omit<
+    ITutor,
+    keyof Document
+  > {
+  startingPrice?: number;
+}

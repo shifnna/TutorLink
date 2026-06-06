@@ -6,7 +6,6 @@ import { IAuthController } from "./interfaces/IAuthController";
 import { IUser } from "../models/user";
 import jwt from "jsonwebtoken";
 import { generateAccessToken, generateRefreshToken, JwtPayload } from "../utils/tokens";
-import { LoginRequestDTO, ResendOtpRequestDTO, ResetPasswordRequestDTO, SignupRequestDTO, VerifyOtpRequestDTO } from "../dtos/auth.dto";
 import { handleAsync } from "../utils/handleAsync";
 
 @injectable()
@@ -44,6 +43,42 @@ export class AuthController implements IAuthController {
   }
       
   
+
+  googleSignin = async(req: Request, res: Response): Promise<void> => {
+    const user = req.user as IUser;
+
+    if (!user) {
+      throw new Error("Google login failed");
+    }
+
+    const accessToken = generateAccessToken({
+      id: user.id,
+      role: user.role,
+    });
+
+    const refreshToken = generateRefreshToken({
+      id: user.id,
+      role: user.role,
+    });
+
+    res.cookie("accessToken", accessToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: parseInt(process.env.ACCESS_TOKEN_MAX_AGE || "900000", 10),
+    });
+
+    res.cookie("refreshToken", refreshToken, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
+      maxAge: parseInt(process.env.REFRESH_TOKEN_MAX_AGE || "604800000", 10),
+    });
+
+    res.redirect(`${process.env.CLIENT_URL}/login?googleSuccess=true`);
+}
+
+
   getMe = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async() => {
       if (!req.user) throw new Error("User not authenticated");
@@ -117,21 +152,4 @@ export class AuthController implements IAuthController {
       return { message: result.message };
     })(res,next);
 
-
-  googleSignin = async(req: Request, res: Response): Promise<void> =>{   
-      const user = req.user as IUser;
-      if (!user) throw new Error("Google login failed");
-
-      const refreshToken = generateRefreshToken({ id: user.id, role: user.role });
-
-      res.cookie("refreshToken", refreshToken, {
-        httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "strict",
-        maxAge: parseInt(process.env.REFRESH_TOKEN_MAX_AGE || "604800000", 10),
-      });
-
-      res.redirect(`${process.env.CLIENT_URL}/login?googleSuccess=true`);
-      return;
-  }
 }

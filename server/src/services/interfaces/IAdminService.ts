@@ -1,11 +1,13 @@
+import { ClientsQueryDTO, PaginatedClientsDTO } from "../../controllers/adminController";
 import { generateLinkDTO, rejectTutorDTO } from "../../dtos/admin.dto";
+import { LoginRequestDTO } from "../../dtos/auth.dto";
 import { IUserWithTutorDTO } from "../../dtos/tutor.dto";
 import { ISession } from "../../models/session";
 import { ITutor } from "../../models/tutor";
 import { IUser } from "../../models/user";
 
 export interface IAdminService {
-  getAllClients(): Promise<IUserWithTutorDTO[]>;
+  getAllClients(query: ClientsQueryDTO): Promise<PaginatedClientsDTO>;
   getAllTutors(): Promise<IUserWithTutorDTO[]>;
   approveTutor(tutorId: string): Promise<ITutor>;
   rejectTutor(userId: string, dto: rejectTutorDTO): Promise<void>;
@@ -17,4 +19,9 @@ export interface IAdminService {
   getAllSessions(): Promise<ISession[]>;
   generateLink(dto: generateLinkDTO): Promise<string>;
   releasePayment(sessionId: string): Promise<void>;
+  adminLogin(dto: LoginRequestDTO): Promise<{
+  user: IUser;
+  accessToken: string;
+  refreshToken: string;
+}>;
 }

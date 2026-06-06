@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Key } from "react";
 import { SelectedFilters } from "../../types/IFilter";
 import { Button } from "../ui/button";
 import { motion } from "framer-motion";
@@ -18,7 +18,7 @@ const FilterSidebar: React.FC<Props> = ({
 }) => {
   if (!isOpen) return null;
 
-  const update = (key: keyof SelectedFilters, val: any) => {
+  const update = <K extends keyof SelectedFilters>(key: K, val: SelectedFilters[K]) => {
     onChange({ ...filters, [key]: val });
   };
 
@@ -102,7 +102,7 @@ const FilterSidebar: React.FC<Props> = ({
           <h3 className="font-semibold mb-2">Sort By</h3>
           <select
             value={filters.sortBy}
-            onChange={(e) => update("sortBy", e.target.value)}
+            onChange={(e) => update("sortBy", e.target.value as SelectedFilters["sortBy"])}
             className="w-full p-2 border rounded-lg"
           >
             <option value="price_low_high">Price: Low → High</option>

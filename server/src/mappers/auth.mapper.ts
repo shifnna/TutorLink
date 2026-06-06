@@ -1,5 +1,4 @@
 import { SignupRequestDTO } from "../dtos/auth.dto";
-import { IUser } from "../models/user";
 
 export class AuthMapper {
 

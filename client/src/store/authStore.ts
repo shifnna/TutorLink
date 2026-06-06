@@ -106,5 +106,57 @@ export const useAuthStore = create<IAuthState>()(
       if (!response.success) throw new Error(response.message);
       return response.data!;
     },
+
+  
+  adminLogin: async ( email: string,password: string) => {
+  set({ isLoading: true });
+  try {
+
+    const response =
+      await authService.adminLogin({
+        email,
+        password,
+      });
+
+    set({ isLoading: false });
+
+    if (
+      !response.success ||
+      !response.data
+    ) {
+      throw new Error(
+        response.message
+      );
+    }
+
+    const user: IUser =
+      response.data;
+
+    set({
+      user,
+      isAuthenticated: true,
+      blocked: !!user?.isBlocked,
+    });
+
+    return {
+      success: true,
+      user,
+    };
+
+  } catch (error: unknown) {
+
+    set({
+      isLoading: false,
+      user: null,
+      isAuthenticated: false,
+    });
+
+    return {
+      success: false,
+      message:
+        error instanceof Error? error.message : "Admin login failed",
+    };
+  }
+},
   })
 );

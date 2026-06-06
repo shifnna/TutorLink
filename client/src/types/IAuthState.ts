@@ -64,5 +64,7 @@ export interface IAuthState {
   logout: () => Promise<void>;
 
   applyForTutor: ( payload:ITutorApplicationForm ) => Promise<ITutorApplication>;
+
+  adminLogin: ( email: string,password: string) => Promise<{success:boolean; user?: IUser; message?:string}>;
 }
 

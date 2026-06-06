@@ -1,7 +1,17 @@
 import axios from "axios";
 import { useAuthStore } from "../store/authStore";
 import { authService } from "../services/authService";
-      
+  
+declare global {
+  interface ImportMetaEnv {
+    readonly VITE_BASE_URL?: string;
+  }
+
+  interface ImportMeta {
+    readonly env: ImportMetaEnv;
+  }
+}
+
 const axiosClient = axios.create({
   baseURL: import.meta.env.VITE_BASE_URL || "http://localhost:5000", 
   withCredentials: true

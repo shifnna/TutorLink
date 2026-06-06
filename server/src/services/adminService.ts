@@ -16,6 +16,10 @@ import { DashboardStatsResponseDTO, generateLinkDTO, rejectTutorDTO } from "../d
 import { IUserWithTutorDTO } from "../dtos/tutor.dto";
 import { AdminMapper } from "../mappers/admin.mapper";
 import { WalletModel } from "../models/wallet";
+import { generateAccessToken, generateRefreshToken } from "../utils/tokens";
+import { LoginRequestDTO } from "../dtos/auth.dto";
+import bcrypt from "bcryptjs";
+import { ClientsQueryDTO, PaginatedClientsDTO } from "../controllers/adminController";
 
 @injectable()
 export class AdminService implements IAdminService {
@@ -47,10 +51,52 @@ export class AdminService implements IAdminService {
   )}
 
 
-  async getAllClients(): Promise<IUserWithTutorDTO[]> {
-    const users = await this._userRepo.findAll({ role: "client" });
-    return users.map(AdminMapper.toClientDTO);
+  async getAllClients(query: ClientsQueryDTO): Promise<PaginatedClientsDTO> {
+  const {
+    search = "",
+    status = "all",
+    sort = "latest",
+    page = "1",
+    limit = "5",
+  } = query;
+
+  const pageNum = Math.max(1, parseInt(page, 10));
+  const limitNum = Math.max(1, parseInt(limit, 10));
+  const skip = (pageNum - 1) * limitNum;
+
+  // Build MongoDB filter
+  const filter: Record<string, unknown> = { role: "client" };
+
+  if (search.trim()) {
+    filter.$or = [
+      { name: { $regex: search.trim(), $options: "i" } },
+      { email: { $regex: search.trim(), $options: "i" } },
+    ];
   }
+
+  if (status === "blocked") filter.isBlocked = true;
+  if (status === "active") filter.isBlocked = false;
+
+  // Build sort
+  let sortOption: Record<string, 1 | -1> = { createdAt: -1 }; // latest
+  if (sort === "oldest") sortOption = { createdAt: 1 };
+  if (sort === "az") sortOption = { name: 1 };
+  if (sort === "za") sortOption = { name: -1 };
+
+  const { users, total } = await this._userRepo.findClientsPaginated(
+    filter,
+    sortOption,
+    skip,
+    limitNum
+  );
+
+  return {
+    users: users.map(AdminMapper.toClientDTO),
+    total,
+    totalPages: Math.ceil(total / limitNum),
+    currentPage: pageNum,
+  };
+};
 
 
   async getAllTutorApplications(): Promise<ITutor[]> {
@@ -270,4 +316,64 @@ export class AdminService implements IAdminService {
 
     return url;
   }
+
+  async adminLogin(
+  dto: LoginRequestDTO
+): Promise<{
+  user: IUser;
+  accessToken: string;
+  refreshToken: string;
+}> {
+
+  const user =
+    await this._userRepo.findByEmail(
+      dto.email
+    );
+
+  if (!user) {
+    throw new Error(
+      COMMON_ERROR.INVALID_CREDENTIALS
+    );
+  }
+
+  if (user.role !== "admin") {
+    throw new Error(
+      "Only admins can login here"
+    );
+  }
+
+  if (user.isBlocked) {
+    throw new Error(
+      "Admin account blocked"
+    );
+  }
+
+  const isPasswordValid =
+    await bcrypt.compare(
+      dto.password,
+      user.password
+    );
+
+  if (!isPasswordValid) {
+    throw new Error(
+      COMMON_ERROR.INVALID_CREDENTIALS
+    );
+  }
+
+  return {
+    user,
+
+    accessToken:
+      generateAccessToken({
+        id: user.id,
+        role: user.role,
+      }),
+
+    refreshToken:
+      generateRefreshToken({
+        id: user.id,
+        role: user.role,
+      }),
+  };
+}
 }

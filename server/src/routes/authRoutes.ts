@@ -1,4 +1,4 @@
-import { RequestHandler, Router } from "express";
+import { Router } from "express";
 import container from "../container/inversify.config";
 import { IAuthController } from "../controllers/interfaces/IAuthController";
 import { TYPES } from "../types/types";

@@ -32,4 +32,7 @@ export const authService = {
 
   refresh: async () => 
     handleApi<{ accessToken: string }>(axiosClient.post( `${ROUTES.AUTH_API}/refresh`, {})),
+
+  adminLogin: async (data: LoginData) =>
+  handleApi<IUser>(axiosClient.post(`${ROUTES.ADMIN_API}/login`, data)),
 };

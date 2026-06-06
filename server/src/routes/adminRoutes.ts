@@ -5,6 +5,7 @@ import { TYPES } from "../types/types";
 import { adminOnly, protect } from "../middlewares/authMiddleware";
 import { validate } from "../middlewares/validate";
 import { approveTutorSchema, rejectTutorSchema, toggleUserSchema } from "../validators/adminValidator";
+import { loginSchema } from "../validators/authValidator";
 
 const router = Router();
 const controller = container.get<IAdminController>(TYPES.IAdminController)
@@ -21,4 +22,5 @@ router.get("/sessions", protect,adminOnly, controller.getAllSessions);
 router.post("/sessions/generate-video-link", protect,adminOnly, controller.generateLink);
 router.post("/sessions/release", protect, adminOnly, controller.releasePayment);
 
+router.post("/login",validate(loginSchema),controller.adminLogin);
 export default router;

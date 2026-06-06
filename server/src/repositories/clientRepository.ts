@@ -13,4 +13,18 @@ export class clientRepository extends BaseRepository<IUser> implements IClientRe
     async findTutorsWithProfile(): Promise<IUser[]> {
         return this.model.find({ role: "tutor" }).populate("tutorProfile");
     }
+
+    async findClientsPaginated(
+  filter: Record<string, unknown>,
+  sort: Record<string, 1 | -1>,
+  skip: number,
+  limit: number
+): Promise<{ users: IUser[]; total: number }> {
+  const [users, total] = await Promise.all([
+    UserModel.find(filter).sort(sort).skip(skip).limit(limit),
+    UserModel.countDocuments(filter),
+  ]);
+
+  return { users: users as IUser[], total };
+}
 }

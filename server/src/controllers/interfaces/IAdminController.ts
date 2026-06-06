@@ -11,4 +11,5 @@ export interface IAdminController{
     getAllSessions : (req: Request, res: Response, next: NextFunction) => void;
     releasePayment : (req: Request, res: Response, next: NextFunction) => void;
     generateLink: (req: Request, res: Response, next: NextFunction) => void;
+    adminLogin(req: Request,res: Response,next: NextFunction): Promise<void>;
 }

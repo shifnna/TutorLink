@@ -1,13 +1,15 @@
 import axiosClient from "../api/axiosClient";
 import { handleApi, ICommonResponse } from "../utils/apiHelper";
-import { IUser } from "../types/IUser";
+import { ClientsQuery, IUser, PaginatedUsers } from "../types/IUser";
 import { ITutorApplication } from "../types/ITutorApplication";
 import { IAdminDashboardStats } from "../types/IAdminDashboard";
 import { ROUTES } from "../utils/constants";
 
 export const adminService = {
-  getAllClients: async (): Promise<ICommonResponse<IUser[]>> =>
-    handleApi<IUser[]>(axiosClient.get( `${ROUTES.ADMIN_API}/clients`)),
+getAllClients: async (query: ClientsQuery = {}): Promise<ICommonResponse<PaginatedUsers>> =>
+  handleApi<PaginatedUsers>(
+    axiosClient.get(`${ROUTES.ADMIN_API}/clients`, { params: query })
+  ),
 
   getAllTutors: async (): Promise<ICommonResponse<IUser[]>> =>
     handleApi<IUser[]>(axiosClient.get(`${ROUTES.ADMIN_API}/tutors`)),

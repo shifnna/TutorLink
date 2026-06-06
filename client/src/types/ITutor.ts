@@ -1,3 +1,5 @@
+import { ISlotRule } from "./ISlotRules";
+
 export interface ITutor {
   _id: string;
   tutorId:{ _id: string; name: string; email?: string; profileImage:string } | null;
@@ -11,4 +13,13 @@ export interface ITutor {
   profileImage: string;
   certificates: string[];
   adminApproved: boolean;
+  slotRule?: ISlotRule;
+}
+
+export interface ITutorSearch {
+  search?: string;
+  experienceLevels?: string[];
+  minPrice?: number;
+  maxPrice?: number;
+  sortBy?: string;
 }

@@ -38,3 +38,19 @@ export interface IUserWithTutor {
   profileImage: string | null;
   tutorProfile?: ITutorProfile | null;
 }
+
+export interface ClientsQuery {
+  search?: string;
+  status?: string;
+  sort?: string;
+  page?: number;
+  limit?: number;
+}
+
+// Paginated response wrapper type
+export interface PaginatedUsers {
+  users: IUser[];
+  total: number;
+  totalPages: number;
+  currentPage: number;
+}

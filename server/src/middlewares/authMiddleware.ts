@@ -17,8 +17,8 @@ export const protect: RequestHandler = async (req, res, next) => {
 
     const refreshToken = req.cookies?.refreshToken;
 
-    if (!accessToken) {
-      return res.status(401).json({ message: "No access token" });
+    if (!accessToken && !refreshToken) {
+      return res.status(401).json({ message: "Authentication required" });
     }
 
     try {

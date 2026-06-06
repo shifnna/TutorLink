@@ -1,4 +1,4 @@
-import axios from "axios";
+import axios, { AxiosError } from "axios";
 
 // Provide ImportMeta.env typings for Vite env vars
 declare global {
@@ -46,11 +46,14 @@ export async function uploadToCloudinary(
     }
 
     return response.data.secure_url;
-  } catch (err: any) {
+  } catch (err: unknown) {
+    if(axios.isAxiosError(err)){
+    const axiosError = err as AxiosError;
     console.error(
       "FULL CLOUDINARY ERROR:",
       err?.response?.data || err
     );
+  }
 
     throw err;
   }

@@ -57,6 +57,8 @@ const Login: React.FC = () => {
 
     try {
       const response = await login(formData.email, formData.password);
+      
+      await useAuthStore.getState().fetchUser();
 
       if (!response.success) {
         if (response.errors) {
@@ -68,7 +70,6 @@ const Login: React.FC = () => {
       }
 
       toast.success("Login successful 🎉");
-      await useAuthStore.getState().fetchUser();
       navigateBasedOnRole();
     } catch (err) {
       toast.error(err instanceof Error ? err.message : "Unexpected error");

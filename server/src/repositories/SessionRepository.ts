@@ -8,6 +8,7 @@ import { ISessionRepository } from "./interfaces/ISessionRepository";
 export class SessionRepository extends BaseRepository<ISession> implements ISessionRepository{
 
   async createSession(session: Partial<ISession>): Promise<ISession> {
+    
     return await SessionModel.create(session);
   }
 

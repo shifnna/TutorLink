@@ -37,9 +37,38 @@ import {
   ISlotRule,
 } from "../../types/ISlotRules";
 
+interface RazorpayOptions {
+  key: string;
+  amount: number;
+  currency: string;
+  order_id: string;
+  name: string;
+  description: string;
+  prefill: {
+    name: string;
+    email: string;
+  };
+  theme: {
+    color: string;
+  };
+  handler: (
+    response: RazorpayPaymentResponse
+  ) => Promise<void>;
+}
+
+interface RazorpayPaymentResponse {
+  razorpay_order_id: string;
+  razorpay_payment_id: string;
+  razorpay_signature: string;
+}
+
 declare global {
   interface Window {
-    Razorpay: any;
+    Razorpay: new (
+    options: RazorpayOptions
+  ) => {
+    open: () => void;
+  };
   }
 
   interface ImportMetaEnv {
@@ -261,7 +290,7 @@ const TutorDetails: React.FC = () => {
 
             handler:
               async (
-                response: any
+                response: RazorpayPaymentResponse
               ) => {
                 const verify =
                   await verifyPayment(

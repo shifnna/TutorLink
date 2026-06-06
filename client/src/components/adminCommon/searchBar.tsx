@@ -1,6 +1,13 @@
+import { ChangeEvent } from "react";
 import { FaSearch } from "react-icons/fa";
 
-const SearchBar = ({ value, onChange }: any) => (
+
+interface SearchBarProps {
+  value: string;
+  onChange: (event: ChangeEvent<HTMLInputElement>) => void;
+}
+
+const SearchBar = ({ value, onChange }: SearchBarProps) => (
   <div className="flex items-center gap-4 bg-white border border-slate-200 rounded-2xl px-6 py-4 shadow-sm mb-8">
     <FaSearch className="text-slate-400" />
     <input

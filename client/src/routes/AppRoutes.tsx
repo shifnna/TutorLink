@@ -26,6 +26,7 @@ import TutorDetails from "../pages/common/tutorDetails";
 import { useEffect } from "react";
 import { useUIStore } from "../store/uiStore";
 import PageLoader from "../pages/common/pageLoader";
+import AdminLogin from "../pages/admin/adminLogin";
 
 function RouteWrapper() {
   const location = useLocation();
@@ -53,6 +54,7 @@ function RouteWrapper() {
         <Route path="/signup" element={<GuestRoute><Signup /></GuestRoute>} />
         <Route path="/verify-otp" element={<VerifyOtp />} />
         <Route path="/login" element={<GuestRoute><Login /></GuestRoute>} />
+        <Route path="/admin/login" element={<GuestRoute><AdminLogin /></GuestRoute>} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 

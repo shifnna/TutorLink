@@ -15,6 +15,7 @@ export class SessionController implements ISessionController{
    
   bookSession = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async () => {
+      const {user} = req as AuthRequest;
     const order = await this._sessionService.bookSession(req.body.amount);
     return { success: true, message: "Order created", data: order };
     })(res, next); 

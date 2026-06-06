@@ -41,7 +41,7 @@ export class TutorController implements ITutorController {
   getAllTutors = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async()=>{
       const authReq = req as AuthRequest;
-      return await this._tutorService.getAllTutors(authReq.user?._id as string);
+      return await this._tutorService.getAllTutors(authReq.user?._id as string, req.query);
     })(res,next);
 
   getTutorById = (req: Request, res: Response, next: NextFunction) =>

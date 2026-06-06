@@ -36,7 +36,22 @@ export class AuthService implements IAuthService{
         return user;
     }
 
+    
+    async login(dto: LoginRequestDTO):Promise<{ user: IUser; refreshToken: string, accessToken: string }>{
+        const user = await this._userRepo.findByEmail(dto.email)
+        if(!user) throw new Error(COMMON_ERROR.INVALID_CREDENTIALS);
 
+        if (user.isBlocked) { throw new Error(COMMON_ERROR.USER_BLOCKED)}
+
+        if (!user.isVerified) { throw new Error("Please verify your email first")}
+
+        const isPasswordVaild = await bcrypt.compare(dto.password,user.password)
+        if(!isPasswordVaild) throw new Error(COMMON_ERROR.INVALID_CREDENTIALS);
+
+        return {user,refreshToken:generateRefreshToken({id:user.id,role:user.role}),accessToken:generateAccessToken({id:user.id,role:user.role})};
+    }
+
+    
     async verifyOtp(dto:VerifyOtpRequestDTO): Promise<{ user: IUser; refreshToken: string; accessToken:string } | {success:boolean} | null> {
         const user = await this._userRepo.findByEmail(dto.email);
         if (!user) throw new Error(COMMON_ERROR.USER_NOT_FOUND);
@@ -70,17 +85,6 @@ export class AuthService implements IAuthService{
     }
 
 
-    async login(dto: LoginRequestDTO):Promise<{ user: IUser; refreshToken: string, accessToken: string }>{
-        const user = await this._userRepo.findByEmail(dto.email)
-        if(!user) throw new Error(COMMON_ERROR.INVALID_CREDENTIALS);
-
-        const isPasswordVaild = await bcrypt.compare(dto.password,user.password)
-        if(!isPasswordVaild) throw new Error(COMMON_ERROR.INVALID_CREDENTIALS);
-
-        return {user,refreshToken:generateRefreshToken({id:user.id,role:user.role}),accessToken:generateAccessToken({id:user.id,role:user.role})};
-    }
-
-
     async resendOtp(dto: ResendOtpRequestDTO):Promise<{ message: string } | null> {
             const user = await this._userRepo.findByEmail(dto.email);
             if (!user) throw new Error(COMMON_ERROR.USER_NOT_FOUND);
@@ -94,7 +98,7 @@ export class AuthService implements IAuthService{
 
             user.otpExpiry = newExpiry;
             user.otpCode = otpCode;
-            user.save();
+            await user.save();
 
             await sendOTP(user.email,otpCode);
             return { message: "OTP resent successfully" };

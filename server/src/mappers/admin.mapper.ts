@@ -1,5 +1,4 @@
 import { IUserWithTutorDTO } from "../dtos/tutor.dto";
-import { ISession } from "../models/session";
 import { ITutor } from "../models/tutor";
 import { IUser } from "../models/user";
 
