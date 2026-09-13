@@ -3,11 +3,14 @@ import { Fragment, useEffect, useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { FaCamera, FaTimes } from "react-icons/fa";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { IApplicationModal } from "../../types/ITutorApplication";
 import { useAuthStore } from "../../store/authStore";
 import { tutorService } from "../../services/tutorService";
 import { authService } from "../../services/authService";
+
+const fieldClass =
+  "h-12 bg-[#1E2230] border-[#2A2E3D] text-[#F3F4F8] placeholder:text-[#9CA1B5] rounded-xl focus:ring-2 focus:ring-[#7C9CFF]/40 focus:border-[#7C9CFF] transition";
 
 const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
   const { isLoading } = useAuthStore();
@@ -61,8 +64,8 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
         } else {
           console.log("No tutor data found — starting fresh");
         }
-      } catch (err) {
-        console.error("Failed to prefill tutor profile:", err);
+      } catch (error: unknown) {
+        console.error(error instanceof Error ? error.message : error);
       }
     };
 
@@ -140,7 +143,6 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
   };
   const prevStep = () => setStep((prev) => prev - 1);
 
-  //Submit form & auto-close modal
   const handleSubmit = async () => {
     if (!validateStep()) return;
     useAuthStore.setState({ isLoading: true });
@@ -148,31 +150,41 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
     const response = await tutorService.apply(formData);
 
     if (!response.success) {
-      if (response.errors?.length) {
-        toast.error(response.errors[0].message);
-      } else {
-        toast.error(response.message || "Submission failed!");
+  if (response.errors?.length) {
+    const backendErrors: { [key: string]: string } = {};
+
+    response.errors.forEach((error) => {
+      const field = error.field?.replace("body.", "");
+      if (field) {
+        backendErrors[field] = error.message;
       }
-      useAuthStore.setState({ isLoading: false });
-      return;
-    }
+    });
+
+    setErrors(backendErrors);
+  } else {
+    toast.error(response.message || "Submission failed!");
+  }
+
+  useAuthStore.setState({ isLoading: false });
+  return;
+}
 
     toast.success(response.message || "Application submitted successfully!");
 
-    // Refresh user data (in case tutor status changed)
-    await authService.fetchUser();
+    const userResponse = await authService.fetchUser();
+
+if (userResponse.success && userResponse.data) {
+  useAuthStore.setState({ user: userResponse.data });
+}
 
     useAuthStore.setState({ isLoading: false });
 
-    // Auto close modal after short delay
-    setTimeout(() => {
       onClose();
-    }, 500);
   };
 
   return (
     <Transition appear show={isOpen} as={Fragment}>
-      <Dialog as="div" className="relative z-50" onClose={onClose}>
+      <Dialog as="div" className="relative z-[10000]" onClose={onClose}>
         <Transition.Child
           as={Fragment}
           enter="ease-out duration-300"
@@ -182,99 +194,113 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
           leaveFrom="opacity-100"
           leaveTo="opacity-0"
         >
-          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+          <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
         </Transition.Child>
 
         <div className="fixed inset-0 overflow-y-auto">
-          <div className="flex min-h-full items-center justify-center p-4 text-center">
+          <div className="flex min-h-full items-center justify-center p-4 pt-20 sm:pt-6 text-center">
             <Transition.Child
               as={Fragment}
-              enter="ease-out duration-300"
-              enterFrom="opacity-0 scale-95"
-              enterTo="opacity-100 scale-100"
-              leave="ease-in duration-200"
-              leaveFrom="opacity-100 scale-100"
-              leaveTo="opacity-0 scale-95"
+              enter="ease-out duration-700"
+              enterFrom="opacity-0 scale-90 translate-y-6"
+              enterTo="opacity-100 scale-100 translate-y-0"
+              leave="ease-in duration-400"
+              leaveFrom="opacity-100 scale-100 translate-y-0"
+              leaveTo="opacity-0 scale-95 translate-y-3"
             >
-              <Dialog.Panel className="w-full max-w-lg transform overflow-hidden rounded-3xl bg-white p-8 text-left align-middle shadow-2xl transition-all">
+              <Dialog.Panel
+                className="
+                relative
+                  w-full max-w-md max-h-[calc(100vh-2rem)]
+                  overflow-y-auto
+                  transform rounded-3xl
+                  bg-[#171A24]
+                  border border-[#2A2E3D]
+                  p-5 sm:p-6
+                  text-left align-middle
+                  shadow-[0_30px_80px_rgba(0,0,0,0.55)]
+                  transition-all text-[#F3F4F8]
+                  scrollbar-thin scrollbar-thumb-[#2A2E3D] scrollbar-track-transparent
+                "
+              >
                 <button
                   onClick={onClose}
-                  className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute top-4 right-4 z-50 text-[#9CA1B5] hover:text-[#F3F4F8] transition-colors"
                 >
                   <FaTimes size={20} />
                 </button>
 
                 {/* Stepper */}
-                <div className="flex items-center justify-center mb-8 text-sm font-medium text-gray-500">
-                  <span className={`px-2 py-1 rounded-full ${step === 1 ? "bg-blue-100 text-blue-700" : ""}`}>Personal Info</span>
-                  <span className="mx-2 text-gray-300">→</span>
-                  <span className={`px-2 py-1 rounded-full ${step === 2 ? "bg-blue-100 text-blue-700" : ""}`}>Professional Info</span>
-                  <span className="mx-2 text-gray-300">→</span>
-                  <span className={`px-2 py-1 rounded-full ${step === 3 ? "bg-blue-100 text-blue-700" : ""}`}>Payment Info</span>
+                <div className="flex items-center justify-center mb-5 text-sm font-medium text-[#9CA1B5]">
+                  <span className={`px-2 py-1 rounded-full transition ${step === 1 ? "bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold" : ""}`}>Personal Info</span>
+                  <span className="mx-2 text-[#2A2E3D]">→</span>
+                  <span className={`px-2 py-1 rounded-full transition ${step === 2 ? "bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold" : ""}`}>Professional Info</span>
+                  <span className="mx-2 text-[#2A2E3D]">→</span>
+                  <span className={`px-2 py-1 rounded-full transition ${step === 3 ? "bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold" : ""}`}>Payment Info</span>
                 </div>
 
                 {/* Step 1 */}
                 {step === 1 && (
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     <div className="flex flex-col items-center">
                       {formData.profileImage ? (
                         <img
                           src={URL.createObjectURL(formData.profileImage)}
                           alt="Preview"
-                          className="w-24 h-24 rounded-full object-cover mb-4 border-4 border-blue-100"
+                          className="w-20 h-20 rounded-full object-cover mb-4 border-4 border-[#2A2E3D]"
                         />
                       ) : (
-                        <div className="w-24 h-24 rounded-full bg-gray-100 flex items-center justify-center mb-4 border-4 border-gray-200">
-                          <FaCamera className="text-gray-400 text-2xl" />
+                        <div className="w-20 h-20 rounded-full bg-[#1E2230] flex items-center justify-center mb-4 border-4 border-[#2A2E3D]">
+                          <FaCamera className="text-[#9CA1B5] text-2xl" />
                         </div>
                       )}
                       <input
                         type="file"
                         accept="image/*"
                         onChange={(e) => handleFileChange(e, "profileImage")}
-                        className="text-sm text-gray-600"
+                        className="text-sm text-[#9CA1B5]"
                       />
                       {errors.profileImage && (
-                        <p className="text-red-500 text-sm mt-2">{errors.profileImage}</p>
+                        <p className="text-red-400 text-sm mt-2">{errors.profileImage}</p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block font-medium text-gray-700 mb-2">Description</label>
+                      <label className="block font-medium text-[#F3F4F8] mb-2">Description</label>
                       <textarea
                         name="description"
                         placeholder="Tell us a bit about yourself..."
                         value={formData.description}
                         onChange={handleChange}
-                        className="w-full border border-gray-200 rounded-xl p-4 h-28 resize-none focus:ring-2 focus:ring-blue-200 focus:border-blue-400 transition"
+                        className="w-full bg-[#1E2230] border border-[#2A2E3D] text-[#F3F4F8] placeholder:text-[#9CA1B5] rounded-xl p-3 h-24 resize-none focus:ring-2 focus:ring-[#7C9CFF]/40 focus:border-[#7C9CFF] transition"
                       />
                       {errors.description && (
-                        <p className="text-red-500 text-sm mt-1">{errors.description}</p>
+                        <p className="text-red-400 text-sm mt-1">{errors.description}</p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block font-medium text-gray-700 mb-2">Languages</label>
+                      <label className="block font-medium text-[#F3F4F8] mb-2">Languages</label>
                       <Input
                         type="text"
                         name="languages"
                         placeholder="e.g., English, Hindi, French"
                         value={formData.languages.join(", ")}
                         onChange={handleChange}
-                        className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                        className={fieldClass}
                       />
                       {errors.languages && (
-                        <p className="text-red-500 text-sm mt-1">{errors.languages}</p>
+                        <p className="text-red-400 text-sm mt-1">{errors.languages}</p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block font-medium text-gray-700 mb-2">Gender</label>
+                      <label className="block font-medium text-[#F3F4F8] mb-2">Gender</label>
                       <select
                         name="gender"
                         value={formData.gender}
                         onChange={handleChange}
-                        className="w-full border border-gray-200 rounded-xl p-3 h-12 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                        className="w-full bg-[#1E2230] border border-[#2A2E3D] text-[#F3F4F8] rounded-xl p-3 h-12 focus:ring-2 focus:ring-[#7C9CFF]/40 focus:border-[#7C9CFF] transition"
                       >
                         <option value="">Select...</option>
                         <option value="Male">Male</option>
@@ -282,13 +308,13 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
                         <option value="Other">Other</option>
                       </select>
                       {errors.gender && (
-                        <p className="text-red-500 text-sm mt-1">{errors.gender}</p>
+                        <p className="text-red-400 text-sm mt-1">{errors.gender}</p>
                       )}
                     </div>
 
-                    <div className="flex justify-end pt-4">
+                    <div className="flex justify-end pt-2">
                       <Button
-                        className="bg-gradient-to-r from-blue-500 to-teal-500 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                        className="bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
                         onClick={nextStep}
                       >
                         Continue →
@@ -299,44 +325,44 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
 
                 {/* Step 2 */}
                 {step === 2 && (
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     <div>
-                      <label className="block font-medium text-gray-700 mb-2">Education</label>
+                      <label className="block font-medium text-[#F3F4F8] mb-2">Education</label>
                       <Input
                         type="text"
                         name="education"
                         placeholder="Your highest qualification"
                         value={formData.education}
                         onChange={handleChange}
-                        className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                        className={fieldClass}
                       />
                       {errors.education && (
-                        <p className="text-red-500 text-sm mt-1">{errors.education}</p>
+                        <p className="text-red-400 text-sm mt-1">{errors.education}</p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block font-medium text-gray-700 mb-2">Skills</label>
+                      <label className="block font-medium text-[#F3F4F8] mb-2">Skills</label>
                       <Input
                         type="text"
                         name="skills"
                         placeholder="e.g., Math, Science, Coding"
                         value={formData.skills.join(", ")}
                         onChange={handleChange}
-                        className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                        className={fieldClass}
                       />
                       {errors.skills && (
-                        <p className="text-red-500 text-sm mt-1">{errors.skills}</p>
+                        <p className="text-red-400 text-sm mt-1">{errors.skills}</p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block font-medium text-gray-700 mb-2">Experience Level</label>
+                      <label className="block font-medium text-[#F3F4F8] mb-2">Experience Level</label>
                       <select
                         name="experienceLevel"
                         value={formData.experienceLevel}
                         onChange={handleChange}
-                        className="w-full border border-gray-200 rounded-xl p-3 h-12 focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                        className="w-full bg-[#1E2230] border border-[#2A2E3D] text-[#F3F4F8] rounded-xl p-3 h-12 focus:ring-2 focus:ring-[#7C9CFF]/40 focus:border-[#7C9CFF] transition"
                       >
                         <option value="">Select...</option>
                         <option value="Beginner">Beginner</option>
@@ -344,49 +370,49 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
                         <option value="Expert">Expert</option>
                       </select>
                       {errors.experienceLevel && (
-                        <p className="text-red-500 text-sm mt-1">{errors.experienceLevel}</p>
+                        <p className="text-red-400 text-sm mt-1">{errors.experienceLevel}</p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block font-medium text-gray-700 mb-2">Certificates</label>
+                      <label className="block font-medium text-[#F3F4F8] mb-2">Certificates</label>
                       <input
                         type="file"
                         multiple
                         accept=".pdf,.jpg,.png"
                         onChange={(e) => handleFileChange(e, "certificates")}
-                        className="text-sm text-gray-600"
+                        className="text-sm text-[#9CA1B5]"
                       />
                       {errors.certificates && (
-                        <p className="text-red-500 text-sm mt-1">{errors.certificates}</p>
+                        <p className="text-red-400 text-sm mt-1">{errors.certificates}</p>
                       )}
                     </div>
 
                     <div>
-                      <label className="block font-medium text-gray-700 mb-2">Occupation</label>
+                      <label className="block font-medium text-[#F3F4F8] mb-2">Occupation</label>
                       <Input
                         type="text"
                         name="occupation"
                         placeholder="e.g., Teacher, Lecturer"
                         value={formData.occupation}
                         onChange={handleChange}
-                        className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                        className={fieldClass}
                       />
                       {errors.occupation && (
-                        <p className="text-red-500 text-sm mt-1">{errors.occupation}</p>
+                        <p className="text-red-400 text-sm mt-1">{errors.occupation}</p>
                       )}
                     </div>
 
-                    <div className="flex justify-between pt-4">
+                    <div className="flex justify-between pt-2">
                       <Button
                         variant="outline"
-                        className="px-8 py-3 rounded-xl border-gray-200 hover:bg-gray-50 transition"
+                        className="px-8 py-3 rounded-xl border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#1E2230] transition"
                         onClick={prevStep}
                       >
                         ← Back
                       </Button>
                       <Button
-                        className="bg-gradient-to-r from-blue-500 to-teal-500 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                        className="bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
                         onClick={nextStep}
                       >
                         Continue →
@@ -397,7 +423,7 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
 
                 {/* Step 3 */}
                 {step === 3 && (
-                  <div className="space-y-6">
+                  <div className="space-y-4">
                     {[
                       { name: "accountHolder", label: "Account Holder Name", placeholder: "Enter name" },
                       { name: "accountNumber", label: "Account Number", placeholder: "Enter account number" },
@@ -405,31 +431,31 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
                       { name: "ifsc", label: "IFSC Code", placeholder: "Enter IFSC" },
                     ].map(({ name, label, placeholder }) => (
                       <div key={name}>
-                        <label className="block font-medium text-gray-700 mb-2">{label}</label>
+                        <label className="block font-medium text-[#F3F4F8] mb-2">{label}</label>
                         <Input
                           type="text"
                           name={name}
                           placeholder={placeholder}
                           value={formData[name as keyof typeof formData] as string}
                           onChange={handleChange}
-                          className="h-12 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-200 focus:border-blue-400"
+                          className={fieldClass}
                         />
                         {errors[name] && (
-                          <p className="text-red-500 text-sm mt-1">{errors[name]}</p>
+                          <p className="text-red-400 text-sm mt-1">{errors[name]}</p>
                         )}
                       </div>
                     ))}
 
-                    <div className="flex justify-between pt-4">
+                    <div className="flex justify-between pt-2">
                       <Button
                         variant="outline"
-                        className="px-8 py-3 rounded-xl border-gray-200 hover:bg-gray-50 transition"
+                        className="px-8 py-3 rounded-xl border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#1E2230] transition"
                         onClick={prevStep}
                       >
                         ← Back
                       </Button>
                       <Button
-                        className="bg-gradient-to-r from-green-500 to-blue-500 text-white px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
+                        className="bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold px-8 py-3 rounded-xl shadow-lg hover:shadow-xl transition-all duration-200 hover:scale-105"
                         onClick={handleSubmit}
                       >
                         Submit Application
@@ -443,8 +469,8 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
         </div>
 
         {isLoading && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/20">
-            <div className="w-12 h-12 border-4 border-white border-t-transparent rounded-full animate-spin"></div>
+          <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/50">
+            <div className="w-12 h-12 border-4 border-[#7C9CFF] border-t-transparent rounded-full animate-spin"></div>
           </div>
         )}
       </Dialog>

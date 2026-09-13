@@ -1,23 +1,29 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { useAuthStore } from "../../store/authStore";
 import { useLocation, useNavigate } from "react-router-dom";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import AuthLayout from "./authLayout";
 
+const mono = { fontFamily: "'Space Mono', monospace" };
+
+const buttonClass =
+  "rounded-xl bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] py-3.5 font-semibold hover:scale-[1.02] hover:shadow-lg hover:shadow-[#7C9CFF]/20 transition";
+
+const otpInputClass =
+  "w-12 h-12 text-center text-xl rounded-lg bg-[#0E1016] border border-[#2A2E3D] text-[#F3F4F8] focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40 focus:border-[#7C9CFF] transition";
+
 const VerifyOtp: React.FC = () => {
   const [otp, setOtp] = useState<string[]>(Array(6).fill(""));
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
-  const [timer,setTimer] = useState<number>(60);
-
+  const [timer, setTimer] = useState<number>(60);
 
   const { verifyOtp, resendOtp } = useAuthStore();
   const navigate = useNavigate();
   const { search } = useLocation();
   const email = new URLSearchParams(search).get("email") || "";
   const type = new URLSearchParams(search).get("type") || "";
-
 
   function handleChange(value: string, index: number) {
     if (!/^\d*$/.test(value)) return;
@@ -27,13 +33,11 @@ const VerifyOtp: React.FC = () => {
     if (value && index < 5) inputRefs.current[index + 1]?.focus();
   }
 
-
   function handleKeyDown(e: React.KeyboardEvent<HTMLInputElement>, index: number) {
     if (e.key === "Backspace" && !otp[index] && index > 0) {
       inputRefs.current[index - 1]?.focus();
     }
   }
-
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -52,7 +56,6 @@ const VerifyOtp: React.FC = () => {
         navigate(`/reset-password?email=${email}`);
       }
     } catch (err: unknown) {
-      //// Narrow the error type safely
       if (err instanceof Error) {
         toast.error(err.message);
       } else if (typeof err === "object" && err !== null && "response" in err) {
@@ -63,15 +66,14 @@ const VerifyOtp: React.FC = () => {
       }
     }
   }
-
 
   async function handleResendOtp(e: React.FormEvent) {
     e.preventDefault();
     try {
       await resendOtp(email, type);
       toast.success("OTP resent! 📩");
+      setTimer(60);
     } catch (err: unknown) {
-      //// Narrow the error type safely
       if (err instanceof Error) {
         toast.error(err.message);
       } else if (typeof err === "object" && err !== null && "response" in err) {
@@ -83,63 +85,60 @@ const VerifyOtp: React.FC = () => {
     }
   }
 
-
-  useEffect(()=>{
-    if(timer>0){
-      const countDown = setTimeout(()=>setTimer((prev)=>prev-1),1000)
-      return ()=> clearTimeout(countDown);
+  useEffect(() => {
+    if (timer > 0) {
+      const countDown = setTimeout(() => setTimer((prev) => prev - 1), 1000);
+      return () => clearTimeout(countDown);
     }
-  },[timer]);
+  }, [timer]);
 
-  
   return (
-    <>
-      <AuthLayout title={type === "signup" ? "Verify Your Account" : "Reset Your Password"} subtitle={`Enter the OTP sent to <span className="text-yellow-300">${email}</span>`} >
+    <AuthLayout
+      title={type === "signup" ? "Verify your account" : "Reset your password"}
+      subtitle={`Enter the code sent to <span style="color:#7C9CFF;font-weight:600">${email}</span>`}
+    >
+      <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+        <div className="flex justify-between gap-2">
+          {otp.map((digit, index) => (
+            <Input
+              key={index}
+              type="text"
+              inputMode="numeric"
+              maxLength={1}
+              value={digit}
+              onChange={(e) => handleChange(e.target.value, index)}
+              onKeyDown={(e) => handleKeyDown(e, index)}
+              ref={(el) => {
+                inputRefs.current[index] = el;
+              }}
+              className={otpInputClass}
+            />
+          ))}
+        </div>
 
-          {/* OTP Form */}
-          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-            <div className="flex justify-between gap-2">
-              {otp.map((digit, index) => (
-                <Input
-                  key={index}
-                  type="text"
-                  maxLength={1}
-                  value={digit}
-                  onChange={(e) => handleChange(e.target.value, index)}
-                  onKeyDown={(e) => handleKeyDown(e, index)}
-                  ref={(el) => {inputRefs.current[index] = el}}
-                  className="w-12 h-12 text-center text-xl rounded-lg text-gray-500 focus:ring-2 focus:ring-indigo-500"
-                />
-              ))}
-            </div>
+        <Button type="submit" className={buttonClass}>
+          Verify code
+        </Button>
+      </form>
 
-            <Button
-              type="submit"
-              className="rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 text-gray-500 py-4 font-bold hover:scale-105 hover:shadow-lg transition"
+      <p className="mt-6 text-center text-sm text-[#9CA1B5]">
+        {timer > 0 ? (
+          <span>
+            Resend in <span style={mono}>00:{timer.toString().padStart(2, "0")}</span>
+          </span>
+        ) : (
+          <>
+            Didn't receive a code?{" "}
+            <button
+              onClick={handleResendOtp}
+              className="font-medium text-[#7C9CFF] transition hover:text-[#C08BFA]"
             >
-              Verify OTP
-            </Button>
-          </form>
-
-          {/* Resend OTP */}
-          <p className="text-center text-gray-200 mt-6">
-            {timer>0? (
-            <span className="text-gray-400">
-              Resend in 00:{timer.toString().padStart(2, "0")}
-            </span>
-            ):(
-            <>
-            Didn’t receive an OTP?{" "}
-            <button onClick={handleResendOtp} className="text-yellow-400 hover:underline">
               Resend
             </button>
-            </>
-            )}
-          </p>
-
-      <Toaster position="top-center" reverseOrder={false} />
+          </>
+        )}
+      </p>
     </AuthLayout>
-    </>
   );
 };
 

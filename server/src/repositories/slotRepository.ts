@@ -1,19 +1,15 @@
-// ======================================
-// BACKEND - repositories/slotRepository.ts
-// ======================================
-
 import { injectable } from "inversify";
 
 import {
   ISlotRule,
   SlotRuleModel,
-} from "../models/slotRule";
+} from "../models/slotRule.js";
 
 import { Types } from "mongoose";
 
-import { ISlotRepository } from "./interfaces/ISlotRepository";
+import { ISlotRepository } from "./interfaces/ISlotRepository.js";
 
-import { CreateSlotRuleDto } from "../dtos/tutor.dto";
+import { CreateSlotRuleDto } from "../dtos/tutor.dto.js";
 
 @injectable()
 export class SlotRepository

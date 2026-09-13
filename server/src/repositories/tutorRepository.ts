@@ -2,11 +2,10 @@ import { inject, injectable } from "inversify";
 import { FilterQuery } from "mongoose";
 import { ParsedQs } from "qs";
 
-import { TutorModel, ITutor } from "../models/tutor";
-import { ITutorRepository } from "./interfaces/ITutorRepository";
-import { TYPES } from "../types/types";
-import { BaseRepository } from "./baseRepository";
-import { string } from "zod";
+import { TutorModel, ITutor } from "../models/tutor.js";
+import { ITutorRepository } from "./interfaces/ITutorRepository.js";
+import { TYPES } from "../types/types.js";
+import { BaseRepository } from "./baseRepository.js";
 
 @injectable()
 export class TutorRepository
@@ -83,7 +82,7 @@ export class TutorRepository
       .populate(
         "tutorId",
         "_id name email"
-      );
+      ).lean();
 
     switch (query?.sortBy) {
 

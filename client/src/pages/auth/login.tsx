@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { isValidEmail } from "../../utils/validators";
 import toast from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import AuthLayout from "./authLayout";
 import { FcGoogle } from "react-icons/fc";
@@ -18,12 +18,20 @@ declare global {
   }
 }
 
+const mono = { fontFamily: "'Space Mono', monospace" };
+
+const inputClass =
+  "rounded-xl px-5 py-3.5 bg-[#0E1016] border border-[#2A2E3D] text-[#F3F4F8] placeholder:text-[#6B7185] focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40 focus:border-[#7C9CFF] transition";
+
+const buttonClass =
+  "rounded-xl bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] py-3.5 font-semibold hover:scale-[1.02] hover:shadow-lg hover:shadow-[#7C9CFF]/20 transition";
+
 const Login: React.FC = () => {
   const navigate = useNavigate();
   const { login } = useAuthStore();
   const [formData, setFormData] = useState({ email: "", password: "" });
 
-  const navigateBasedOnRole = () => {
+  const navigateBasedOnRole = useCallback(() => {
     const role = useAuthStore.getState().user?.role;
     if (role === "admin") {
       navigate("/admin-dashboard");
@@ -32,7 +40,7 @@ const Login: React.FC = () => {
     } else {
       navigate("/explore-tutors");
     }
-  };
+  }, [navigate]);
 
   function validate(): boolean {
     if (!formData.email || !isValidEmail(formData.email)) {
@@ -57,12 +65,12 @@ const Login: React.FC = () => {
 
     try {
       const response = await login(formData.email, formData.password);
-      
+
       await useAuthStore.getState().fetchUser();
 
       if (!response.success) {
         if (response.errors) {
-          response.errors.forEach(err => toast.error(`${err.field}: ${err.message}`));
+          response.errors.forEach((err) => toast.error(`${err.field}: ${err.message}`));
         } else {
           toast.error(response.message);
         }
@@ -81,7 +89,9 @@ const Login: React.FC = () => {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("googleSuccess")) {
-      useAuthStore.getState().fetchUser()
+      useAuthStore
+        .getState()
+        .fetchUser()
         .then(() => {
           toast.success("Logged in with Google! 🎉");
           navigateBasedOnRole();
@@ -96,8 +106,7 @@ const Login: React.FC = () => {
     } else {
       useAuthStore.setState({ isLoading: false });
     }
-  }, []);
-
+  }, [navigateBasedOnRole]);
 
   function handleGoogle() {
     useAuthStore.setState({ isLoading: true, user: null, isAuthenticated: false });
@@ -105,14 +114,13 @@ const Login: React.FC = () => {
   }
 
   return (
-    <AuthLayout title="Welcome Back" subtitle="Log in to continue your learning journey">
-      {/* Login Form */}
-      <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
+    <AuthLayout title="Welcome back" subtitle="Log in to continue your learning journey">
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
         <Input
           name="email"
           type="email"
           placeholder="Email"
-          className="rounded-xl px-6 py-4 text-gray-500 focus:ring-2 focus:ring-indigo-500"
+          className={inputClass}
           onChange={handleChange}
           value={formData.email}
         />
@@ -120,42 +128,39 @@ const Login: React.FC = () => {
           name="password"
           type="password"
           placeholder="Password"
-          className="rounded-xl px-6 py-4 text-gray-500 focus:ring-2 focus:ring-indigo-500"
+          className={inputClass}
           onChange={handleChange}
           value={formData.password}
         />
 
-        <div className="flex justify-between items-center text-sm">
-          <a href="/forgot-password" className="text-indigo-300 hover:underline">
-            Forgot Password?
-          </a>
-          <a href="/signup" className="text-yellow-400 hover:underline">
-            Create Account
-          </a>
+        <div className="flex items-center justify-between text-sm">
+          <Link to="/forgot-password" className="text-[#9CA1B5] transition hover:text-[#7C9CFF]">
+            Forgot password?
+          </Link>
+          <Link to="/signup" className="font-medium text-[#7C9CFF] transition hover:text-[#C08BFA]">
+            Create account
+          </Link>
         </div>
 
-        <Button
-          type="submit"
-          className="rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 text-white py-4 font-bold hover:scale-105 hover:shadow-lg transition"
-        >
-          Log In
+        <Button type="submit" className={buttonClass}>
+          Log in
         </Button>
       </form>
 
-      {/* Divider */}
-      <div className="flex items-center gap-4 my-6">
-        <span className="flex-grow h-px bg-gray-600"></span>
-        <span className="text-sm text-gray-400">or</span>
-        <span className="flex-grow h-px bg-gray-600"></span>
+      <div className="my-6 flex items-center gap-4">
+        <span className="h-px flex-grow bg-[#2A2E3D]" />
+        <span style={mono} className="text-[11px] tracking-wider text-[#6B7185]">
+          OR
+        </span>
+        <span className="h-px flex-grow bg-[#2A2E3D]" />
       </div>
 
-      {/* Google Login */}
       <Button
         onClick={handleGoogle}
         type="button"
-        className="w-full rounded-xl bg-white text-gray-900 px-4 py-3 flex items-center justify-center gap-3 hover:bg-gray-100 transition"
+        className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#2A2E3D] bg-white px-4 py-3 text-gray-900 transition hover:bg-gray-100"
       >
-        <FcGoogle className="w-6 h-6" />
+        <FcGoogle className="h-5 w-5" />
         Continue with Google
       </Button>
     </AuthLayout>

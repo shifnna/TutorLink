@@ -11,38 +11,44 @@ import { AuthController } from "../controllers/authController";
 import { IAuthService } from "../services/interfaces/IAuthService";
 import { AuthService } from "../services/authServices";
 
-import { UserModel } from "../models/user";
+import { UserModel } from "../models/user.js";
 
 import { ITutorRepository } from "../repositories/interfaces/ITutorRepository";
 import { TutorRepository } from "../repositories/tutorRepository";
 
-import { ITutorService } from "../services/interfaces/ITutorService";
-import { TutorService } from "../services/tutorService";
+import { ITutorService } from "../services/interfaces/ITutorService.js";
+import { TutorService } from "../services/tutorService.js";
 
-import { ITutorController } from "../controllers/interfaces/ITutorController";
-import { TutorController } from "../controllers/tutorController";
+import { ITutorController } from "../controllers/interfaces/ITutorController.js";
+import { TutorController } from "../controllers/tutorController.js";
 
-import { IAdminController } from "../controllers/interfaces/IAdminController";
-import { AdminController } from "../controllers/adminController";
-import { IAdminService } from "../services/interfaces/IAdminService";
+import { IAdminController } from "../controllers/interfaces/IAdminController.js";
+import { AdminController } from "../controllers/adminController.js";
+import { IAdminService } from "../services/interfaces/IAdminService.js";
 
-import { IAdminRepository } from "../repositories/interfaces/IAdminRepository";
-import { AdminRepository } from "../repositories/adminRepository";
-import { TutorModel } from "../models/tutor";
-import { AdminService } from "../services/adminService";
+import { IAdminRepository } from "../repositories/interfaces/IAdminRepository.js";
+import { AdminRepository } from "../repositories/adminRepository.js";
+import { TutorModel } from "../models/tutor.js";
+import { AdminService } from "../services/adminService.js";
 
-import { ISlotController } from "../controllers/interfaces/ISlotController";
-import { SlotController } from "../controllers/slotController";
-import { ISlotService } from "../services/interfaces/ISlotService";
-import { SlotService } from "../services/slotService";
-import { ISlotRepository } from "../repositories/interfaces/ISlotRepository";
-import { SlotRepository } from "../repositories/slotRepository";
-import { ISessionController } from "../controllers/interfaces/ISessionController";
-import { SessionController } from "../controllers/sessionController";
-import { ISessionService } from "../services/interfaces/ISessionService";
-import { SessionService } from "../services/SessionService";
-import { ISessionRepository } from "../repositories/interfaces/ISessionRepository";
-import { SessionRepository } from "../repositories/SessionRepository";
+import { ISlotController } from "../controllers/interfaces/ISlotController.js";
+import { SlotController } from "../controllers/slotController.js";
+import { ISlotService } from "../services/interfaces/ISlotService.js";
+import { SlotService } from "../services/slotService.js";
+import { ISlotRepository } from "../repositories/interfaces/ISlotRepository.js";
+import { SlotRepository } from "../repositories/slotRepository.js";
+import { ISessionController } from "../controllers/interfaces/ISessionController.js";
+import { SessionController } from "../controllers/sessionController.js";
+import { ISessionService } from "../services/interfaces/ISessionService.js";
+import { SessionService } from "../services/SessionService.js";
+import { ISessionRepository } from "../repositories/interfaces/ISessionRepository.js";
+import { SessionRepository } from "../repositories/SessionRepository.js";
+import { INotificationRepository } from "../repositories/interfaces/INotificationRepository.js";
+import { INotificationService } from "../services/interfaces/INotificationService.js";
+import { INotificationController } from "../controllers/interfaces/INotificationController.js";
+import { NotificationRepository } from "../repositories/notificationRepository.js";
+import { NotificationService } from "../services/notificationService.js";
+import { NotificationController } from "../controllers/notificationController.js";
 
 const container = new Container();
 
@@ -69,5 +75,9 @@ container.bind<ISlotRepository>(TYPES.ISlotRepository).to(SlotRepository);
 container.bind<ISessionController>(TYPES.ISessionController).to(SessionController);
 container.bind<ISessionService>(TYPES.ISessionService).to(SessionService);
 container.bind<ISessionRepository>(TYPES.ISessionRepository).to(SessionRepository);
+
+container.bind<INotificationRepository>(TYPES.INotificationRepository).to(NotificationRepository);
+container.bind<INotificationService>(TYPES.INotificationService).to(NotificationService);
+container.bind<INotificationController>(TYPES.INotificationController).to(NotificationController);
 
 export default container;

@@ -1,10 +1,21 @@
 import React, { useEffect, useState } from "react";
 import SessionTable, { ISession } from "../../components/userCommon/sessionTable";
 import { useAuthStore } from "../../store/authStore";
-import UserSidebar from "../../components/userCommon/sidebar";
 import { getAllSessions } from "../../services/sessionService";
 import { motion } from "framer-motion";
-import { toast, Toaster } from "react-hot-toast";
+import { Toaster } from "react-hot-toast";
+
+// Midnight theme type treatment — same Fraunces / Space Mono pairing as the homepage
+const fraunces = { fontFamily: "'Fraunces', Georgia, serif" };
+const mono = { fontFamily: "'Space Mono', monospace" };
+
+const toastDarkOptions = {
+  style: {
+    background: "#171A24",
+    color: "#F3F4F8",
+    border: "1px solid #2A2E3D",
+  },
+};
 
 const ClientSessionManagement: React.FC = () => {
   const { user } = useAuthStore();
@@ -37,12 +48,38 @@ const ClientSessionManagement: React.FC = () => {
     if (user) fetchSessions();
   }, [user]);
 
-  return (
-    <div className="flex min-h-screen bg-slate-50 text-slate-900">
-      <Toaster position="top-center" />
-      <UserSidebar />
+  useEffect(() => {
+    const id = "tutorlink-midnight-fonts";
+    if (document.getElementById(id)) return;
 
-      <main className="flex-1 px-8 py-10 overflow-y-auto">
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href =
+      "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,450;9..144,550;9..144,650&family=Space+Mono:wght@400;700&display=swap";
+    document.head.appendChild(link);
+  }, []);
+
+  return (
+    <div className="relative flex min-h-screen bg-[#0E1016] text-[#F3F4F8]">
+
+      {/* Ambient background, same treatment as the homepage */}
+      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+        <div
+          className="absolute top-[-10%] right-[-5%] w-[60vmax] h-[60vmax] rounded-full opacity-25 animate-blob mix-blend-screen blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(124,156,255,0.5) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-[-10%] left-[-10%] w-[50vmax] h-[50vmax] rounded-full opacity-25 animate-blob mix-blend-screen blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(192,139,250,0.5) 0%, transparent 70%)", animationDelay: "-4s" }}
+        />
+        <div className="absolute inset-0 bg-[#0E1016]/30 backdrop-blur-[1px]" />
+      </div>
+
+      <Toaster position="top-center" toastOptions={toastDarkOptions} />
+      {/* <UserSidebar /> */}
+
+      <main className="relative flex-1 px-8 py-10 overflow-y-auto">
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -51,24 +88,41 @@ const ClientSessionManagement: React.FC = () => {
         >
           {/* HEADER SECTION */}
           <div className="mb-10">
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-slate-900">
+            <span
+              style={mono}
+              className="inline-flex items-center gap-2 rounded-full border border-[#2A2E3D] bg-[#171A24]/60 px-4 py-1.5 text-[11px] uppercase tracking-wider text-[#9CA1B5]"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA]" />
+              Sessions
+            </span>
+
+            <h1
+              style={{ ...fraunces, fontWeight: 550 }}
+              className="mt-4 text-3xl md:text-4xl font-bold tracking-tight"
+            >
               My Sessions
             </h1>
-            <p className="text-slate-500 mt-2 text-sm">
+
+            <p>completed sessions:</p>
+            <p>cancelled sessions:</p>
+            <p>upcoming sessions:</p>
+
+            <p className="text-[#9CA1B5] mt-2 text-sm">
               View and manage all your booked sessions in one place.
             </p>
           </div>
 
           {/* CARD WRAPPER */}
-          <div className="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
+          <div className="relative overflow-hidden rounded-2xl border border-[#2A2E3D] bg-[#171A24] shadow-xl">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#7C9CFF] via-[#A78CF5] to-[#C08BFA]" />
 
             {/* TOP BAR */}
-            <div className="flex items-center justify-between px-6 py-4 border-b border-slate-100">
-              <h2 className="text-sm font-semibold text-slate-700">
+            <div className="flex items-center justify-between px-6 py-4 border-b border-[#2A2E3D]">
+              <h2 className="text-sm font-semibold text-[#F3F4F8]">
                 Session History
               </h2>
 
-              <span className="text-xs text-slate-400">
+              <span style={mono} className="text-xs text-[#9CA1B5]">
                 {sessions.length} total
               </span>
             </div>

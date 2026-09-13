@@ -1,12 +1,12 @@
 import { inject, injectable } from "inversify";
-import { TYPES } from "../types/types";
-import { ITutorRepository } from "../repositories/interfaces/ITutorRepository";
-import { ITutorService } from "./interfaces/ITutorService";
-import { ITutor } from "../models/tutor";
-import { IClientRepository } from "../repositories/interfaces/IClientRepository";
+import { TYPES } from "../types/types.js";
+import { ITutorRepository } from "../repositories/interfaces/ITutorRepository.js";
+import { ITutorService } from "./interfaces/ITutorService.js";
+import { ITutor } from "../models/tutor.js";
+import { IClientRepository } from "../repositories/interfaces/IClientRepository.js";
 import { Types } from "mongoose";
-import { TutorMapper } from "../mappers/tutor.mapper";
-import { ApplyTutorRequestDTO } from "../dtos/tutor.dto";
+import { TutorMapper } from "../mappers/tutor.mapper.js";
+import { ApplyTutorRequestDTO, TutorResponseDTO } from "../dtos/tutor.dto.js";
 import { ParsedQs } from "qs";
 
 
@@ -22,50 +22,56 @@ export class TutorService implements ITutorService {
   }
 
   async applyForTutor(userId: string, dto: ApplyTutorRequestDTO): Promise<ITutor> {
-    const mappedData = TutorMapper.toDomain(userId,dto);
-    const tutor = await this._tutorRepo.create(mappedData);
+  const mappedData = TutorMapper.toDomain(userId, dto);
 
-    await this._userRepo.findByIdAndUpdate(userId, { 
-      tutorProfile: tutor._id as Types.ObjectId, 
-      tutorApplication: { status: "Pending" } 
-    });
-    console.log("User updated successfully");
+  const existing = await this._tutorRepo.findOne({ tutorId: userId });
 
-    return tutor;
-  }
+  const tutor = existing
+    ? await this._tutorRepo.findOneAndUpdate(
+        { tutorId: userId },
+        { ...mappedData, adminApproved: false }
+      )
+    : await this._tutorRepo.create(mappedData);
+
+  if (!tutor) throw new Error("Failed to save tutor application");
+
+  await this._userRepo.findByIdAndUpdate(userId, {
+    tutorProfile: tutor._id as Types.ObjectId,
+    tutorApplication: { status: "Pending" },
+  });
+
+  return tutor;
+}
      
 
   async getAllTutors(
   currentTutorId?: string,
   query?: ParsedQs
-): Promise<ITutor[]> {
+): Promise<TutorResponseDTO[]> {
 
   const tutors = await this._tutorRepo.findAllApproved(
     currentTutorId,
     query
   );
 
-  return tutors.map((tutor: ITutor) => {
+  return tutors.map((tutor) => ({
+    ...tutor,
 
-    return {
-      ...tutor.toObject(),
+    profileImage:
+      tutor.profileImage || "",
 
-      profileImage:
-        tutor.profileImage || null,
-
-      certificates:
-        tutor.certificates || [],
-    };
-  });
+    certificates:
+      tutor.certificates || [],
+  }));
 }
 
   async getTutorById(tutorId: string): Promise<ITutor | null> {
   const tutor = await this._tutorRepo.findById(tutorId);
   if (!tutor) return null;
 
-  let profileImage: string | null = null;
+  const profileImage: string | null = null;
 
-  let certificates: string[] = [];
+  const certificates: string[] = [];
   return {
     ...tutor.toObject(),
     profileImage: profileImage,

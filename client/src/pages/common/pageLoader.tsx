@@ -6,27 +6,139 @@ const PageLoader = () => {
     <motion.div
       initial={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[9999] flex items-center justify-center bg-white"
+      transition={{ duration: 0.35 }}
+      className="
+        fixed
+        inset-0
+        z-[9999]
+        flex
+        items-center
+        justify-center
+        bg-[#0E1016]
+        overflow-hidden
+      "
     >
-      <div className="flex flex-col items-center gap-6">
+      {/* Background glow */}
+      <div className="absolute inset-0 pointer-events-none">
+        <div
+          className="
+            absolute
+            top-[-15%]
+            right-[-10%]
+            w-[45vmax]
+            h-[45vmax]
+            rounded-full
+            opacity-20
+            blur-3xl
+          "
+          style={{
+            background:
+              "radial-gradient(circle, rgba(124,156,255,0.5) 0%, transparent 70%)",
+          }}
+        />
+
+        <div
+          className="
+            absolute
+            bottom-[-15%]
+            left-[-10%]
+            w-[40vmax]
+            h-[40vmax]
+            rounded-full
+            opacity-20
+            blur-3xl
+          "
+          style={{
+            background:
+              "radial-gradient(circle, rgba(192,139,250,0.5) 0%, transparent 70%)",
+          }}
+        />
+      </div>
+
+      <div className="relative flex flex-col items-center gap-6">
+        {/* Logo container */}
         <motion.div
           animate={{
-            rotate: [0, -15, 15, 0],
-            scale: [1, 1.1, 1],
+            rotate: [0, -8, 8, 0],
+            scale: [1, 1.08, 1],
           }}
           transition={{
-            duration: 1.2,
+            duration: 1.4,
             repeat: Infinity,
             ease: "easeInOut",
           }}
-          className="bg-indigo-600 p-5 rounded-2xl shadow-xl shadow-indigo-200"
+          className="
+            relative
+            w-[76px]
+            h-[76px]
+            rounded-[22px]
+            flex
+            items-center
+            justify-center
+            bg-gradient-to-br
+            from-[#7C9CFF]
+            to-[#C08BFA]
+            shadow-[0_0_40px_rgba(124,156,255,0.25)]
+          "
         >
-          <FaGraduationCap className="text-white w-6 h-6" />
+          <FaGraduationCap className="text-[#0E1016] w-9 h-9" />
+
+          {/* Small rotating glow ring */}
+          <motion.div
+            animate={{ rotate: 360 }}
+            transition={{
+              duration: 3,
+              repeat: Infinity,
+              ease: "linear",
+            }}
+            className="
+              absolute
+              inset-[-7px]
+              rounded-[27px]
+              border
+              border-[#7C9CFF]/20
+            "
+          />
         </motion.div>
 
-        {/* <h1 className="text-3xl font-extrabold text-slate-800">
-          Tutor<span className="text-indigo-600">Link</span>
-        </h1> */}
+        {/* TutorLink text */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15, duration: 0.4 }}
+          className="
+            text-[24px]
+            font-semibold
+            tracking-tight
+          "
+          style={{ fontFamily: "'Fraunces', Georgia, serif" }}
+        >
+        </motion.div>
+
+        {/* Loading dots */}
+        <div className="flex items-center gap-1.5">
+          {[0, 1, 2].map((dot) => (
+            <motion.span
+              key={dot}
+              animate={{
+                opacity: [0.3, 1, 0.3],
+                scale: [0.8, 1, 0.8],
+              }}
+              transition={{
+                duration: 1,
+                repeat: Infinity,
+                delay: dot * 0.15,
+                ease: "easeInOut",
+              }}
+              className="
+                w-1.5
+                h-1.5
+                rounded-full
+                bg-[#A78BFA]
+              "
+            />
+          ))}
+        </div>
       </div>
     </motion.div>
   );

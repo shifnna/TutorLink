@@ -1,16 +1,16 @@
-import { IUser } from "../models/user";
-import { IClientRepository } from "../repositories/interfaces/IClientRepository";
+import { IUser } from "../models/user.js";
+import { IClientRepository } from "../repositories/interfaces/IClientRepository.js";
 import bcrypt from "bcryptjs";
-import { sendOTP } from "../config/mailer";
+import { sendOTP } from "../config/mailer.js";
 import { injectable } from "inversify";
 import { inject } from "inversify";
-import { TYPES } from "../types/types";
-import { IAuthService } from "./interfaces/IAuthService";
-import { COMMON_ERROR } from "../utils/constants";
-import { generateAccessToken, generateRefreshToken } from "../utils/tokens";
-import { WalletModel } from "../models/wallet";
-import { LoginRequestDTO, ResendOtpRequestDTO, ResetPasswordRequestDTO, SignupRequestDTO, VerifyOtpRequestDTO } from "../dtos/auth.dto";
-import { AuthMapper } from "../mappers/auth.mapper";
+import { TYPES } from "../types/types.js";
+import { IAuthService } from "./interfaces/IAuthService.js";
+import { COMMON_ERROR } from "../utils/constants.js";
+import { generateAccessToken, generateRefreshToken } from "../utils/tokens.js";
+import { WalletModel } from "../models/wallet.js";
+import { LoginRequestDTO, ResendOtpRequestDTO, ResetPasswordRequestDTO, SignupRequestDTO, VerifyOtpRequestDTO } from "../dtos/auth.dto.js";
+import { AuthMapper } from "../mappers/auth.mapper.js";
 
 @injectable()
 export class AuthService implements IAuthService{

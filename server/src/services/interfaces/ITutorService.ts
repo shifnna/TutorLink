@@ -1,6 +1,6 @@
 import { ParsedQs } from "qs";
-import { ITutor } from "../../models/tutor";
-import { ApplyTutorRequestDTO } from "../../dtos/tutor.dto";
+import { ITutor } from "../../models/tutor.js";
+import { ApplyTutorRequestDTO, TutorResponseDTO } from "../../dtos/tutor.dto.js";
 
 export interface ITutorService {
 
@@ -16,7 +16,7 @@ export interface ITutorService {
   getAllTutors(
     currentTutorId?: string,
     query?: ParsedQs
-  ): Promise<ITutor[]>;
+  ): Promise<TutorResponseDTO[]>;
 
   getTutorById(
     tutorId: string

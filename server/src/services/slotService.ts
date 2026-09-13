@@ -1,24 +1,20 @@
-// ======================================
-// BACKEND - services/slotService.ts
-// ======================================
-
 import {
   injectable,
   inject,
 } from "inversify";
 
-import { TYPES } from "../types/types";
+import { TYPES } from "../types/types.js";
 
-import { ISlotRepository } from "../repositories/interfaces/ISlotRepository";
+import { ISlotRepository } from "../repositories/interfaces/ISlotRepository.js";
 
-import { ISlotService } from "./interfaces/ISlotService";
+import { ISlotService } from "./interfaces/ISlotService.js";
 
 import {
   CreateSlotRuleDto,
   IScheduleDto,
-} from "../dtos/tutor.dto";
+} from "../dtos/tutor.dto.js";
 
-import { ISlotRule } from "../models/slotRule";
+import { ISlotRule } from "../models/slotRule.js";
 
 @injectable()
 export class SlotService

@@ -1,4 +1,4 @@
-import { ISlotRule } from "../../models/slotRule";
+import { ISlotRule } from "../../models/slotRule.js";
 
 export interface ISlotService {
   createSlotRules(tutorId: string, payload: unknown): Promise<ISlotRule>;

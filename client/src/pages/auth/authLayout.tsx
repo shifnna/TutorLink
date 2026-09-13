@@ -1,8 +1,10 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { FaGraduationCap } from "react-icons/fa";
 import { Toaster } from "react-hot-toast";
 import { useAuthStore } from "../../store/authStore";
+import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
+import PageLoader from "../common/pageLoader";
 
 interface AuthLayoutProps {
   title: string;
@@ -12,124 +14,125 @@ interface AuthLayoutProps {
 
 const easeOutExpo = [0.22, 1, 0.36, 1] as const;
 
+const fraunces = { fontFamily: "'Fraunces', Georgia, serif" };
+const mono = { fontFamily: "'Space Mono', monospace" };
+
 const container = {
   hidden: { opacity: 0 },
   visible: {
     opacity: 1,
-    transition: { staggerChildren: 0.12 },
+    transition: { staggerChildren: 0.1, delayChildren: 0.05 },
   },
 };
 
 const item = {
-  hidden: { opacity: 0, y: 28 },
+  hidden: { opacity: 0, y: 24 },
   visible: {
     opacity: 1,
     y: 0,
-    transition: { duration: 0.55, ease: easeOutExpo },
+    transition: { duration: 0.5, ease: easeOutExpo },
   },
 };
 
-const AuthLayout: React.FC<AuthLayoutProps> = ({
-  title,
-  subtitle,
-  children,
-}) => {
+// Same toast styling used on Home, so notifications look identical app-wide.
+const toastDarkOptions = {
+  style: {
+    background: "#171A24",
+    color: "#F3F4F8",
+    border: "1px solid #2A2E3D",
+  },
+};
+
+const AuthLayout: React.FC<AuthLayoutProps> = ({ title, subtitle, children }) => {
   const { isLoading } = useAuthStore();
+  const navigate = useNavigate();
+
+  // Load the same display + mono typefaces used on Home / ExploreTutors.
+  useEffect(() => {
+    const id = "tutorlink-midnight-fonts";
+    if (document.getElementById(id)) return;
+
+    const link = document.createElement("link");
+    link.id = id;
+    link.rel = "stylesheet";
+    link.href =
+      "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,450;9..144,550;9..144,650&family=Space+Mono:wght@400;700&display=swap";
+    document.head.appendChild(link);
+  }, []);
 
   return (
-    <div className="relative flex min-h-screen bg-slate-50 text-slate-900 overflow-hidden font-sans">
-      {/* Animated Background (same style as Home) */}
-      <div className="fixed inset-0 pointer-events-none overflow-hidden -z-10">
+    <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-[#0E1016] px-6 py-12 font-sans text-[#F3F4F8]">
+      {/* background glow — matches Home / ExploreTutors */}
+      <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
         <div
-          className="absolute top-[-10%] right-[-5%] w-[60vmax] h-[60vmax] rounded-full opacity-30 animate-blob mix-blend-multiply filter blur-3xl"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(167,139,250,0.4) 0%, transparent 70%)",
-          }}
+          className="absolute top-[-10%] right-[-5%] h-[60vmax] w-[60vmax] rounded-full opacity-25 mix-blend-screen blur-3xl animate-blob"
+          style={{ background: "radial-gradient(circle, rgba(124,156,255,0.5) 0%, transparent 70%)" }}
         />
         <div
-          className="absolute bottom-[-10%] left-[-10%] w-[50vmax] h-[50vmax] rounded-full opacity-30 animate-blob mix-blend-multiply filter blur-3xl"
+          className="absolute bottom-[-10%] left-[-10%] h-[50vmax] w-[50vmax] rounded-full opacity-25 mix-blend-screen blur-3xl animate-blob"
           style={{
-            background:
-              "radial-gradient(circle, rgba(251,191,36,0.4) 0%, transparent 70%)",
+            background: "radial-gradient(circle, rgba(192,139,250,0.5) 0%, transparent 70%)",
             animationDelay: "-4s",
           }}
         />
-        <div
-          className="absolute top-[30%] left-[40%] w-[40vmax] h-[40vmax] rounded-full opacity-30 animate-blob mix-blend-multiply filter blur-3xl"
-          style={{
-            background:
-              "radial-gradient(circle, rgba(244,114,182,0.4) 0%, transparent 70%)",
-            animationDelay: "-8s",
-          }}
-        />
-        <div className="absolute inset-0 bg-white/40 backdrop-blur-[1px]" />
+        <div className="absolute inset-0 bg-[#0E1016]/30 backdrop-blur-[1px]" />
       </div>
 
-      {/* Center Card */}
-      <div className="flex flex-1 items-center justify-center p-6">
+      <motion.div variants={container} initial="hidden" animate="visible" className="relative w-full max-w-md">
         <motion.div
-          variants={container}
-          initial="hidden"
-          animate="visible"
-          className="relative w-full max-w-md"
+          variants={item}
+          className="rounded-3xl border border-[#2A2E3D] bg-[#171A24] p-10 shadow-[0_20px_60px_rgba(0,0,0,0.45)]"
         >
-          <motion.div
+          {/* Logo */}
+          <motion.button
             variants={item}
-            className="bg-white rounded-3xl p-10 shadow-[0_20px_60px_rgba(0,0,0,0.08)] ring-1 ring-slate-100"
+            type="button"
+            onClick={() => navigate("/")}
+            className="mb-8 flex w-full items-center justify-center gap-2.5"
           >
-            {/* Logo */}
-            <motion.div
+            <div className="rounded-lg bg-gradient-to-br from-[#7C9CFF] to-[#C08BFA] p-2">
+              <FaGraduationCap className="h-5 w-5 text-[#0E1016]" />
+            </div>
+            <span style={fraunces} className="text-2xl font-semibold">
+              Tutor
+              <span className="bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] bg-clip-text text-transparent">
+                Link
+              </span>
+            </span>
+          </motion.button>
+
+          {/* Heading */}
+          <motion.h2 variants={item} style={{ ...fraunces, fontWeight: 550 }} className="mb-2 text-center text-3xl">
+            {title}
+          </motion.h2>
+
+          {subtitle && (
+            <motion.p
               variants={item}
-              className="flex items-center justify-center gap-3 mb-8"
-            >
-              <motion.div
-                animate={{ rotate: [0, -10, 10, 0] }}
-                transition={{
-                  duration: 4,
-                  repeat: Infinity,
-                  repeatDelay: 4,
-                }}
-                className="bg-indigo-600 p-3 rounded-xl shadow-lg shadow-indigo-200"
-              >
-                <FaGraduationCap className="w-7 h-7 text-white" />
-              </motion.div>
+              className="mb-8 text-center text-sm leading-relaxed text-[#9CA1B5]"
+              dangerouslySetInnerHTML={{ __html: subtitle }}
+            />
+          )}
 
-              <h1 className="text-3xl font-extrabold tracking-tight text-slate-800">
-                Tutor<span className="text-indigo-600">Link</span>
-              </h1>
-            </motion.div>
-
-            {/* Heading */}
-            <motion.h2
-              variants={item}
-              className="text-2xl font-bold text-center text-slate-900 mb-3"
-            >
-              {title}
-            </motion.h2>
-
-            {subtitle && (
-              <motion.p
-                variants={item}
-                className="text-center text-slate-500 mb-8"
-                dangerouslySetInnerHTML={{ __html: subtitle }}
-              />
-            )}
-
-            {/* Form Content */}
-            <motion.div variants={item}>{children}</motion.div>
-          </motion.div>
+          {/* Form content */}
+          <motion.div variants={item}>{children}</motion.div>
         </motion.div>
-      </div>
+
+        <motion.p
+          variants={item}
+          style={mono}
+          className="mt-6 text-center text-[11px] tracking-wider text-[#6B7185]"
+        >
+          MATCHED IN MINUTES, NOT DAYS
+        </motion.p>
+      </motion.div>
 
       {/* Loader */}
       {isLoading && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm bg-black/20">
-          <div className="w-12 h-12 border-4 border-indigo-600 border-t-transparent rounded-full animate-spin"></div>
-        </div>
+        <PageLoader/>
       )}
 
-      <Toaster position="top-center" reverseOrder={false} />
+      <Toaster position="top-center" reverseOrder={false} toastOptions={toastDarkOptions} />
     </div>
   );
 };

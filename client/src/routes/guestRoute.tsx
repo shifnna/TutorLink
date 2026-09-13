@@ -11,7 +11,7 @@ const GuestRoute: React.FC<Props> = ({ children }) => {
 
   useEffect(() => {
     if (!user) fetchUser();
-  }, []);
+  }, [fetchUser,user]);
 
   if (isAuthenticated) return <Navigate to="/" replace />;
   return children;

@@ -10,5 +10,5 @@ export interface SelectedFilters {
   experienceLevels: string[];
   availableDays: string[];
   priceRange: PriceRange;
-  sortBy: "price_low_high" | "price_high_low" | "name_asc" | "name_desc";
+  sortBy: "all" | "price_low_high" | "price_high_low" | "name_asc" | "name_desc";
 }

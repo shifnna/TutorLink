@@ -23,4 +23,8 @@ export const TYPES = {
   ISessionService : Symbol.for("ISessionService"),
   ISessionRepository : Symbol.for("ISessionRepository"),
 
+  INotificationController : Symbol.for("INotificationControler"),
+  INotificationService : Symbol.for("INotificationService"),
+  INotificationRepository : Symbol.for("INotificationRepository")
+
 };

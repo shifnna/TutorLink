@@ -1,11 +1,11 @@
 import { Router } from "express";
-import container from "../container/inversify.config";
-import { IAdminController } from "../controllers/interfaces/IAdminController";
-import { TYPES } from "../types/types";
-import { adminOnly, protect } from "../middlewares/authMiddleware";
-import { validate } from "../middlewares/validate";
-import { approveTutorSchema, rejectTutorSchema, toggleUserSchema } from "../validators/adminValidator";
-import { loginSchema } from "../validators/authValidator";
+import container from "../container/inversify.config.js";
+import { IAdminController } from "../controllers/interfaces/IAdminController.js";
+import { TYPES } from "../types/types.js";
+import { adminOnly, protect } from "../middlewares/authMiddleware.js";
+import { validate } from "../middlewares/validate.js";
+import { approveTutorSchema, rejectTutorSchema, toggleUserSchema } from "../validators/adminValidator.js";
+import { loginSchema } from "../validators/authValidator.js";
 
 const router = Router();
 const controller = container.get<IAdminController>(TYPES.IAdminController)
@@ -19,7 +19,6 @@ router.patch("/users/approve/:userId",protect,adminOnly,validate(approveTutorSch
 router.patch("/users/reject/:userId",protect,adminOnly,validate(rejectTutorSchema), controller.rejectTutor);
 
 router.get("/sessions", protect,adminOnly, controller.getAllSessions);
-router.post("/sessions/generate-video-link", protect,adminOnly, controller.generateLink);
 router.post("/sessions/release", protect, adminOnly, controller.releasePayment);
 
 router.post("/login",validate(loginSchema),controller.adminLogin);

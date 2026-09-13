@@ -3,7 +3,6 @@ import { motion } from "framer-motion";
 import { Calendar, TriangleAlert } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 
-import UserSidebar from "../../components/userCommon/sidebar";
 import { Button } from "../../components/ui/button";
 
 import {
@@ -14,6 +13,18 @@ import {
 import {
   ISchedule,
 } from "../../types/ISlotRules";
+
+// Midnight theme type treatment — same Fraunces / Space Mono pairing as the homepage
+const fraunces = { fontFamily: "'Fraunces', Georgia, serif" };
+const mono = { fontFamily: "'Space Mono', monospace" };
+
+const toastDarkOptions = {
+  style: {
+    background: "#171A24",
+    color: "#F3F4F8",
+    border: "1px solid #2A2E3D",
+  },
+};
 
 const days = [
   "Monday",
@@ -64,8 +75,8 @@ const SlotManagement = () => {
         );
       }
 
-    } catch (error) {
-      console.error(error);
+    } catch (error: unknown) {
+  console.error(error instanceof Error ? error.message : error);
     }
   };
 
@@ -90,6 +101,32 @@ const SlotManagement = () => {
       toast.error("End time must be greater than start time");
       return false;
     }
+
+    const start = new Date(`1970-01-01T${form.startTime}`);
+const end = new Date(`1970-01-01T${form.endTime}`);
+
+const timeDifference =
+  (end.getTime() - start.getTime()) / (1000 * 60);
+
+if (timeDifference > 240) {
+  toast.error("Slot time cannot exceed 4 hours (240 minutes)");
+  return false;
+}
+
+const durationInMinutes =
+  form.durationUnit === "hours"
+    ? form.duration * 60
+    : form.duration;
+
+if (durationInMinutes > 240) {
+  toast.error("Session duration cannot exceed 4 hours (240 minutes)");
+  return false;
+}
+
+if (durationInMinutes > timeDifference) {
+  toast.error("Session duration cannot be longer than the selected time slot");
+  return false;
+}
 
     if (!form.duration || form.duration <= 0) {
       toast.error("Enter valid session duration");
@@ -149,14 +186,14 @@ const SlotManagement = () => {
 
         <div className="flex items-start gap-3">
 
-          <TriangleAlert className="w-5 h-5 text-amber-500 mt-0.5" />
+          <TriangleAlert className="w-5 h-5 text-amber-400 mt-0.5" />
 
           <div>
-            <h3 className="font-semibold">
+            <h3 className="font-semibold text-[#F3F4F8]">
               Remove slot?
             </h3>
 
-            <p className="text-sm text-slate-500">
+            <p className="text-sm text-[#9CA1B5]">
               This slot will be removed permanently.
             </p>
           </div>
@@ -167,6 +204,7 @@ const SlotManagement = () => {
           <Button
             variant="outline"
             size="sm"
+            className="border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#171A24] hover:border-[#7C9CFF] bg-transparent transition"
             onClick={() => toast.dismiss(t.id)}
           >
             Cancel
@@ -174,7 +212,7 @@ const SlotManagement = () => {
 
           <Button
             size="sm"
-            className="bg-rose-500 hover:bg-rose-600 text-white"
+            className="bg-rose-500 text-white hover:scale-105 transition"
             onClick={() => {
 
               setSchedules((prev) =>
@@ -193,6 +231,7 @@ const SlotManagement = () => {
       </div>
     ), {
       duration: 5000,
+      style: toastDarkOptions.style,
     });
   };
 
@@ -228,10 +267,8 @@ const SlotManagement = () => {
 
       fetchSchedules();
 
-    } catch (error) {
-
-      console.error(error);
-
+    } catch (error: unknown) {
+  console.error(error instanceof Error ? error.message : error);
       toast.error("Something went wrong");
 
     } finally {
@@ -240,13 +277,26 @@ const SlotManagement = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-50">
+    <div className="relative flex min-h-screen bg-[#0E1016] text-[#F3F4F8]">
 
-      <Toaster position="top-center" />
+      {/* Ambient background, same treatment as the homepage */}
+      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+        <div
+          className="absolute top-[-10%] right-[-5%] w-[60vmax] h-[60vmax] rounded-full opacity-25 animate-blob mix-blend-screen blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(124,156,255,0.5) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-[-10%] left-[-10%] w-[50vmax] h-[50vmax] rounded-full opacity-25 animate-blob mix-blend-screen blur-3xl"
+          style={{ background: "radial-gradient(circle, rgba(192,139,250,0.5) 0%, transparent 70%)", animationDelay: "-4s" }}
+        />
+        <div className="absolute inset-0 bg-[#0E1016]/30 backdrop-blur-[1px]" />
+      </div>
 
-      <UserSidebar />
+      <Toaster position="top-center" toastOptions={toastDarkOptions} />
 
-      <main className="flex-1 px-8 py-10 overflow-y-auto">
+      {/* <UserSidebar /> */}
+
+      <main className="relative flex-1 px-8 py-10 overflow-y-auto">
 
         <motion.div
           initial={{ opacity: 0, y: 10 }}
@@ -255,27 +305,36 @@ const SlotManagement = () => {
         >
 
           <div>
-            <h1 className="text-3xl font-bold">
-              Slot Management
-            </h1>
+            <span
+              style={mono}
+              className="inline-flex items-center gap-2 rounded-full border border-[#2A2E3D] bg-[#171A24]/60 px-4 py-1.5 text-[11px] uppercase tracking-wider text-[#9CA1B5]"
+            >
+              <span className="w-1.5 h-1.5 rounded-full bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA]" />
+              Scheduling
+            </span>
 
-            <p className="text-slate-500 mt-1">
+            {/* <h2 style={fraunces} className="mt-4 text-3xl font-bold">
+              Slot Management
+            </h2> */}
+
+            <p className="text-[#9CA1B5] mt-1">
               Configure tutoring schedules.
             </p>
           </div>
 
-          <div className="bg-white rounded-2xl border shadow-sm p-6">
+          <div className="relative overflow-hidden rounded-2xl border border-[#2A2E3D] bg-[#171A24] shadow-xl p-6">
+            <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#7C9CFF] via-[#A78CF5] to-[#C08BFA]" />
 
             <div className="flex items-center justify-between mb-6">
 
-              <h2 className="flex items-center gap-2 text-lg font-semibold">
-                <Calendar className="w-5 h-5" />
+              <h2 style={fraunces} className="flex items-center gap-2 text-lg font-semibold">
+                <Calendar className="w-5 h-5 text-[#7C9CFF]" />
                 Weekly Slots
               </h2>
 
               {!showForm && (
                 <Button
-                  className="bg-blue-400 text-white"
+                  className="bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold rounded-full px-5 hover:scale-105 transition"
                   onClick={() => setShowForm(true)}
                 >
                   {schedules.length ? "Edit" : "Create"}
@@ -284,7 +343,7 @@ const SlotManagement = () => {
             </div>
 
             {!showForm && !schedules.length && (
-              <p className="text-slate-400 text-sm">
+              <p className="text-[#9CA1B5]/70 text-sm italic">
                 No schedules configured.
               </p>
             )}
@@ -297,24 +356,24 @@ const SlotManagement = () => {
 
                   <div
                     key={slot.id}
-                    className="flex justify-between items-center border rounded-xl p-4 bg-slate-50"
+                    className="flex justify-between items-center border border-[#2A2E3D] rounded-xl p-4 bg-[#1E2230]"
                   >
 
                     <div>
-                      <h3 className="font-semibold">
+                      <h3 className="font-semibold text-[#F3F4F8]">
                         {slot.day}
                       </h3>
 
-                      <p className="text-sm text-slate-600">
+                      <p className="text-sm text-[#9CA1B5]">
                         {slot.startTime} - {slot.endTime}
                       </p>
 
-                      <p className="text-sm text-slate-500">
+                      <p style={mono} className="text-sm text-[#9CA1B5]">
                         {slot.duration} {slot.durationUnit}
                       </p>
                     </div>
 
-                    <span className="font-semibold text-emerald-600">
+                    <span style={mono} className="font-bold text-emerald-400">
                       ₹{slot.amount}
                     </span>
 
@@ -331,11 +390,11 @@ const SlotManagement = () => {
                 <div className="space-y-3">
 
                   <div>
-                    <h3 className="font-semibold">
+                    <h3 className="font-semibold text-[#F3F4F8]">
                       Select Day
                     </h3>
 
-                    <p className="text-sm text-slate-500">
+                    <p className="text-sm text-[#9CA1B5]">
                       Multiple slots allowed.
                     </p>
                   </div>
@@ -353,8 +412,8 @@ const SlotManagement = () => {
                         }}
                         className={`px-4 py-2 rounded-full border text-sm transition ${
                           selectedDay === day
-                            ? "bg-black text-white"
-                            : "bg-white hover:bg-slate-100"
+                            ? "bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold border-transparent hover:scale-105"
+                            : "bg-[#1E2230] border-[#2A2E3D] text-[#9CA1B5] hover:text-[#F3F4F8] hover:border-[#7C9CFF]"
                         }`}
                       >
                         {day}
@@ -366,14 +425,14 @@ const SlotManagement = () => {
 
                 {!!selectedDay && (
 
-                  <div className="bg-slate-50 border rounded-2xl p-6 space-y-6">
+                  <div className="bg-[#1E2230] border border-[#2A2E3D] rounded-2xl p-6 space-y-6">
 
                     <div>
-                      <h3 className="text-lg font-semibold">
+                      <h3 style={fraunces} className="text-lg font-semibold">
                         {selectedDay} Slot
                       </h3>
 
-                      <p className="text-sm text-slate-500">
+                      <p className="text-sm text-[#9CA1B5]">
                         Configure slot timing and pricing.
                       </p>
                     </div>
@@ -381,7 +440,7 @@ const SlotManagement = () => {
                     <div className="grid md:grid-cols-2 gap-5">
 
                       <div>
-                        <label className="text-sm font-medium">
+                        <label style={mono} className="text-xs uppercase tracking-wide text-[#9CA1B5]">
                           Start Time
                         </label>
 
@@ -394,12 +453,12 @@ const SlotManagement = () => {
                               startTime: e.target.value,
                             })
                           }
-                          className="w-full mt-2 border rounded-xl px-4 py-3"
+                          className="w-full mt-2 border border-[#2A2E3D] bg-[#171A24] text-[#F3F4F8] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40 focus:border-[#7C9CFF]/40 transition [color-scheme:dark]"
                         />
                       </div>
 
                       <div>
-                        <label className="text-sm font-medium">
+                        <label style={mono} className="text-xs uppercase tracking-wide text-[#9CA1B5]">
                           End Time
                         </label>
 
@@ -412,7 +471,7 @@ const SlotManagement = () => {
                               endTime: e.target.value,
                             })
                           }
-                          className="w-full mt-2 border rounded-xl px-4 py-3"
+                          className="w-full mt-2 border border-[#2A2E3D] bg-[#171A24] text-[#F3F4F8] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40 focus:border-[#7C9CFF]/40 transition [color-scheme:dark]"
                         />
                       </div>
 
@@ -422,7 +481,7 @@ const SlotManagement = () => {
 
                       <div>
 
-                        <label className="text-sm font-medium">
+                        <label style={mono} className="text-xs uppercase tracking-wide text-[#9CA1B5]">
                           Session Duration
                         </label>
 
@@ -437,7 +496,7 @@ const SlotManagement = () => {
                                 duration: Number(e.target.value),
                               })
                             }
-                            className="w-full border rounded-xl px-4 py-3"
+                            className="w-full border border-[#2A2E3D] bg-[#171A24] text-[#F3F4F8] rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40 focus:border-[#7C9CFF]/40 transition [color-scheme:dark]"
                           />
 
                           <select
@@ -448,7 +507,7 @@ const SlotManagement = () => {
                                 durationUnit: e.target.value,
                               })
                             }
-                            className="border rounded-xl px-4"
+                            className="border border-[#2A2E3D] bg-[#171A24] text-[#F3F4F8] rounded-xl px-4 focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40 [color-scheme:dark]"
                           >
                             <option value="minutes">
                               Minutes
@@ -465,13 +524,13 @@ const SlotManagement = () => {
 
                       <div>
 
-                        <label className="text-sm font-medium">
+                        <label style={mono} className="text-xs uppercase tracking-wide text-[#9CA1B5]">
                           Session Price
                         </label>
 
                         <div className="relative mt-2">
 
-                          <span className="absolute left-4 top-3 text-slate-500">
+                          <span className="absolute left-4 top-3 text-[#9CA1B5]">
                             ₹
                           </span>
 
@@ -484,7 +543,7 @@ const SlotManagement = () => {
                                 amount: Number(e.target.value),
                               })
                             }
-                            className="w-full border rounded-xl pl-8 pr-4 py-3"
+                            className="w-full border border-[#2A2E3D] bg-[#171A24] text-[#F3F4F8] rounded-xl pl-8 pr-4 py-3 focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40 focus:border-[#7C9CFF]/40 transition [color-scheme:dark]"
                             placeholder="500"
                           />
 
@@ -496,7 +555,7 @@ const SlotManagement = () => {
                     <Button
                       type="button"
                       onClick={addSlot}
-                      className="bg-emerald-600 hover:bg-emerald-700 text-white"
+                      className="bg-emerald-500 text-[#0E1016] font-semibold rounded-full px-5 hover:scale-105 transition"
                     >
                       Add Slot
                     </Button>
@@ -508,7 +567,7 @@ const SlotManagement = () => {
 
                   <div className="space-y-3">
 
-                    <h3 className="font-semibold">
+                    <h3 className="font-semibold text-[#F3F4F8]">
                       Saved Slots
                     </h3>
 
@@ -516,20 +575,20 @@ const SlotManagement = () => {
 
                       <div
                         key={slot.id}
-                        className="flex justify-between items-center border rounded-xl p-4"
+                        className="flex justify-between items-center border border-[#2A2E3D] rounded-xl p-4 bg-[#1E2230]"
                       >
 
                         <div>
 
-                          <h4 className="font-semibold">
+                          <h4 className="font-semibold text-[#F3F4F8]">
                             {slot.day}
                           </h4>
 
-                          <p className="text-sm text-slate-600">
+                          <p className="text-sm text-[#9CA1B5]">
                             {slot.startTime} - {slot.endTime}
                           </p>
 
-                          <p className="text-sm text-slate-500">
+                          <p style={mono} className="text-sm text-[#9CA1B5]">
                             {slot.duration} {slot.durationUnit}
                           </p>
 
@@ -537,13 +596,13 @@ const SlotManagement = () => {
 
                         <div className="flex items-center gap-4">
 
-                          <span className="font-semibold text-emerald-600">
+                          <span style={mono} className="font-bold text-emerald-400">
                             ₹{slot.amount}
                           </span>
 
                           <Button
                             variant="destructive"
-                            className="bg-rose-500"
+                            className="bg-rose-500 text-white rounded-full hover:scale-105 transition"
                             onClick={() => removeSlot(slot.id)}
                           >
                             Remove
@@ -562,13 +621,14 @@ const SlotManagement = () => {
                   <Button
                     onClick={saveSchedules}
                     disabled={loading}
-                    className="bg-indigo-600 hover:bg-indigo-700 text-white"
+                    className="bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold rounded-full px-6 hover:scale-105 transition disabled:opacity-50 disabled:hover:scale-100"
                   >
                     {loading ? "Saving..." : "Save Rules"}
                   </Button>
 
                   <Button
                     variant="outline"
+                    className="border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#171A24] hover:border-[#7C9CFF] bg-transparent rounded-full transition"
                     onClick={() => {
 
                       if (JSON.stringify(form) !== JSON.stringify(initialForm)) {
@@ -579,15 +639,15 @@ const SlotManagement = () => {
 
                             <div className="flex items-start gap-3">
 
-                              <TriangleAlert className="w-5 h-5 text-amber-500 mt-0.5" />
+                              <TriangleAlert className="w-5 h-5 text-amber-400 mt-0.5" />
 
                               <div>
 
-                                <h3 className="font-semibold">
+                                <h3 className="font-semibold text-[#F3F4F8]">
                                   Cancel changes?
                                 </h3>
 
-                                <p className="text-sm text-slate-500">
+                                <p className="text-sm text-[#9CA1B5]">
                                   Unsaved slot changes will be lost.
                                 </p>
 
@@ -599,6 +659,7 @@ const SlotManagement = () => {
                               <Button
                                 variant="outline"
                                 size="sm"
+                                className="border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#171A24] hover:border-[#7C9CFF] bg-transparent transition"
                                 onClick={() => toast.dismiss(t.id)}
                               >
                                 Continue Editing
@@ -606,7 +667,7 @@ const SlotManagement = () => {
 
                               <Button
                                 size="sm"
-                                className="bg-rose-500 hover:bg-rose-600 text-white"
+                                className="bg-rose-500 text-white hover:scale-105 transition"
                                 onClick={() => {
 
                                   setShowForm(false);
@@ -624,7 +685,7 @@ const SlotManagement = () => {
                             </div>
                           </div>
 
-                        ));
+                        ), { style: toastDarkOptions.style });
 
                         return;
                       }

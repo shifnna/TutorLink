@@ -1,8 +1,8 @@
 import { Router } from "express";
-import container from "../container/inversify.config";
-import { protect, tutorOnly } from "../middlewares/authMiddleware";
-import { ISlotController } from "../controllers/interfaces/ISlotController";
-import { TYPES } from "../types/types";
+import container from "../container/inversify.config.js";
+import { protect, tutorOnly } from "../middlewares/authMiddleware.js";
+import { ISlotController } from "../controllers/interfaces/ISlotController.js";
+import { TYPES } from "../types/types.js";
 
 const router = Router();
 const slotController = container.get<ISlotController>(TYPES.ISlotController);

@@ -12,7 +12,7 @@ const ProtectedRoute: React.FC<Props> = ({ children, role }) => {
 
   useEffect(() => {
     if (!user) fetchUser ();
-  }, []);
+  }, [user,fetchUser]);
 
   if (blocked) return <Navigate to="/blocked" replace />;
   if (!isAuthenticated) return <Navigate to="/login" replace />;

@@ -2,19 +2,18 @@ import dotenv from "dotenv";
 dotenv.config();
 import express from "express";
 import cors from "cors";
-import authRoutes from "./routes/authRoutes";
-import userRoutes from "./routes/userRoutes";
-import adminRoutes from "./routes/adminRoutes";
+import authRoutes from "./routes/authRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 import cookieParser from "cookie-parser";
-import tutorRoutes from "./routes/tutorRoutes";
-import slotRoutes from "./routes/slotRoutes";
-import sessionRoutes from "./routes/sessionRoutes";
-import notificationRoutes from "./routes/notificationRoutes";
+import tutorRoutes from "./routes/tutorRoutes.js";
+import slotRoutes from "./routes/slotRoutes.js";
+import sessionRoutes from "./routes/sessionRoutes.js";
+import notificationRoutes from "./routes/notificationRoutes.js";
 import session from "express-session";
 import passport from "passport";
-import "./config/passport"; ////ensures the Google strategy is registered before you call passport.authenticate("google").
-import { consoleLogger, fileLogger } from "./middlewares/logger";
-import { errorHandler } from "./middlewares/errorHandler";
+import "./config/passport.js"; ////ensures the Google strategy is registered before you call passport.authenticate("google").
+import { consoleLogger, fileLogger } from "./middlewares/logger.js";
+import { errorHandler } from "./middlewares/errorHandler.js";
 
 const app = express();
 
@@ -49,7 +48,6 @@ app.use(passport.session());
 
 //// Routes
 app.use("/api/auth", authRoutes);
-app.use("/api/user", userRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/tutor", tutorRoutes);
 app.use("/api/slots", slotRoutes);

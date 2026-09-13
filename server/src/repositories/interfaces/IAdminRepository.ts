@@ -1,6 +1,5 @@
-import { IUser } from "../../models/user";
-import { ITutor } from "../../models/tutor";
-import { ISession } from "../../models/session";
+import { ITutor } from "../../models/tutor.js";
+import { ISession } from "../../models/session.js";
 
 export interface IAdminRepository {
   getAllSession(): Promise<ISession[]>;

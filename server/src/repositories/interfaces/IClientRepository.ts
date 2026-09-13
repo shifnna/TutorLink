@@ -1,5 +1,5 @@
 import { FilterQuery } from "mongoose";
-import { IUser } from "../../models/user";
+import { IUser } from "../../models/user.js";
 
 export interface IClientRepository {
     findAll(filter?: FilterQuery<IUser >): Promise<IUser[]>;

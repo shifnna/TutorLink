@@ -2,11 +2,29 @@ import React, { useEffect, useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { isValidEmail, isValidName, isStrongPassword } from "../../utils/validators";
-import { toast, Toaster } from "react-hot-toast";
+import { toast } from "react-hot-toast";
 import { useAuthStore } from "../../store/authStore";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AuthLayout from "./authLayout";
 import { FcGoogle } from "react-icons/fc";
+
+declare global {
+  interface ImportMetaEnv {
+    readonly VITE_BASE_URL?: string;
+  }
+
+  interface ImportMeta {
+    readonly env: ImportMetaEnv;
+  }
+}
+
+const mono = { fontFamily: "'Space Mono', monospace" };
+
+const inputClass =
+  "rounded-xl px-5 py-3.5 bg-[#0E1016] border border-[#2A2E3D] text-[#F3F4F8] placeholder:text-[#6B7185] focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40 focus:border-[#7C9CFF] transition";
+
+const buttonClass =
+  "rounded-xl bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] py-3.5 font-semibold hover:scale-[1.02] hover:shadow-lg hover:shadow-[#7C9CFF]/20 transition";
 
 const Signup: React.FC = () => {
   const navigate = useNavigate();
@@ -58,7 +76,7 @@ const Signup: React.FC = () => {
 
       if (!response.success) {
         if (response.errors) {
-          response.errors.forEach(err => toast.error(`${err.field}: ${err.message}`));
+          response.errors.forEach((err) => toast.error(`${err.field}: ${err.message}`));
         } else {
           toast.error(response.message);
         }
@@ -70,76 +88,90 @@ const Signup: React.FC = () => {
     } catch (err: unknown) {
       toast.error(err instanceof Error ? err.message : "Unexpected error");
     } finally {
-      useAuthStore.setState({isLoading:false})
+      useAuthStore.setState({ isLoading: false });
     }
   }
 
-useEffect(() => {
-  const params = new URLSearchParams(window.location.search);
-  const googleSuccess = params.get("googleSuccess");
-  
-  if (googleSuccess && window.location.pathname === "/signup") {
-    toast.success("Logged in with Google! 🎉");
-    navigate('/');
-  }
-}, []);
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const googleSuccess = params.get("googleSuccess");
 
-function handleGoogle(){
-  window.location.href = "http://localhost:5000/api/auth/google";
-}
+    if (googleSuccess && window.location.pathname === "/signup") {
+      toast.success("Logged in with Google! 🎉");
+      navigate("/");
+    }
+  }, [navigate]);
+
+  function handleGoogle() {
+    window.location.href = import.meta.env.VITE_BASE_URL + "/api/auth/google";
+  }
 
   return (
-    <>
-      <AuthLayout title="Create Your Account" subtitle="Sign up to start your learning journey" >
+    <AuthLayout title="Create your account" subtitle="Sign up to start your learning journey">
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        <Input
+          name="name"
+          type="text"
+          placeholder="Full name"
+          className={inputClass}
+          value={formData.name}
+          onChange={handleChange}
+        />
+        <Input
+          name="email"
+          type="email"
+          placeholder="Email"
+          className={inputClass}
+          value={formData.email}
+          onChange={handleChange}
+        />
+        <Input
+          name="password"
+          type="password"
+          placeholder="Password"
+          className={inputClass}
+          value={formData.password}
+          onChange={handleChange}
+        />
+        <Input
+          name="confirmPassword"
+          type="password"
+          placeholder="Confirm password"
+          className={inputClass}
+          value={formData.confirmPassword}
+          onChange={handleChange}
+        />
 
-          {/* Signup Form */}
-          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-            <Input name="name" type="text" placeholder="Full Name" className="rounded-xl px-6 py-4 text-gray-500 focus:ring-2 focus:ring-indigo-500"
-              value={formData.name} onChange={handleChange}
-            />
-            <Input name="email" type="email" placeholder="Email" className="rounded-xl px-6 py-4 text-gray-500 focus:ring-2 focus:ring-indigo-500"
-              value={formData.email} onChange={handleChange}
-            />
-            <Input name="password" type="password" placeholder="Password" className="rounded-xl px-6 py-4 text-gray-500 focus:ring-2 focus:ring-indigo-500"
-              value={formData.password} onChange={handleChange}
-            />
-            <Input name="confirmPassword" type="password" placeholder="Confirm Password" className="rounded-xl px-6 py-4 text-gray-500 focus:ring-2 focus:ring-indigo-500"
-              value={formData.confirmPassword} onChange={handleChange}
-            />
+        <Button type="submit" className={buttonClass}>
+          Sign up
+        </Button>
+      </form>
 
-            <Button type="submit" className="rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 text-gray-500 py-4 font-bold hover:scale-105 hover:shadow-lg transition" >
-              Sign Up
-            </Button>
-          </form>
+      <p className="mt-6 text-center text-sm text-[#9CA1B5]">
+        Already have an account?{" "}
+        <Link to="/login" className="font-medium text-[#7C9CFF] transition hover:text-[#C08BFA]">
+          Log in
+        </Link>
+      </p>
 
-          {/* Links */}
-          <p className="text-center text-gray-300 mt-6">
-            Already have an account?{" "}
-            <a href="/login" className="text-yellow-400 hover:underline">
-              Log In
-            </a>
-          </p>
+      <div className="my-6 flex items-center gap-4">
+        <span className="h-px flex-grow bg-[#2A2E3D]" />
+        <span style={mono} className="text-[11px] tracking-wider text-[#6B7185]">
+          OR
+        </span>
+        <span className="h-px flex-grow bg-[#2A2E3D]" />
+      </div>
 
-          {/* Divider */}
-          <div className="flex items-center gap-4 my-6">
-            <span className="flex-grow h-px bg-gray-600"></span>
-            <span className="text-sm text-gray-400">or</span>
-            <span className="flex-grow h-px bg-gray-600"></span>
-          </div>
-          
-          {/* Google Login */}
-          <Button
-          onClick={()=>handleGoogle()}
-            type="button"
-            className="w-full rounded-xl bg-white text-black px-4 py-3 flex items-center justify-center gap-3 hover:bg-gray-100 transition"
-          >
-            <FcGoogle className="w-6 h-6" />
-            Continue with Google
-          </Button>
-
-      <Toaster position="top-center" reverseOrder={false} />
+      <Button
+        onClick={handleGoogle}
+        type="button"
+        className="flex w-full items-center justify-center gap-3 rounded-xl border border-[#2A2E3D] bg-white px-4 py-3 text-gray-900 transition hover:bg-gray-100"
+      >
+        <FcGoogle className="h-5 w-5" />
+        Continue with Google
+      </Button>
     </AuthLayout>
-    </>
   );
 };
+
 export default Signup;

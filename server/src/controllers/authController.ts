@@ -1,12 +1,12 @@
 import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "inversify";
-import { TYPES } from "../types/types";
-import { IAuthService } from "../services/interfaces/IAuthService";
-import { IAuthController } from "./interfaces/IAuthController";
-import { IUser } from "../models/user";
+import { TYPES } from "../types/types.js";
+import { IAuthService } from "../services/interfaces/IAuthService.js";
+import { IAuthController } from "./interfaces/IAuthController.js";
+import { IUser } from "../models/user.js";
 import jwt from "jsonwebtoken";
-import { generateAccessToken, generateRefreshToken, JwtPayload } from "../utils/tokens";
-import { handleAsync } from "../utils/handleAsync";
+import { generateAccessToken, generateRefreshToken, JwtPayload } from "../utils/tokens.js";
+import { handleAsync } from "../utils/handleAsync.js";
 
 @injectable()
 export class AuthController implements IAuthController {

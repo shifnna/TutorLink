@@ -1,56 +1,75 @@
-import React from "react";
-import { Input } from "../ui/input";
+import { motion } from "framer-motion";
+import Dropdown from './dropdown';
+import { useNavigate } from "react-router-dom";
 import { FaGraduationCap } from "react-icons/fa";
-import { HiOutlineAdjustments } from "react-icons/hi";
-import { toast, Toaster } from "react-hot-toast";
 import { useAuthStore } from "../../store/authStore";
-import Dropdown from "./dropdown";
+import { Button } from "../../components/ui/button";
 
-interface HeaderProps {
-  onToggleFilter?: () => void; // ← ADD THIS
-}
 
-const Header: React.FC<HeaderProps> = ({ onToggleFilter }) => {
-  const { search, setSearch } = useAuthStore();
+
+function Header() {
+  const easeOutExpo = [0.22, 1, 0.36, 1] as const;
+  const fraunces = { fontFamily: "'Fraunces', Georgia, serif" };
+
+const navigate = useNavigate();
+const {user} = useAuthStore();
 
   return (
-    <div className="w-full bg-gradient-to-br from-pink-50 via-purple-50 to-blue-50 text-gray-900">
-      <header className="sticky top-0 z-50 bg-gradient-to-r from-gray-900 via-purple-950 to-black shadow-md rounded-b-2xl">
-        <div className="flex items-center justify-between px-6 md:px-12 py-4">
-
-          {/* Logo */}
-          <div className="flex items-center gap-3">
-            <FaGraduationCap className="w-8 h-8 text-amber-400 animate-bounce" />
-            <h1 className="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-yellow-200 via-pink-400 to-indigo-600">
-              TutorLink
-            </h1>
+    <div>
+       {/* NAVBAR (FIXED PREMIUM) */}
+      <motion.header
+        initial={{ y: -25, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ duration: 0.5, ease: easeOutExpo }}
+        className="fixed top-0 left-0 right-0 z-[9999] flex items-center justify-between px-6 md:px-12 py-4
+        bg-[#171A24]/70 backdrop-blur-xl border-b border-[#2A2E3D]
+        shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
+      >
+        <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
+          <div className="p-2 rounded-xl shadow-lg bg-gradient-to-br from-[#7C9CFF] to-[#C08BFA]">
+            <FaGraduationCap className="w-6 h-6 text-[#0E1016]" />
           </div>
-
-          {/* Search */}
-          <div className="flex-1 flex justify-center items-center relative">
-            <div className="w-full max-w-3xl relative">
-              <Input
-                placeholder="Search tutors by name..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full rounded-full px-6 py-3 text-white bg-white/10 focus:ring-2 focus:ring-indigo-400 shadow-sm"
-              />
-
-              {/* 🔥 Filter icon now opens the sidebar */}
-              <HiOutlineAdjustments
-                onClick={onToggleFilter}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 w-6 h-6 text-white cursor-pointer hover:text-gray-200 transition"
-              />
-            </div>
-          </div>
-
-          <Dropdown />
+          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight" style={fraunces}>
+            Tutor<span className="bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] bg-clip-text text-transparent">Link</span>
+          </h1>
         </div>
-      </header>
 
-      <Toaster position="top-center" reverseOrder={false} />
+        <nav className="hidden md:flex items-center gap-8 font-medium text-[#9CA1B5]">
+  {[
+    { label: "Home", href: "#", onClick: () => navigate("/") },
+    { label: "Explore Tutors", href: "#", onClick: () => (user ? navigate("/explore-tutors") : navigate("/login")) },
+    { label: "About", href: "#", onClick: (e) => e.preventDefault() },
+    { label: "Contact", href: "#", onClick: (e) => e.preventDefault() },
+  ].map((item, i) => (
+    <motion.a
+      key={item.label}
+      href={item.href}
+      onClick={item.onClick}
+      className="relative py-1 hover:text-[#F3F4F8] transition"
+      initial={{ opacity: 0, y: -5 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: 0.1 * i }}
+    >
+      {item.label}
+    </motion.a>
+  ))}
+</nav>
+
+        <div>
+          {user ? (
+            <Dropdown />
+          ) : (
+            <Button
+              onClick={() => navigate("/login")}
+              className="bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold rounded-full px-6 py-2.5 shadow-md hover:scale-105 transition"
+            >
+              Log in
+            </Button>
+          )}
+        </div>
+      </motion.header>
     </div>
-  );
-};
+  )
+}
 
-export default Header;
+export default Header

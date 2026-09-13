@@ -2,10 +2,16 @@ import React, { useState } from "react";
 import { Button } from "../../components/ui/button";
 import { Input } from "../../components/ui/input";
 import { isValidEmail } from "../../utils/validators";
-import { toast, Toaster } from "react-hot-toast";
-import { useNavigate } from "react-router-dom";
+import { toast } from "react-hot-toast";
+import { Link, useNavigate } from "react-router-dom";
 import { useAuthStore } from "../../store/authStore";
 import AuthLayout from "./authLayout";
+
+const inputClass =
+  "rounded-xl px-5 py-3.5 bg-[#0E1016] border border-[#2A2E3D] text-[#F3F4F8] placeholder:text-[#6B7185] focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40 focus:border-[#7C9CFF] transition";
+
+const buttonClass =
+  "rounded-xl bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] py-3.5 font-semibold hover:scale-[1.02] hover:shadow-lg hover:shadow-[#7C9CFF]/20 transition";
 
 const ForgotPassword: React.FC = () => {
   const navigate = useNavigate();
@@ -24,7 +30,6 @@ const ForgotPassword: React.FC = () => {
       toast.success("OTP sent to your email 📩");
       navigate(`/verify-otp?email=${encodeURIComponent(email)}&type=forgot`);
     } catch (err: unknown) {
-      //// Narrow the error type safely
       if (err instanceof Error) {
         toast.error(err.message);
       } else if (typeof err === "object" && err !== null && "response" in err) {
@@ -37,35 +42,30 @@ const ForgotPassword: React.FC = () => {
   }
 
   return (
-    <>
-      <AuthLayout title="Forgot Password?" subtitle="Enter your registered email. We’ll send you an OTP to reset it." >
+    <AuthLayout
+      title="Forgot password?"
+      subtitle="Enter your registered email and we'll send you an OTP to reset it."
+    >
+      <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+        <Input
+          type="email"
+          placeholder="Enter your email"
+          className={inputClass}
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Button type="submit" className={buttonClass}>
+          Send OTP
+        </Button>
+      </form>
 
-          <form className="flex flex-col gap-5" onSubmit={handleSubmit}>
-            <Input
-              type="email"
-              placeholder="Enter your email"
-              className="rounded-xl px-6 py-4text-gray-500 focus:ring-2 focus:ring-indigo-500"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-            />
-            <Button
-              type="submit"
-              className="rounded-xl bg-gradient-to-r from-indigo-500 to-pink-500 text-white py-4 font-bold hover:scale-105 hover:shadow-lg transition"
-            >
-              Send OTP
-            </Button>
-          </form>
-
-          <p className="text-center text-gray-300 mt-6">
-            Remembered your password?{" "}
-            <a href="/login" className="text-yellow-400 hover:underline">
-              Log In
-            </a>
-          </p>
-          
-      <Toaster position="top-center" reverseOrder={false} />
+      <p className="mt-6 text-center text-sm text-[#9CA1B5]">
+        Remembered your password?{" "}
+        <Link to="/login" className="font-medium text-[#7C9CFF] transition hover:text-[#C08BFA]">
+          Log in
+        </Link>
+      </p>
     </AuthLayout>
-    </>
   );
 };
 

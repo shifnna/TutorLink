@@ -25,6 +25,7 @@ import {
   useAuthStore,
 } from "../../store/authStore";
 import AuthLayout from "../auth/authLayout";
+import { ShieldCheck } from "lucide-react";
 
 
 declare global {
@@ -37,14 +38,14 @@ declare global {
   }
 }
 
+// Midnight theme type treatment — matches Home / ExploreTutors
+const mono = { fontFamily: "'Space Mono', monospace" };
+
 const AdminLogin: React.FC =
   () => {
 
   const navigate =
     useNavigate();
-
-  const { login } =
-    useAuthStore();
 
   const [formData, setFormData] =
     useState({
@@ -52,7 +53,6 @@ const AdminLogin: React.FC =
       password: "",
     });
 
-  /* ================= VALIDATION ================= */
 
   const validate =
     (): boolean => {
@@ -85,7 +85,6 @@ const AdminLogin: React.FC =
       return true;
     };
 
-  /* ================= HANDLE CHANGE ================= */
 
   const handleChange =
     (
@@ -103,7 +102,6 @@ const AdminLogin: React.FC =
       });
     };
 
-  /* ================= LOGIN ================= */
 
   const handleSubmit = async (
   e: React.FormEvent
@@ -164,11 +162,32 @@ const AdminLogin: React.FC =
 
   }, []);
 
+  // Load the display + mono typefaces used by the midnight theme
+  useEffect(() => {
+    const id = "tutorlink-midnight-fonts";
+    if (!document.getElementById(id)) {
+      const link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      link.href =
+        "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,450;9..144,550;9..144,650&family=Space+Mono:wght@400;700&display=swap";
+      document.head.appendChild(link);
+    }
+  }, []);
+
   return (
     <AuthLayout
       title="Admin Portal"
       subtitle="Secure admin access only"
     >
+
+      <div
+        className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-[#2A2E3D] bg-[#171A24]/60 text-[11px] uppercase tracking-wider text-[#9CA1B5] mb-6"
+        style={mono}
+      >
+        <ShieldCheck className="w-3.5 h-3.5 text-[#7C9CFF]" />
+        Restricted · Admins only
+      </div>
 
       <form
         onSubmit={
@@ -187,7 +206,7 @@ const AdminLogin: React.FC =
           onChange={
             handleChange
           }
-          className="rounded-xl px-6 py-4 text-gray-600 focus:ring-2 focus:ring-red-500"
+          className="rounded-xl px-6 py-4 bg-[#171A24] border border-[#2A2E3D] text-[#F3F4F8] placeholder:text-[#6B7185] focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40 focus:border-[#7C9CFF] transition"
         />
 
         <Input
@@ -200,13 +219,12 @@ const AdminLogin: React.FC =
           onChange={
             handleChange
           }
-          className="rounded-xl px-6 py-4 text-gray-600 focus:ring-2 focus:ring-red-500"
+          className="rounded-xl px-6 py-4 bg-[#171A24] border border-[#2A2E3D] text-[#F3F4F8] placeholder:text-[#6B7185] focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40 focus:border-[#7C9CFF] transition"
         />
 
-        {/* BUTTON */}
         <Button
           type="submit"
-          className="rounded-xl bg-gradient-to-r from-red-600 to-black text-white py-4 font-bold hover:scale-[1.02] transition"
+          className="rounded-xl bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] py-4 font-bold hover:scale-[1.02] transition"
         >
           Admin Login
         </Button>

@@ -6,10 +6,8 @@ import { IAdminDashboardStats } from "../types/IAdminDashboard";
 import { ROUTES } from "../utils/constants";
 
 export const adminService = {
-getAllClients: async (query: ClientsQuery = {}): Promise<ICommonResponse<PaginatedUsers>> =>
-  handleApi<PaginatedUsers>(
-    axiosClient.get(`${ROUTES.ADMIN_API}/clients`, { params: query })
-  ),
+  getAllClients: async (query: ClientsQuery = {}): Promise<ICommonResponse<PaginatedUsers>> =>
+    handleApi<PaginatedUsers>(axiosClient.get(`${ROUTES.ADMIN_API}/clients`, { params: query })),
 
   getAllTutors: async (): Promise<ICommonResponse<IUser[]>> =>
     handleApi<IUser[]>(axiosClient.get(`${ROUTES.ADMIN_API}/tutors`)),
@@ -30,9 +28,6 @@ getAllClients: async (query: ClientsQuery = {}): Promise<ICommonResponse<Paginat
     handleApi<IUser>(axiosClient.patch(`${ROUTES.ADMIN_API}/users/reject/${userId}`, { message })),
   
   getAllSessions: async () => handleApi(axiosClient.get("/api/admin/sessions")),
-
-  generateVideoLink: (sessionId: string) =>
-    handleApi(axiosClient.post("/api/admin/sessions/generate-video-link", { sessionId })),
 
 refundAmount: async (sessionId: string, percent: number) =>
   handleApi(axiosClient.post(`/api/admin/sessions/refund`, { sessionId, percent })),

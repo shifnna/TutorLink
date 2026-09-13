@@ -1,5 +1,5 @@
-import { CreateSlotRuleDto } from "../../dtos/tutor.dto";
-import { ISlotRule } from "../../models/slotRule";
+import { CreateSlotRuleDto } from "../../dtos/tutor.dto.js";
+import { ISlotRule } from "../../models/slotRule.js";
 
 export interface ISlotRepository {  
   saveRules(data:CreateSlotRuleDto):Promise<ISlotRule>;

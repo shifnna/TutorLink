@@ -1,12 +1,8 @@
-// ======================================
-// BACKEND - controllers/slotController.ts
-// ======================================
-
 import { inject } from "inversify";
 
-import { TYPES } from "../types/types";
+import { TYPES } from "../types/types.js";
 
-import { handleAsync } from "../utils/handleAsync";
+import { handleAsync } from "../utils/handleAsync.js";
 
 import {
   NextFunction,
@@ -14,9 +10,9 @@ import {
   Response,
 } from "express";
 
-import { AuthRequest } from "../middlewares/authMiddleware";
+import { AuthRequest } from "../middlewares/authMiddleware.js";
 
-import { ISlotService } from "../services/interfaces/ISlotService";
+import { ISlotService } from "../services/interfaces/ISlotService.js";
 
 export class SlotController {
   constructor(

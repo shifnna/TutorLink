@@ -1,5 +1,5 @@
-import { Types } from "mongoose";
-import { ITutor } from "../models/tutor";
+import { ITutor } from "../models/tutor.js";
+import type { Document } from "mongoose";
 
 export interface IScheduleDto {
   id?: string;
@@ -9,6 +9,7 @@ export interface IScheduleDto {
   duration: number;
   durationUnit: string;
   amount: number;
+  isBooked?:boolean;
 }
 
 export interface CreateSlotRuleDto {

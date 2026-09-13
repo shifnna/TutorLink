@@ -1,7 +1,10 @@
+import dotenv from "dotenv";
+dotenv.config();
+
 import passport from "passport";
 import { Strategy as GoogleStrategy } from "passport-google-oauth20";
-import { IUser, UserModel } from "../models/user";
-import { clientRepository } from "../repositories/clientRepository";
+import { IUser, UserModel } from "../models/user.js";
+import { clientRepository } from "../repositories/clientRepository.js";
 
 passport.use(new GoogleStrategy({
     clientID: process.env.GOOGLE_CLIENT_ID!,
@@ -21,9 +24,14 @@ passport.use(new GoogleStrategy({
             });
         }
         done(null, user);
-    } catch (err) {
-        done(err, undefined);
-    }
+    }catch (err: unknown) {
+  done(
+    err instanceof Error
+      ? err
+      : new Error("Unknown error"),
+    undefined
+  );
+}
 }));
 
 passport.serializeUser((user, done) => {

@@ -1,10 +1,10 @@
 import { Router } from "express";
-import container from "../container/inversify.config";
-import { IAuthController } from "../controllers/interfaces/IAuthController";
-import { TYPES } from "../types/types";
-import { protect } from "../middlewares/authMiddleware";
-import { validate } from "../middlewares/validate";
-import { loginSchema, otpSchema, resendOtpSchema, resetPasswordSchema, signupSchema } from "../validators/authValidator";
+import container from "../container/inversify.config.js";
+import { IAuthController } from "../controllers/interfaces/IAuthController.js";
+import { TYPES } from "../types/types.js";
+import { protect } from "../middlewares/authMiddleware.js";
+import { validate } from "../middlewares/validate.js";
+import { loginSchema, otpSchema, resendOtpSchema, resetPasswordSchema, signupSchema } from "../validators/authValidator.js";
 import passport from "passport";
 
 const router = Router();

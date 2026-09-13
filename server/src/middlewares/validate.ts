@@ -1,6 +1,6 @@
 import { NextFunction, Request, Response } from "express";
 import { ZodObject, ZodRawShape } from "zod";
-import { STATUS_CODES } from "../utils/constants";
+import { STATUS_CODES } from "../utils/constants.js";
 
 export const validate = (schema: ZodObject<ZodRawShape>) =>
   (req: Request, res: Response, next: NextFunction) => {

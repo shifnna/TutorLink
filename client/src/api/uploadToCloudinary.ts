@@ -51,9 +51,11 @@ export async function uploadToCloudinary(
     const axiosError = err as AxiosError;
     console.error(
       "FULL CLOUDINARY ERROR:",
-      err?.response?.data || err
+      axiosError?.response?.data || axiosError.message
     );
-  }
+    } else {
+      console.error("FULL CLOUDINARY ERROR:", err);
+    }
 
     throw err;
   }

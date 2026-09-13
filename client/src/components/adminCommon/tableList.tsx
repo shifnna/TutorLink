@@ -1,22 +1,26 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Button } from "../../components/ui/button";
 import { IUser } from "../../types/IUser";
 import { ITutorApplication } from "../../types/ITutorApplication";
 import { FaUserCircle, FaFileAlt } from "react-icons/fa";
 
+// Midnight theme type treatment — matches Home / ExploreTutors
+const fraunces = { fontFamily: "'Fraunces', Georgia, serif" };
+
 interface Props {
   users: (IUser | ITutorApplication)[];
   handleToggleStatus?: (id: string) => void;
   renderModalContent?: (item: IUser | ITutorApplication) => React.ReactNode;
+  onModalClose?: () => void;
 }
 
 const TableList: React.FC<Props> = ({
   users,
   handleToggleStatus,
   renderModalContent,
+  onModalClose,
 }) => {
   const [page, setPage] = useState<number>(1);
-  const [modalItem, setModalItem] = useState<IUser | ITutorApplication | null>(null);
 
   const perPage = 5;
   const totalPages = Math.ceil(users.length / perPage);
@@ -28,6 +32,12 @@ const TableList: React.FC<Props> = ({
   ): item is ITutorApplication => {
     return "_id" in item && "tutorId" in item;
   };
+
+  const [modalItem, setModalItem] = useState<IUser | ITutorApplication | null>(null);
+
+  useEffect(() => {
+  setModalItem(null);
+}, [users]);
 
   return (
     <>
@@ -43,31 +53,31 @@ const TableList: React.FC<Props> = ({
           return (
             <div
               key={id}
-              className="flex justify-between items-center bg-white border border-slate-100 rounded-2xl p-6 shadow-sm hover:shadow-md transition"
+              className="flex justify-between items-center bg-[#0E1016] border border-[#2A2E3D] rounded-2xl p-6 shadow-sm hover:border-[#7C9CFF] transition"
             >
               {/* LEFT */}
               <div className="flex gap-4 items-center">
                 {image ? (
                   <img
                     src={image}
-                    className="w-14 h-14 rounded-full object-cover border"
+                    className="w-14 h-14 rounded-full object-cover border border-[#2A2E3D]"
                   />
                 ) : (
-                  <FaUserCircle className="text-4xl text-slate-300" />
+                  <FaUserCircle className="text-4xl text-[#6B7185]" />
                 )}
 
                 <div>
-                  <p className="font-bold text-slate-800">{name}</p>
-                  <p className="text-sm text-slate-500">{email}</p>
+                  <p className="font-bold text-[#F3F4F8]">{name}</p>
+                  <p className="text-sm text-[#9CA1B5]">{email}</p>
 
                   {!app && (
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-[#6B7185]">
                       Joined: {item.joinedDate}
                     </p>
                   )}
 
                   {app && (
-                    <p className="text-xs text-slate-400">
+                    <p className="text-xs text-[#6B7185]">
                       Applied:{" "}
                       {new Date(item.createdAt).toLocaleDateString()}
                     </p>
@@ -84,8 +94,8 @@ const TableList: React.FC<Props> = ({
                     <span
                       className={`px-3 py-1 rounded-full text-xs font-bold ${
                         item.isBlocked
-                          ? "bg-red-100 text-red-600"
-                          : "bg-green-100 text-green-600"
+                          ? "bg-red-500/15 text-red-400"
+                          : "bg-emerald-500/15 text-emerald-400"
                       }`}
                     >
                       {item.isBlocked ? "Blocked" : "Active"}
@@ -95,8 +105,8 @@ const TableList: React.FC<Props> = ({
                       onClick={() => handleToggleStatus(item.id)}
                       className={
                         item.isBlocked
-                          ? "bg-green-600 text-white"
-                          : "bg-red-600 text-white"
+                          ? "bg-emerald-600 hover:bg-emerald-500 text-white"
+                          : "bg-red-600 hover:bg-red-500 text-white"
                       }
                     >
                       {item.isBlocked ? "Unblock" : "Block"}
@@ -107,8 +117,11 @@ const TableList: React.FC<Props> = ({
                 {/* APPLICATION VIEW BUTTON */}
                 {app && renderModalContent && (
                   <Button
-                    onClick={() => setModalItem(item)}
-                    className="bg-indigo-600 text-white flex gap-2"
+                    onClick={() => {
+                      setModalItem(item); 
+                      onModalClose?.();
+                    }}
+                    className="bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold flex gap-2"
                   >
                     <FaFileAlt /> View Application
                   </Button>
@@ -121,11 +134,11 @@ const TableList: React.FC<Props> = ({
 
       {/* MODAL */}
       {modalItem && renderModalContent && (
-        <div className="fixed inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm z-50">
-          <div className="bg-white rounded-3xl p-8 max-w-lg w-full shadow-xl relative">
+        <div className="fixed inset-0 flex items-center justify-center bg-black/60 backdrop-blur-sm z-50">
+          <div className="bg-[#171A24] border border-[#2A2E3D] rounded-3xl p-8 max-w-lg w-full shadow-xl relative">
             <button
               onClick={() => setModalItem(null)}
-              className="absolute top-3 right-4 text-xl"
+              className="absolute top-3 right-4 text-xl text-[#9CA1B5] hover:text-[#F3F4F8] transition"
             >
               ✖
             </button>
@@ -142,6 +155,7 @@ const TableList: React.FC<Props> = ({
             variant="outline"
             disabled={page === 1}
             onClick={() => setPage((p) => p - 1)}
+            className="border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#1E2230]"
           >
             Prev
           </Button>
@@ -151,6 +165,12 @@ const TableList: React.FC<Props> = ({
               key={i}
               variant={page === i + 1 ? "default" : "outline"}
               onClick={() => setPage(i + 1)}
+              className={
+                page === i + 1
+                  ? "bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold border-transparent"
+                  : "border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#1E2230]"
+              }
+              style={page === i + 1 ? fraunces : undefined}
             >
               {i + 1}
             </Button>
@@ -160,6 +180,7 @@ const TableList: React.FC<Props> = ({
             variant="outline"
             disabled={page === totalPages}
             onClick={() => setPage((p) => p + 1)}
+            className="border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#1E2230]"
           >
             Next
           </Button>

@@ -1,19 +1,12 @@
 import { useEffect, useMemo, useState } from "react";
-
 import { toast, Toaster } from "react-hot-toast";
-
-import Header from "../../components/adminCommon/header";
-
-import SearchBar from "../../components/adminCommon/searchBar";
-
 import { Button } from "../../components/ui/button";
-
+import Header from "../../components/adminCommon/header";
+import SearchBar from "../../components/adminCommon/searchBar";
 import { adminService } from "../../services/adminService";
+import SessionDetailsModal from "../../pages/common/sessionDetailsModal";
 
 import {
-  FaVideo,
-  FaCopy,
-  FaChalkboardTeacher,
   FaUser,
 } from "react-icons/fa";
 
@@ -21,6 +14,10 @@ import {
   ChevronLeft,
   ChevronRight,
 } from "lucide-react";
+
+// Midnight theme type treatment — matches Home / ExploreTutors
+const fraunces = { fontFamily: "'Fraunces', Georgia, serif" };
+const mono = { fontFamily: "'Space Mono', monospace" };
 
 interface IUserInfo {
   _id: string;
@@ -93,8 +90,8 @@ const Sessions = () => {
   const [sessions, setSessions] =
     useState<ISession[]>([]);
 
-  const [search, setSearch] =
-    useState<string>("");
+  const [search, setSearch] = useState<string>("");
+const [debouncedSearch, setDebouncedSearch] = useState<string>("");
 
   const [currentPage, setCurrentPage] =
     useState<number>(1);
@@ -116,6 +113,35 @@ const Sessions = () => {
 
   const [refundPercent, setRefundPercent] =
     useState<number>(0);
+
+  // ADDED: View Details modal state
+  const [detailsSession, setDetailsSession] =
+    useState<ISession | null>(null);
+
+
+    useEffect(() => {
+  const timer = setTimeout(() => {
+    setDebouncedSearch(search);
+  }, 300);
+
+  return () => clearTimeout(timer);
+}, [search]);
+
+    useEffect(() => {
+    const id = "tutorlink-midnight-fonts";
+
+    if (!document.getElementById(id)) {
+      const link = document.createElement("link");
+
+      link.id = id;
+      link.rel = "stylesheet";
+
+      link.href =
+        "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,450;9..144,550;9..144,650&family=Space+Mono:wght@400;700&display=swap";
+
+      document.head.appendChild(link);
+    }
+  }, []);
 
   /* ================= LOAD ================= */
 
@@ -141,9 +167,13 @@ const Sessions = () => {
           );
         }
 
-      } catch (error) {
+      } catch (error: unknown) {
 
-        console.error(error);
+        if (error instanceof Error) {
+          console.error(error.message);
+        } else {
+          console.error(error);
+        }
 
         toast.error(
           "Failed to load sessions"
@@ -151,40 +181,6 @@ const Sessions = () => {
       }
     };
 
-  /* ================= GENERATE LINK ================= */
-
-  const handleGenerateLink =
-    async (
-      sessionId: string
-    ): Promise<void> => {
-
-      try {
-
-        const res =
-          await adminService.generateVideoLink(
-            sessionId
-          );
-
-        if (res.success) {
-
-          toast.success(
-            "Video link generated"
-          );
-
-          await loadSessions();
-        }
-
-      } catch (error) {
-
-        console.error(error);
-
-        toast.error(
-          "Failed to generate link"
-        );
-      }
-    };
-
-  /* ================= FILTER + SORT ================= */
 
   const filteredSessions =
     useMemo(() => {
@@ -209,7 +205,7 @@ const Sessions = () => {
             session.paymentStatus.toLowerCase();
 
           const query =
-            search.toLowerCase();
+            debouncedSearch.toLowerCase();
 
           const matchesSearch =
             tutorName.includes(query) ||
@@ -280,7 +276,7 @@ const Sessions = () => {
 
     }, [
       sessions,
-      search,
+      debouncedSearch,
       sortType,
       statusFilter,
       paymentFilter,
@@ -304,18 +300,42 @@ const Sessions = () => {
     );
 
   return (
-    <div className="px-10 py-10 bg-slate-50 min-h-screen">
+    <div className="relative px-10 py-10 bg-[#0E1016] text-[#F3F4F8] min-h-screen overflow-hidden">
+
+      {/* background glow — matches Home / ExploreTutors */}
+
+      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+
+        <div
+          className="absolute top-[-15%] right-[-10%] w-[45vmax] h-[45vmax] rounded-full opacity-20 blur-3xl mix-blend-screen"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(124,156,255,0.5) 0%, transparent 70%)",
+          }}
+        />
+
+        <div
+          className="absolute bottom-[-15%] left-[-10%] w-[40vmax] h-[40vmax] rounded-full opacity-20 blur-3xl mix-blend-screen"
+          style={{
+            background:
+              "radial-gradient(circle, rgba(192,139,250,0.5) 0%, transparent 70%)",
+          }}
+        />
+
+      </div>
 
       <div className="max-w-7xl mx-auto space-y-8">
 
         <Header name="Sessions" />
 
         {/* SEARCH + FILTERS */}
-        <div className="bg-white rounded-3xl p-6 border border-slate-200 shadow-sm">
+
+        <div className="bg-[#171A24] rounded-3xl p-6 border border-[#2A2E3D] shadow-sm">
 
           <div className="flex flex-col xl:flex-row gap-4">
 
             {/* SEARCH */}
+
             <div className="flex-1">
 
               <SearchBar
@@ -327,11 +347,12 @@ const Sessions = () => {
                     e.target.value
                   )
                 }
-                placeholder="Search tutor, student or status..."
               />
+
             </div>
 
             {/* STATUS */}
+
             <select
               value={statusFilter}
               onChange={(
@@ -342,8 +363,9 @@ const Sessions = () => {
                     .value as StatusFilter
                 )
               }
-              className="border rounded-xl px-4 py-2"
+              className="border border-[#2A2E3D] rounded-xl px-4 py-2 bg-[#0E1016] text-[#F3F4F8] focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40"
             >
+
               <option value="all">
                 All Status
               </option>
@@ -363,9 +385,11 @@ const Sessions = () => {
               <option value="cancelled">
                 Cancelled
               </option>
+
             </select>
 
             {/* PAYMENT */}
+
             <select
               value={paymentFilter}
               onChange={(
@@ -376,8 +400,9 @@ const Sessions = () => {
                     .value as PaymentFilter
                 )
               }
-              className="border rounded-xl px-4 py-2"
+              className="border border-[#2A2E3D] rounded-xl px-4 py-2 bg-[#0E1016] text-[#F3F4F8] focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40"
             >
+
               <option value="all">
                 All Payments
               </option>
@@ -393,9 +418,11 @@ const Sessions = () => {
               <option value="refunded">
                 REFUNDED
               </option>
+
             </select>
 
             {/* SORT */}
+
             <select
               value={sortType}
               onChange={(
@@ -406,8 +433,9 @@ const Sessions = () => {
                     .value as SortType
                 )
               }
-              className="border rounded-xl px-4 py-2"
+              className="border border-[#2A2E3D] rounded-xl px-4 py-2 bg-[#0E1016] text-[#F3F4F8] focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40"
             >
+
               <option value="latest">
                 Latest
               </option>
@@ -423,29 +451,42 @@ const Sessions = () => {
               <option value="amountLow">
                 Amount Low
               </option>
+
             </select>
 
           </div>
+
         </div>
 
         {/* SESSION CARD */}
-        <div className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200 space-y-5">
+
+        <div className="bg-[#171A24] rounded-3xl p-8 shadow-sm border border-[#2A2E3D] space-y-5">
 
           <div className="flex items-center justify-between">
 
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">
+
+              <h2
+                className="text-2xl font-bold"
+                style={fraunces}
+              >
                 Session List
               </h2>
 
-              <p className="text-sm text-slate-500 mt-1">
+              <p className="text-sm text-[#9CA1B5] mt-1">
+
                 {
                   filteredSessions.length
                 } sessions found
+
               </p>
+
             </div>
 
-            <div className="text-sm text-slate-400">
+            <div
+              className="text-sm text-[#6B7185]"
+              style={mono}
+            >
               Page {currentPage} of{" "}
               {totalPages || 1}
             </div>
@@ -453,131 +494,132 @@ const Sessions = () => {
           </div>
 
           {/* LIST */}
+
           {paginatedSessions.map(
             (session) => (
 
               <div
                 key={session._id}
-                className="flex flex-col xl:flex-row gap-6 xl:items-center justify-between bg-slate-50 p-6 rounded-2xl border border-slate-100"
+                className="flex flex-col xl:flex-row gap-6 xl:items-center justify-between bg-[#0E1016] p-6 rounded-2xl border border-[#2A2E3D]"
               >
 
                 {/* LEFT */}
+
                 <div className="space-y-2 xl:w-1/3">
 
-                  <p className="font-semibold text-slate-800 flex items-center gap-2">
-                    <FaChalkboardTeacher className="text-indigo-500" />
+                  <p className="font-semibold text-[#F3F4F8] flex items-center gap-2">
 
                     {
                       session.tutorId
                         ?.tutorId
                         ?.name
                     }
+
                   </p>
 
-                  <p className="text-sm text-slate-500 flex items-center gap-2">
+                  <p className="text-sm text-[#9CA1B5] flex items-center gap-2">
+
                     <FaUser />
 
                     {
                       session.userId
                         ?.name
                     }
+
                   </p>
 
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-[#6B7185]">
+
                     {
                       new Date(
                         session.date
                       ).toLocaleDateString()
                     }{" "}
+
                     —{" "}
+
                     {
                       session.startTime
                     }{" "}
+
                     to{" "}
+
                     {
                       session.endTime
                     }
+
                   </p>
 
-                  {session.feedback && (
+                  {session?.feedback?.rating && (
 
-                    <p className="text-amber-500 text-sm">
+                    <p className="text-amber-400 text-sm">
+
                       ⭐{" "}
+
                       {
                         session.feedback
                           .rating
                       }
+
                       /5
+
                     </p>
+
                   )}
+
                 </div>
 
                 {/* CENTER */}
+
                 <div className="xl:w-1/4 text-center">
 
-                  <span className="px-4 py-1 rounded-full text-xs bg-indigo-100 text-indigo-700 font-semibold">
+                  <span className="px-4 py-1 rounded-full text-xs bg-[#7C9CFF]/15 text-[#A9BCFF] font-semibold">
+
                     {
                       session.status
                     }
+
                   </span>
 
-                  <p className="text-emerald-600 font-bold mt-3 text-lg">
+                  <p className="text-emerald-400 font-bold mt-3 text-lg">
+
                     ₹
                     {
                       session.amount
                     }
+
                   </p>
 
-                  <p className="text-xs text-slate-400 mt-1">
+                  <p className="text-xs text-[#6B7185] mt-1">
+
                     {
                       session.paymentStatus
                     }
+
                   </p>
+
                 </div>
 
                 {/* ACTIONS */}
+
                 <div className="flex flex-wrap gap-3 xl:w-1/3 xl:justify-end">
 
-                  {/* GENERATE */}
-                  {(session.status ===
-                    "Upcoming" ||
-                    session.status ===
-                      "Confirmed") &&
-                    !session.videoRoomUrl && (
+                  {/* VIEW DETAILS */}
 
-                      <Button
-                        onClick={() =>
-                          handleGenerateLink(
-                            session._id
-                          )
-                        }
-                        className="bg-indigo-600 text-white"
-                      >
-                        <FaVideo />
-                        Generate
-                      </Button>
-                    )}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="inline-flex items-center gap-1.5 border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#171A24] hover:border-[#7C9CFF] bg-transparent rounded-full transition"
+                    onClick={() =>
+                      setDetailsSession(session)
+                    }
+                  >
+                    View Details
+                  </Button>
 
-                  {/* VIDEO */}
-                  {session.videoRoomUrl && (
+                  {/* {session.videoRoomUrl && (
+
                     <>
-                      <Button
-                        onClick={() => {
-
-                          navigator.clipboard.writeText(
-                            session.videoRoomUrl ||
-                              ""
-                          );
-
-                          toast.success(
-                            "Copied!"
-                          );
-                        }}
-                        className="bg-emerald-600 text-white"
-                      >
-                        <FaCopy />
-                        Copy
-                      </Button>
 
                       <a
                         href={
@@ -585,15 +627,21 @@ const Sessions = () => {
                         }
                         target="_blank"
                         rel="noreferrer"
-                        className="bg-blue-600 text-white px-4 py-2 rounded-lg flex gap-2 items-center"
+                        className="bg-[#7C9CFF] hover:bg-[#8FACFF] text-[#0E1016] font-semibold px-4 py-2 rounded-lg flex gap-2 items-center transition"
                       >
+
                         <FaVideo />
+
                         Open
+
                       </a>
+
                     </>
-                  )}
+
+                  )} */}
 
                   {/* RELEASE */}
+
                   {session.paymentStatus ===
                     "HOLD" &&
                     session.feedback &&
@@ -606,13 +654,15 @@ const Sessions = () => {
                             session
                           )
                         }
-                        className="bg-green-600 text-white"
+                        className="bg-emerald-600 hover:bg-emerald-500 text-white"
                       >
                         Release
                       </Button>
+
                     )}
 
                   {/* REFUND */}
+
                   {session.paymentStatus ===
                     "HOLD" &&
                     session.feedback
@@ -624,35 +674,44 @@ const Sessions = () => {
                             session
                           )
                         }
-                        className="bg-red-600 text-white"
+                        className="bg-red-600 hover:bg-red-500 text-white"
                       >
                         Refund
                       </Button>
+
                     )}
 
                   {/* PAID */}
+
                   {session.paymentStatus ===
                     "RELEASED" && (
 
-                      <span className="text-green-600 font-semibold">
-                        Paid
-                      </span>
-                    )}
+                    <span className="text-emerald-400 font-semibold">
+                      Paid
+                    </span>
+
+                  )}
 
                   {/* REFUNDED */}
+
                   {session.paymentStatus ===
                     "REFUNDED" && (
 
-                      <span className="text-red-600 font-semibold">
-                        Refunded
-                      </span>
-                    )}
+                    <span className="text-red-400 font-semibold">
+                      Refunded
+                    </span>
+
+                  )}
+
                 </div>
+
               </div>
+
             )
           )}
 
           {/* PAGINATION */}
+
           {totalPages > 1 && (
 
             <div className="flex items-center justify-between pt-4">
@@ -669,10 +728,13 @@ const Sessions = () => {
                       prev - 1
                   )
                 }
-                className="flex items-center gap-2 border rounded-xl px-4 py-2 disabled:opacity-50"
+                className="flex items-center gap-2 border border-[#2A2E3D] rounded-xl px-4 py-2 text-[#F3F4F8] hover:border-[#7C9CFF] transition disabled:opacity-50"
               >
+
                 <ChevronLeft className="w-4 h-4" />
+
                 Previous
+
               </button>
 
               <div className="flex gap-2">
@@ -695,17 +757,23 @@ const Sessions = () => {
                           index + 1
                         )
                       }
-                      className={`w-10 h-10 rounded-xl font-semibold ${
+                      className={`w-10 h-10 rounded-xl font-semibold transition ${
                         currentPage ===
                         index + 1
-                          ? "bg-slate-900 text-white"
-                          : "bg-slate-100"
+                          ? "bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016]"
+                          : "bg-[#1E2230] text-[#9CA1B5] hover:text-[#F3F4F8]"
                       }`}
                     >
-                      {index + 1}
+
+                      {
+                        index + 1
+                      }
+
                     </button>
+
                   )
                 )}
+
               </div>
 
               <button
@@ -721,24 +789,35 @@ const Sessions = () => {
                       prev + 1
                   )
                 }
-                className="flex items-center gap-2 border rounded-xl px-4 py-2 disabled:opacity-50"
+                className="flex items-center gap-2 border border-[#2A2E3D] rounded-xl px-4 py-2 text-[#F3F4F8] hover:border-[#7C9CFF] transition disabled:opacity-50"
               >
+
                 Next
+
                 <ChevronRight className="w-4 h-4" />
+
               </button>
+
             </div>
+
           )}
+
         </div>
+
       </div>
 
       {/* REFUND MODAL */}
+
       {refundModal && (
 
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
 
-          <div className="bg-white p-8 rounded-3xl w-[400px] shadow-xl">
+          <div className="bg-[#171A24] border border-[#2A2E3D] p-8 rounded-3xl w-[400px] shadow-xl">
 
-            <h2 className="text-xl font-bold mb-4">
+            <h2
+              className="text-xl font-bold text-[#F3F4F8] mb-4"
+              style={fraunces}
+            >
               Refund Amount
             </h2>
 
@@ -754,7 +833,7 @@ const Sessions = () => {
                   )
                 )
               }
-              className="w-full border p-3 rounded-xl"
+              className="w-full border border-[#2A2E3D] p-3 rounded-xl bg-[#0E1016] text-[#F3F4F8] focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40"
             />
 
             <div className="flex justify-end gap-3 mt-6">
@@ -766,6 +845,7 @@ const Sessions = () => {
                     null
                   )
                 }
+                className="border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#1E2230]"
               >
                 Cancel
               </Button>
@@ -790,43 +870,60 @@ const Sessions = () => {
 
                     await loadSessions();
 
-                  } catch (error) {
+                  } catch (error: unknown) {
 
-                    console.error(
-                      error
-                    );
+                    if (error instanceof Error) {
+                      console.error(
+                        error.message
+                      );
+                    } else {
+                      console.error(
+                        error
+                      );
+                    }
 
                     toast.error(
                       "Refund failed"
                     );
                   }
+
                 }}
-                className="bg-red-600 text-white"
+                className="bg-red-600 hover:bg-red-500 text-white"
               >
                 Confirm
               </Button>
+
             </div>
+
           </div>
+
         </div>
+
       )}
 
       {/* RELEASE MODAL */}
+
       {confirmRelease && (
 
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
 
-          <div className="bg-white p-8 rounded-3xl w-[400px] shadow-xl">
+          <div className="bg-[#171A24] border border-[#2A2E3D] p-8 rounded-3xl w-[400px] shadow-xl">
 
-            <h2 className="text-xl font-bold mb-4">
+            <h2
+              className="text-xl font-bold text-[#F3F4F8] mb-4"
+              style={fraunces}
+            >
               Release Payment
             </h2>
 
-            <p className="text-slate-600 mb-6">
+            <p className="text-[#9CA1B5] mb-6">
+
               Release ₹
               {
                 confirmRelease.amount
               }{" "}
               to tutor?
+
             </p>
 
             <div className="flex justify-end gap-3">
@@ -838,6 +935,7 @@ const Sessions = () => {
                     null
                   )
                 }
+                className="border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#1E2230]"
               >
                 Cancel
               </Button>
@@ -861,27 +959,57 @@ const Sessions = () => {
 
                     await loadSessions();
 
-                  } catch (error) {
+                  } catch (error: unknown) {
 
-                    console.error(
-                      error
-                    );
+                    if (error instanceof Error) {
+                      console.error(
+                        error.message
+                      );
+                    } else {
+                      console.error(
+                        error
+                      );
+                    }
 
                     toast.error(
                       "Release failed"
                     );
                   }
+
                 }}
-                className="bg-green-600 text-white"
+                className="bg-emerald-600 hover:bg-emerald-500 text-white"
               >
                 Confirm
               </Button>
+
             </div>
+
           </div>
+
         </div>
+
       )}
 
-      <Toaster position="top-center" />
+      {/* SESSION DETAILS MODAL */}
+
+      <SessionDetailsModal
+        session={detailsSession}
+        onClose={() =>
+          setDetailsSession(null)
+        }
+      />
+
+      <Toaster
+        position="top-center"
+        toastOptions={{
+          style: {
+            background: "#171A24",
+            color: "#F3F4F8",
+            border: "1px solid #2A2E3D",
+          },
+        }}
+      />
+
     </div>
   );
 };

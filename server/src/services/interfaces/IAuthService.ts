@@ -1,5 +1,5 @@
-import { LoginRequestDTO, ResendOtpRequestDTO, ResetPasswordRequestDTO, SignupRequestDTO, VerifyOtpRequestDTO } from "../../dtos/auth.dto";
-import { IUser } from "../../models/user";
+import { LoginRequestDTO, ResendOtpRequestDTO, ResetPasswordRequestDTO, SignupRequestDTO, VerifyOtpRequestDTO } from "../../dtos/auth.dto.js";
+import { IUser } from "../../models/user.js";
 
 export interface IAuthService{
     signup(dto:SignupRequestDTO): Promise<IUser| null>;

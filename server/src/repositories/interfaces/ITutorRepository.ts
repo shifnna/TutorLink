@@ -1,5 +1,5 @@
-import { TutorResponseDTO } from "../../dtos/tutor.dto";
-import { ITutor } from "../../models/tutor";
+import { TutorResponseDTO } from "../../dtos/tutor.dto.js";
+import { ITutor } from "../../models/tutor.js";
 import { ParsedQs } from "qs";
 
 

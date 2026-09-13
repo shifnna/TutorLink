@@ -1,8 +1,8 @@
-import { IUser, UserModel } from "../models/user";
-import { IClientRepository } from "./interfaces/IClientRepository";
+import { IUser, UserModel } from "../models/user.js";
+import { IClientRepository } from "./interfaces/IClientRepository.js";
 import { injectable, inject } from "inversify";
-import { TYPES } from "../types/types";
-import { BaseRepository } from "./baseRepository";
+import { TYPES } from "../types/types.js";
+import { BaseRepository } from "./baseRepository.js";
 
 @injectable()
 export class clientRepository extends BaseRepository<IUser> implements IClientRepository {

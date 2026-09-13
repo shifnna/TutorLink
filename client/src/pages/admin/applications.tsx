@@ -12,6 +12,13 @@ import { adminService } from "../../services/adminService";
 
 import SearchBar from "../../components/adminCommon/searchBar";
 import TableList from "../../components/adminCommon/tableList";
+import { Button } from "../../components/ui/button";
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
+// Midnight theme type treatment — matches Home / ExploreTutors
+const fraunces = { fontFamily: "'Fraunces', Georgia, serif" };
+const mono = { fontFamily: "'Space Mono', monospace" };
 
 interface IConfirmModal {
   isOpen: boolean;
@@ -41,6 +48,7 @@ const TutorApplications: React.FC = () => {
 
   const [applications, setApplications] =
     useState<ITutorApplication[]>([]);
+const [debouncedSearch, setDebouncedSearch] = useState<string>("");
 
   const [search, setSearch] =
     useState<string>("");
@@ -70,6 +78,26 @@ const TutorApplications: React.FC = () => {
   const [rejectReason, setRejectReason] =
     useState<string>("");
 
+    useEffect(() => {
+  const timer = setTimeout(() => {
+    setDebouncedSearch(search);
+  }, 300);
+
+  return () => clearTimeout(timer);
+}, [search]);
+
+    useEffect(() => {
+    const id = "tutorlink-midnight-fonts";
+    if (!document.getElementById(id)) {
+      const link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      link.href =
+        "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,450;9..144,550;9..144,650&family=Space+Mono:wght@400;700&display=swap";
+      document.head.appendChild(link);
+    }
+  }, []);
+
   useEffect(() => {
 
     const fetchApplications =
@@ -90,10 +118,12 @@ const TutorApplications: React.FC = () => {
             );
           }
 
-        } catch (error) {
-
-          console.error(error);
-
+        } catch (error: unknown) {
+  if (error instanceof Error) {
+    console.error(error.message);
+  } else {
+    console.error(error);
+  }
           toast.error(
             "Failed to fetch applications"
           );
@@ -119,9 +149,12 @@ const TutorApplications: React.FC = () => {
             : []
         );
 
-      } catch (error) {
-
-        console.error(error);
+      } catch (error: unknown) {
+  if (error instanceof Error) {
+    console.error(error.message);
+  } else {
+    console.error(error);
+  }
       }
     };
 
@@ -147,9 +180,12 @@ const TutorApplications: React.FC = () => {
           await refreshList();
         }
 
-      } catch (error) {
-
-        console.error(error);
+      }catch (error: unknown) {
+  if (error instanceof Error) {
+    console.error(error.message);
+  } else {
+    console.error(error);
+  }
 
         toast.error(
           "Failed to approve tutor"
@@ -197,9 +233,12 @@ const TutorApplications: React.FC = () => {
           await refreshList();
         }
 
-      } catch (error) {
-
-        console.error(error);
+      }catch (error: unknown) {
+  if (error instanceof Error) {
+    console.error(error.message);
+  } else {
+    console.error(error);
+  }
 
         toast.error(
           "Failed to reject tutor"
@@ -238,10 +277,10 @@ const TutorApplications: React.FC = () => {
 
           const matchesSearch =
             name.includes(
-              search.toLowerCase()
+              debouncedSearch.toLowerCase()
             ) ||
             email.includes(
-              search.toLowerCase()
+              debouncedSearch.toLowerCase()
             );
 
           const matchesStatus =
@@ -301,7 +340,7 @@ const TutorApplications: React.FC = () => {
 
     }, [
       applications,
-      search,
+      debouncedSearch,
       filterStatus,
       sortType,
     ]);
@@ -321,8 +360,21 @@ const TutorApplications: React.FC = () => {
       ITEMS_PER_PAGE
     );
 
+    const navigate = useNavigate();
   return (
-    <div className="px-10 py-10 bg-slate-50 min-h-screen">
+    <div className="relative px-10 py-10 bg-[#0E1016] text-[#F3F4F8] min-h-screen overflow-hidden">
+
+      {/* background glow — matches Home / ExploreTutors */}
+      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+        <div
+          className="absolute top-[-15%] right-[-10%] w-[45vmax] h-[45vmax] rounded-full opacity-20 blur-3xl mix-blend-screen"
+          style={{ background: "radial-gradient(circle, rgba(124,156,255,0.5) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-[-15%] left-[-10%] w-[40vmax] h-[40vmax] rounded-full opacity-20 blur-3xl mix-blend-screen"
+          style={{ background: "radial-gradient(circle, rgba(192,139,250,0.5) 0%, transparent 70%)" }}
+        />
+      </div>
 
       <div className="max-w-7xl mx-auto space-y-8">
 
@@ -335,15 +387,25 @@ const TutorApplications: React.FC = () => {
             opacity: 1,
             y: 0,
           }}
+          className="flex items-center justify-between flex-wrap gap-4"
         >
 
-          <h1 className="text-4xl font-black text-slate-900">
-            Tutor Applications
-          </h1>
+          <div>
+            <p className="text-[11px] uppercase tracking-wider text-[#9CA1B5] mb-2" style={mono}>Admin</p>
 
-          <p className="text-slate-500 mt-1">
-            Review and manage tutor requests
-          </p>
+            <h1 className="text-4xl font-black" style={fraunces}>
+              Tutor Applications
+            </h1>
+
+            <p className="text-[#9CA1B5] mt-1">
+              Review and manage tutor requests
+            </p>
+          </div>
+
+          <Button className="flex items-center gap-2 bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] rounded-xl font-bold hover:scale-105 transition"
+        onClick={()=>navigate("/admin-dashboard")}>
+          <FaArrowLeft />Back to Dashboard
+        </Button>
 
         </motion.div>
 
@@ -356,7 +418,7 @@ const TutorApplications: React.FC = () => {
             opacity: 1,
             y: 0,
           }}
-          className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm"
+          className="bg-[#171A24] rounded-3xl border border-[#2A2E3D] p-6 shadow-sm"
         >
 
           <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
@@ -372,7 +434,6 @@ const TutorApplications: React.FC = () => {
                     e.target.value
                   )
                 }
-                placeholder="Search by name or email..."
               />
             </div>
 
@@ -380,7 +441,7 @@ const TutorApplications: React.FC = () => {
 
               <div className="relative">
 
-                <Filter className="w-4 h-4 absolute left-3 top-3 text-slate-400" />
+                <Filter className="w-4 h-4 absolute left-3 top-3 text-[#9CA1B5]" />
 
                 <select
                   value={
@@ -393,7 +454,7 @@ const TutorApplications: React.FC = () => {
                       e.target.value as FilterStatus
                     )
                   }
-                  className="border rounded-xl pl-9 pr-4 py-2 bg-white text-sm"
+                  className="border border-[#2A2E3D] rounded-xl pl-9 pr-4 py-2 bg-[#0E1016] text-[#F3F4F8] text-sm focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40"
                 >
                   <option value="all">
                     All
@@ -419,7 +480,7 @@ const TutorApplications: React.FC = () => {
                     e.target.value as SortType
                   )
                 }
-                className="border rounded-xl px-4 py-2 bg-white text-sm"
+                className="border border-[#2A2E3D] rounded-xl px-4 py-2 bg-[#0E1016] text-[#F3F4F8] text-sm focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40"
               >
                 <option value="latest">
                   Latest
@@ -451,24 +512,24 @@ const TutorApplications: React.FC = () => {
             opacity: 1,
             y: 0,
           }}
-          className="bg-white rounded-3xl p-8 shadow-sm border border-slate-200"
+          className="bg-[#171A24] rounded-3xl p-8 shadow-sm border border-[#2A2E3D]"
         >
 
           <div className="flex items-center justify-between mb-6">
 
             <div>
 
-              <h2 className="text-xl font-bold text-slate-900">
+              <h2 className="text-xl font-bold" style={fraunces}>
                 Applications
               </h2>
 
-              <p className="text-sm text-slate-500 mt-1">
+              <p className="text-sm text-[#9CA1B5] mt-1">
                 {filteredApplications.length} applications found
               </p>
 
             </div>
 
-            <div className="text-sm text-slate-400">
+            <div className="text-sm text-[#6B7185]" style={mono}>
               Page {currentPage} of {totalPages || 1}
             </div>
 
@@ -486,9 +547,9 @@ const TutorApplications: React.FC = () => {
 
     <div className="max-h-[85vh] overflow-y-auto pr-2">
 
-      <div className="space-y-6 text-slate-700">
+      <div className="space-y-6 text-[#D7D9E2]">
 
-        <h2 className="text-2xl font-bold text-slate-900">
+        <h2 className="text-2xl font-bold text-[#F3F4F8]" style={fraunces}>
           Tutor Application
         </h2>
 
@@ -504,7 +565,7 @@ const TutorApplications: React.FC = () => {
             <img
               src={tutor.profileImage}
               alt="Tutor"
-              className="w-28 h-28 rounded-2xl object-cover border border-slate-200 hover:opacity-90 transition"
+              className="w-28 h-28 rounded-2xl object-cover border border-[#2A2E3D] hover:opacity-90 transition"
             />
 
           </a>
@@ -512,44 +573,44 @@ const TutorApplications: React.FC = () => {
           <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm flex-1">
 
             <p>
-              <b>Name:</b>{" "}
+              <b className="text-[#F3F4F8]">Name:</b>{" "}
               {tutor.tutorId?.name}
             </p>
 
             <p>
-              <b>Email:</b>{" "}
+              <b className="text-[#F3F4F8]">Email:</b>{" "}
               {tutor.tutorId?.email}
             </p>
 
             <p>
-              <b>Education:</b>{" "}
+              <b className="text-[#F3F4F8]">Education:</b>{" "}
               {tutor.education}
             </p>
 
             <p>
-              <b>Experience:</b>{" "}
+              <b className="text-[#F3F4F8]">Experience:</b>{" "}
               {tutor.experienceLevel}
             </p>
 
             <p>
-              <b>Occupation:</b>{" "}
+              <b className="text-[#F3F4F8]">Occupation:</b>{" "}
               {tutor.occupation}
             </p>
 
             <p>
-              <b>Gender:</b>{" "}
+              <b className="text-[#F3F4F8]">Gender:</b>{" "}
               {tutor.gender}
             </p>
 
             <p className="col-span-2">
-              <b>Languages:</b>{" "}
+              <b className="text-[#F3F4F8]">Languages:</b>{" "}
               {Array.isArray(tutor.languages)
                 ? tutor.languages.join(", ")
                 : tutor.languages}
             </p>
 
             <p className="col-span-2">
-              <b>Skills:</b>{" "}
+              <b className="text-[#F3F4F8]">Skills:</b>{" "}
               {Array.isArray(tutor.skills)
                 ? tutor.skills.join(", ")
                 : tutor.skills}
@@ -561,11 +622,11 @@ const TutorApplications: React.FC = () => {
 
         <div>
 
-          <p className="font-semibold text-slate-900 mb-2">
+          <p className="font-semibold text-[#F3F4F8] mb-2">
             Description
           </p>
 
-          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-4 text-sm leading-relaxed">
+          <div className="bg-[#0E1016] border border-[#2A2E3D] rounded-2xl p-4 text-sm leading-relaxed">
             {tutor.description}
           </div>
 
@@ -573,13 +634,13 @@ const TutorApplications: React.FC = () => {
 
         <div>
 
-          <p className="font-semibold text-slate-900 mb-3">
+          <p className="font-semibold text-[#F3F4F8] mb-3">
             Certificates
           </p>
 
           {!tutor.certificates?.length ? (
 
-            <p className="text-slate-500 text-sm">
+            <p className="text-[#9CA1B5] text-sm">
               No certificates uploaded
             </p>
 
@@ -598,7 +659,7 @@ const TutorApplications: React.FC = () => {
                     href={certificate}
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="px-4 py-2 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-sm font-medium transition"
+                    className="px-4 py-2 rounded-xl border border-[#2A2E3D] bg-[#0E1016] hover:bg-[#1E2230] text-sm font-medium transition"
                   >
                     Certificate {index + 1}
                   </a>
@@ -610,7 +671,7 @@ const TutorApplications: React.FC = () => {
 
         </div>
 
-        <div className="flex gap-3 pt-2 sticky bottom-0 bg-white">
+        <div className="flex gap-3 pt-2 sticky bottom-0 bg-[#171A24]">
 
           <button
             onClick={() =>
@@ -622,7 +683,7 @@ const TutorApplications: React.FC = () => {
                   tutor._id,
               })
             }
-            className="px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl font-medium transition"
+            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-medium transition"
           >
             Approve
           </button>
@@ -637,7 +698,7 @@ const TutorApplications: React.FC = () => {
                   tutor._id,
               })
             }
-            className="px-5 py-2.5 bg-red-600 hover:bg-red-700 text-white rounded-xl font-medium transition"
+            className="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-medium transition"
           >
             Reject
           </button>
@@ -650,7 +711,7 @@ const TutorApplications: React.FC = () => {
   );
 }}
 
-            
+
           />
 
           {totalPages > 1 && (
@@ -666,7 +727,7 @@ const TutorApplications: React.FC = () => {
                     (prev) => prev - 1
                   )
                 }
-                className="flex items-center gap-2 px-4 py-2 border rounded-xl disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 border border-[#2A2E3D] rounded-xl text-[#F3F4F8] hover:border-[#7C9CFF] transition disabled:opacity-50"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Previous
@@ -686,10 +747,10 @@ const TutorApplications: React.FC = () => {
                           index + 1
                         )
                       }
-                      className={`w-10 h-10 rounded-xl text-sm font-semibold ${
+                      className={`w-10 h-10 rounded-xl text-sm font-semibold transition ${
                         currentPage === index + 1
-                          ? "bg-slate-900 text-white"
-                          : "bg-slate-100 hover:bg-slate-200"
+                          ? "bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016]"
+                          : "bg-[#1E2230] text-[#9CA1B5] hover:text-[#F3F4F8]"
                       }`}
                     >
                       {index + 1}
@@ -708,7 +769,7 @@ const TutorApplications: React.FC = () => {
                     (prev) => prev + 1
                   )
                 }
-                className="flex items-center gap-2 px-4 py-2 border rounded-xl disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 border border-[#2A2E3D] rounded-xl text-[#F3F4F8] hover:border-[#7C9CFF] transition disabled:opacity-50"
               >
                 Next
                 <ChevronRight className="w-4 h-4" />
@@ -721,18 +782,18 @@ const TutorApplications: React.FC = () => {
 
       {confirmModal.isOpen && (
 
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
 
-          <div className="bg-white rounded-3xl w-[400px] p-8 shadow-xl">
+          <div className="bg-[#171A24] border border-[#2A2E3D] rounded-3xl w-[400px] p-8 shadow-xl">
 
             {confirmModal.type === "approve" ? (
 
               <>
-                <h2 className="text-2xl font-bold text-slate-900 mb-3">
+                <h2 className="text-2xl font-bold text-[#F3F4F8] mb-3" style={fraunces}>
                   Approve Tutor
                 </h2>
 
-                <p className="text-slate-500 mb-6">
+                <p className="text-[#9CA1B5] mb-6">
                   Are you sure you want to approve this tutor?
                 </p>
 
@@ -746,14 +807,14 @@ const TutorApplications: React.FC = () => {
                         userId: null,
                       })
                     }
-                    className="px-4 py-2 border rounded-xl"
+                    className="px-4 py-2 border border-[#2A2E3D] rounded-xl text-[#F3F4F8] hover:border-[#7C9CFF] transition"
                   >
                     Cancel
                   </button>
 
                   <button
                     onClick={handleApprove}
-                    className="px-4 py-2 bg-green-600 text-white rounded-xl"
+                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition"
                   >
                     Confirm
                   </button>
@@ -764,7 +825,7 @@ const TutorApplications: React.FC = () => {
             ) : (
 
               <>
-                <h2 className="text-2xl font-bold text-slate-900 mb-3">
+                <h2 className="text-2xl font-bold text-[#F3F4F8] mb-3" style={fraunces}>
                   Reject Tutor
                 </h2>
 
@@ -778,7 +839,7 @@ const TutorApplications: React.FC = () => {
                     )
                   }
                   placeholder="Enter rejection reason..."
-                  className="w-full border rounded-xl p-3 min-h-[120px] mb-5"
+                  className="w-full border border-[#2A2E3D] rounded-xl p-3 min-h-[120px] mb-5 bg-[#0E1016] text-[#F3F4F8] placeholder:text-[#6B7185] focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40"
                 />
 
                 <div className="flex justify-end gap-3">
@@ -791,14 +852,14 @@ const TutorApplications: React.FC = () => {
                         userId: null,
                       })
                     }
-                    className="px-4 py-2 border rounded-xl"
+                    className="px-4 py-2 border border-[#2A2E3D] rounded-xl text-[#F3F4F8] hover:border-[#7C9CFF] transition"
                   >
                     Cancel
                   </button>
 
                   <button
                     onClick={handleReject}
-                    className="px-4 py-2 bg-red-600 text-white rounded-xl"
+                    className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl transition"
                   >
                     Confirm
                   </button>
@@ -812,15 +873,15 @@ const TutorApplications: React.FC = () => {
 
       {reasonModal.isOpen && (
 
-        <div className="fixed inset-0 bg-black/40 backdrop-blur-sm flex items-center justify-center z-50">
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
 
-          <div className="bg-white rounded-3xl w-[400px] p-8 shadow-xl">
+          <div className="bg-[#171A24] border border-[#2A2E3D] rounded-3xl w-[400px] p-8 shadow-xl">
 
-            <h2 className="text-2xl font-bold text-slate-900 mb-4">
+            <h2 className="text-2xl font-bold text-[#F3F4F8] mb-4" style={fraunces}>
               Rejection Reason
             </h2>
 
-            <p className="text-slate-600">
+            <p className="text-[#D7D9E2]">
               {reasonModal.message}
             </p>
 
@@ -831,7 +892,7 @@ const TutorApplications: React.FC = () => {
                   message: "",
                 })
               }
-              className="mt-6 px-4 py-2 bg-indigo-600 text-white rounded-xl"
+              className="mt-6 px-4 py-2 bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold rounded-xl"
             >
               Close
             </button>
@@ -840,7 +901,7 @@ const TutorApplications: React.FC = () => {
         </div>
       )}
 
-      <Toaster position="top-center" />
+      <Toaster position="top-center" toastOptions={{ style: { background: "#171A24", color: "#F3F4F8", border: "1px solid #2A2E3D" } }} />
     </div>
   );
 };

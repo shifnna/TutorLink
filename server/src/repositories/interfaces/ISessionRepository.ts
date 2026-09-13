@@ -1,4 +1,4 @@
-import { ISession } from "../../models/session";
+import { ISession } from "../../models/session.js";
 
 export interface ISessionRepository {
   createSession(session: Partial<ISession>):Promise<ISession>;

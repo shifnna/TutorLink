@@ -1,11 +1,11 @@
 import { injectable } from "inversify";
-import { ISessionController } from "./interfaces/ISessionController";
+import { ISessionController } from "./interfaces/ISessionController.js";
 import { NextFunction, Request, Response } from "express";
-import { handleAsync } from "../utils/handleAsync";
-import { TYPES } from "../types/types";
-import { ISessionService } from "../services/interfaces/ISessionService";
+import { handleAsync } from "../utils/handleAsync.js";
+import { TYPES } from "../types/types.js";
+import { ISessionService } from "../services/interfaces/ISessionService.js";
 import { inject } from "inversify";
-import { AuthRequest } from "../middlewares/authMiddleware";
+import { AuthRequest } from "../middlewares/authMiddleware.js";
 
 @injectable()
 export class SessionController implements ISessionController{
@@ -15,7 +15,6 @@ export class SessionController implements ISessionController{
    
   bookSession = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async () => {
-      const {user} = req as AuthRequest;
     const order = await this._sessionService.bookSession(req.body.amount);
     return { success: true, message: "Order created", data: order };
     })(res, next); 
@@ -62,6 +61,13 @@ export class SessionController implements ISessionController{
   })(res, next);
 
 
+  getSessionById = (req: Request, res: Response, next: NextFunction) =>
+  handleAsync(async () => {
+    const { id } = req.params;
+    const session = await this._sessionService.getSessionById(id);
+    return { success: true, message: "Fetched session", data: session };
+  })(res, next);
+  
   cancelSession = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async () => {
       const { id } = req.params;

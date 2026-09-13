@@ -1,5 +1,5 @@
 import { Schema, model, Document, Types } from "mongoose";
-import { ITutor } from "./tutor";
+import { ITutor } from "./tutor.js";
 
 export interface IUser extends Document {
   name: string;
@@ -18,7 +18,6 @@ export interface IUser extends Document {
 
 }
 
-export interface IUserDocument extends IUser {}
 
 const userSchema = new Schema<IUser>({
   name: { type: String, required: true },

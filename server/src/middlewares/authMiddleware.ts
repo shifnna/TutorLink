@@ -1,8 +1,8 @@
 import { Request, RequestHandler } from "express";
 import jwt from "jsonwebtoken";
-import { IUser, UserModel } from "../models/user";
-import { COMMON_ERROR, STATUS_CODES } from "../utils/constants";
-import { generateAccessToken } from "../utils/tokens";
+import { IUser, UserModel } from "../models/user.js";
+import { COMMON_ERROR, STATUS_CODES } from "../utils/constants.js";
+import { generateAccessToken } from "../utils/tokens.js";
 
 export interface AuthRequest extends Request {
   user?: IUser ;
@@ -30,7 +30,7 @@ export const protect: RequestHandler = async (req, res, next) => {
       authReq.user = user; 
       return next();
 
-    } catch (err) {
+    } catch {
       if (!refreshToken) return res.status(403).json({ message: "Token expired. Please login again." });
 
       try {
@@ -54,8 +54,8 @@ export const protect: RequestHandler = async (req, res, next) => {
         return res.status(403).json({ message: "Refresh token invalid or expired. Please login again." });
       }
     }
-  } catch (error) {
-    return res.status(401).json({ message: "Authentication failed", error });
+  } catch (error:unknown) {
+    return res.status(401).json({ message: "Authentication failed", error: error instanceof Error? error.message:String(error) });
   }
 };
 

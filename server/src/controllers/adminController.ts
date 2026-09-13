@@ -1,15 +1,15 @@
 import { NextFunction, Request, Response } from "express";
 import { inject, injectable } from "inversify";
-import { TYPES } from "../types/types";
-import { IAdminController } from "./interfaces/IAdminController";
-import { IAdminService } from "../services/interfaces/IAdminService";
-import { handleAsync } from "../utils/handleAsync";
-import { IUserWithTutorDTO } from "../dtos/tutor.dto";
+import { TYPES } from "../types/types.js";
+import { IAdminController } from "./interfaces/IAdminController.js";
+import { IAdminService } from "../services/interfaces/IAdminService.js";
+import { handleAsync } from "../utils/handleAsync.js";
+import { IUserWithTutorDTO } from "../dtos/tutor.dto.js";
 export interface ClientsQueryDTO {
   search?: string;
-  status?: string;   // "all" | "active" | "blocked"
-  sort?: string;     // "latest" | "oldest" | "az" | "za"
-  page?: string;     // comes as string from req.query
+  status?: string;  
+  sort?: string;    
+  page?: string;    
   limit?: string;
 }
 
@@ -27,9 +27,7 @@ export class AdminController implements IAdminController {
   ) {}
 
  getAllClients = (req: Request, res: Response, next: NextFunction) =>
-  handleAsync(() =>
-    this._adminService.getAllClients(req.query as ClientsQueryDTO)
-  )(res, next);
+    handleAsync(() =>this._adminService.getAllClients(req.query as ClientsQueryDTO))(res, next);
 
   getAllTutors = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(() => this._adminService.getAllTutors())(res,next);

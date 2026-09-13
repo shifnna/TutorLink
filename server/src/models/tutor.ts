@@ -1,8 +1,8 @@
-import { Schema, model, Document, ObjectId, Types } from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
 
 export interface ITutor extends Document {
   minSlotAmount?: number;
-hasSlots?: boolean;
+  hasSlots?: boolean;
   startingPrice?: number;
   tutorId: Types.ObjectId;
   description: string;

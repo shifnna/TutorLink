@@ -1,10 +1,10 @@
 import { NextFunction, Request, Response } from "express";
-import { ITutorController } from "./interfaces/ITutorController";
+import { ITutorController } from "./interfaces/ITutorController.js";
 import { inject, injectable } from "inversify";
-import { TYPES } from "../types/types";
-import { ITutorService } from "../services/interfaces/ITutorService";
-import { AuthRequest } from "../middlewares/authMiddleware";
-import { handleAsync } from "../utils/handleAsync";
+import { TYPES } from "../types/types.js";
+import { ITutorService } from "../services/interfaces/ITutorService.js";
+import { AuthRequest } from "../middlewares/authMiddleware.js";
+import { handleAsync } from "../utils/handleAsync.js";
 
 @injectable()
 export class TutorController implements ITutorController {

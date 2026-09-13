@@ -14,6 +14,7 @@ export interface ITutor {
   certificates: string[];
   adminApproved: boolean;
   slotRule?: ISlotRule;
+  createdAt?: Date | string;
 }
 
 export interface ITutorSearch {

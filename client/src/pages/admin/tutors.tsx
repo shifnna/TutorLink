@@ -19,6 +19,13 @@ import {
   ChevronRight,
 } from "lucide-react";
 
+import { FaArrowLeft } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
+
+// Midnight theme type treatment — matches Home / ExploreTutors
+const fraunces = { fontFamily: "'Fraunces', Georgia, serif" };
+const mono = { fontFamily: "'Space Mono', monospace" };
+
 type SortOption =
   | "latest"
   | "oldest"
@@ -59,6 +66,29 @@ const TutorsPage: React.FC = () => {
       open: false,
       id: "",
     });
+
+    const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+
+
+    useEffect(() => {
+  const timer = setTimeout(() => {
+    setDebouncedSearch(search);
+  }, 300);
+
+  return () => clearTimeout(timer);
+}, [search]);
+
+    useEffect(() => {
+    const id = "tutorlink-midnight-fonts";
+    if (!document.getElementById(id)) {
+      const link = document.createElement("link");
+      link.id = id;
+      link.rel = "stylesheet";
+      link.href =
+        "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,450;9..144,550;9..144,650&family=Space+Mono:wght@400;700&display=swap";
+      document.head.appendChild(link);
+    }
+  }, []);
 
   /* ================= FETCH ================= */
 
@@ -126,12 +156,12 @@ const TutorsPage: React.FC = () => {
             );
           }
 
-        } catch (error) {
-
-          console.error(
-            "Failed to fetch tutors:",
-            error
-          );
+        } catch (error: unknown) {
+  if (error instanceof Error) {
+    console.error("failed to fetch tutors",error.message);
+  } else {
+    console.error(error);
+  }
         }
       };
 
@@ -197,12 +227,12 @@ const TutorsPage: React.FC = () => {
           );
         }
 
-      } catch (error) {
-
-        console.error(
-          "Failed to update tutor:",
-          error
-        );
+      } catch (error: unknown) {
+  if (error instanceof Error) {
+    console.error("failed to update tutor",error.message);
+  } else {
+    console.error(error);
+  }
 
       } finally {
 
@@ -225,7 +255,7 @@ const TutorsPage: React.FC = () => {
           ): boolean => {
 
             const query =
-              search.toLowerCase();
+              debouncedSearch.toLowerCase();
 
             const matchesSearch =
               tutor.name
@@ -315,7 +345,7 @@ const TutorsPage: React.FC = () => {
 
     }, [
       tutors,
-      search,
+      debouncedSearch,
       filterBy,
       sortBy,
     ]);
@@ -349,8 +379,21 @@ const TutorsPage: React.FC = () => {
       );
     };
 
+    const navigate = useNavigate();
   return (
-    <div className="px-10 py-10 bg-slate-50 min-h-screen">
+    <div className="relative px-10 py-10 bg-[#0E1016] text-[#F3F4F8] min-h-screen overflow-hidden">
+
+      {/* background glow — matches Home / ExploreTutors */}
+      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
+        <div
+          className="absolute top-[-15%] right-[-10%] w-[45vmax] h-[45vmax] rounded-full opacity-20 blur-3xl mix-blend-screen"
+          style={{ background: "radial-gradient(circle, rgba(124,156,255,0.5) 0%, transparent 70%)" }}
+        />
+        <div
+          className="absolute bottom-[-15%] left-[-10%] w-[40vmax] h-[40vmax] rounded-full opacity-20 blur-3xl mix-blend-screen"
+          style={{ background: "radial-gradient(circle, rgba(192,139,250,0.5) 0%, transparent 70%)" }}
+        />
+      </div>
 
       <div className="max-w-7xl mx-auto space-y-8">
 
@@ -364,14 +407,24 @@ const TutorsPage: React.FC = () => {
             opacity: 1,
             y: 0,
           }}
+          className="flex items-center justify-between flex-wrap gap-4"
         >
-          <h1 className="text-4xl font-extrabold text-slate-900">
-            Tutors
-          </h1>
+          <div>
+            <p className="text-[11px] uppercase tracking-wider text-[#9CA1B5] mb-2" style={mono}>Admin</p>
 
-          <p className="text-slate-500 mt-1">
-            Manage and monitor all registered tutors
-          </p>
+            <h1 className="text-4xl font-extrabold" style={fraunces}>
+              Tutors
+            </h1>
+
+            <p className="text-[#9CA1B5] mt-1">
+              Manage and monitor all registered tutors
+            </p>
+          </div>
+
+          <Button className="flex items-center gap-2 bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] rounded-xl font-bold hover:scale-105 transition"
+        onClick={()=>navigate("/admin-dashboard")}>
+          <FaArrowLeft />Back to Dashboard
+        </Button>
         </motion.div>
 
         {/* FILTER CARD */}
@@ -384,7 +437,7 @@ const TutorsPage: React.FC = () => {
             opacity: 1,
             y: 0,
           }}
-          className="bg-white rounded-3xl border border-slate-100 shadow-sm p-6"
+          className="bg-[#171A24] rounded-3xl border border-[#2A2E3D] shadow-sm p-6"
         >
 
           <div className="flex flex-col xl:flex-row gap-4">
@@ -400,7 +453,6 @@ const TutorsPage: React.FC = () => {
                     e.target.value
                   )
                 }
-                placeholder="Search tutors by name or email..."
               />
             </div>
 
@@ -415,7 +467,7 @@ const TutorsPage: React.FC = () => {
                     .value as FilterOption
                 )
               }
-              className="border border-slate-200 rounded-xl px-4 py-3 bg-white"
+              className="border border-[#2A2E3D] rounded-xl px-4 py-3 bg-[#0E1016] text-[#F3F4F8] focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40"
             >
               <option value="all">
                 All Tutors
@@ -441,7 +493,7 @@ const TutorsPage: React.FC = () => {
                     .value as SortOption
                 )
               }
-              className="border border-slate-200 rounded-xl px-4 py-3 bg-white"
+              className="border border-[#2A2E3D] rounded-xl px-4 py-3 bg-[#0E1016] text-[#F3F4F8] focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40"
             >
               <option value="latest">
                 Latest Joined
@@ -472,25 +524,25 @@ const TutorsPage: React.FC = () => {
             opacity: 1,
             y: 0,
           }}
-          className="bg-white rounded-3xl p-8 shadow-sm border border-slate-100"
+          className="bg-[#171A24] rounded-3xl p-8 shadow-sm border border-[#2A2E3D]"
         >
 
           {/* TOP BAR */}
           <div className="flex items-center justify-between mb-6">
 
             <div>
-              <h2 className="text-2xl font-bold text-slate-900">
+              <h2 className="text-2xl font-bold" style={fraunces}>
                 Tutor List
               </h2>
 
-              <p className="text-sm text-slate-500 mt-1">
+              <p className="text-sm text-[#9CA1B5] mt-1">
                 {
                   filteredTutors.length
                 } tutors found
               </p>
             </div>
 
-            <div className="text-sm text-slate-400">
+            <div className="text-sm text-[#6B7185]" style={mono}>
               Page{" "}
               {currentPage} of{" "}
               {totalPages || 1}
@@ -522,7 +574,7 @@ const TutorsPage: React.FC = () => {
                 disabled={
                   currentPage === 1
                 }
-                className="flex items-center gap-2 px-4 py-2 border rounded-xl disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 border border-[#2A2E3D] rounded-xl text-[#F3F4F8] hover:border-[#7C9CFF] transition disabled:opacity-50"
               >
                 <ChevronLeft className="w-4 h-4" />
                 Previous
@@ -554,8 +606,8 @@ const TutorsPage: React.FC = () => {
                         className={`w-10 h-10 rounded-xl font-semibold transition ${
                           currentPage ===
                           page
-                            ? "bg-slate-900 text-white"
-                            : "bg-slate-100 hover:bg-slate-200"
+                            ? "bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016]"
+                            : "bg-[#1E2230] text-[#9CA1B5] hover:text-[#F3F4F8]"
                         }`}
                       >
                         {page}
@@ -576,7 +628,7 @@ const TutorsPage: React.FC = () => {
                   currentPage ===
                   totalPages
                 }
-                className="flex items-center gap-2 px-4 py-2 border rounded-xl disabled:opacity-50"
+                className="flex items-center gap-2 px-4 py-2 border border-[#2A2E3D] rounded-xl text-[#F3F4F8] hover:border-[#7C9CFF] transition disabled:opacity-50"
               >
                 Next
                 <ChevronRight className="w-4 h-4" />
@@ -598,17 +650,17 @@ const TutorsPage: React.FC = () => {
           })
         }
       >
-        <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" />
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm" />
 
         <div className="fixed inset-0 flex items-center justify-center">
 
-          <div className="bg-white rounded-3xl shadow-xl p-8 w-[360px] text-center border border-slate-100">
+          <div className="bg-[#171A24] rounded-3xl shadow-xl p-8 w-[360px] text-center border border-[#2A2E3D]">
 
-            <h2 className="text-xl font-bold text-slate-800 mb-4">
+            <h2 className="text-xl font-bold text-[#F3F4F8] mb-4" style={fraunces}>
               Confirm Action
             </h2>
 
-            <p className="text-slate-500 mb-6">
+            <p className="text-[#9CA1B5] mb-6">
               Are you sure you want to change this tutor’s status?
             </p>
 
@@ -618,7 +670,7 @@ const TutorsPage: React.FC = () => {
                 onClick={
                   handleToggleStatus
                 }
-                className="bg-red-600 hover:bg-red-700 text-white"
+                className="bg-red-600 hover:bg-red-500 text-white"
               >
                 Confirm
               </Button>
@@ -631,6 +683,7 @@ const TutorsPage: React.FC = () => {
                     id: "",
                   })
                 }
+                className="border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#1E2230]"
               >
                 Cancel
               </Button>

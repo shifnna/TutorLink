@@ -1,9 +1,9 @@
 import { Types } from "mongoose";
-import { ISession, SessionModel } from "../models/session";
-import { UserModel } from "../models/user";
-import { WalletModel } from "../models/wallet";
-import { BaseRepository } from "./baseRepository";
-import { ISessionRepository } from "./interfaces/ISessionRepository";
+import { ISession, SessionModel } from "../models/session.js";
+import { UserModel } from "../models/user.js";
+import { WalletModel } from "../models/wallet.js";
+import { BaseRepository } from "./baseRepository.js";
+import { ISessionRepository } from "./interfaces/ISessionRepository.js";
 
 export class SessionRepository extends BaseRepository<ISession> implements ISessionRepository{
 
@@ -28,7 +28,7 @@ export class SessionRepository extends BaseRepository<ISession> implements ISess
   }
 
   async updateAdminWallet(userId: string, amount: number, sessionId: string) {
-    let admin = await UserModel.findOne({ role: "admin" });
+    const admin = await UserModel.findOne({ role: "admin" });
     if (!admin) throw new Error("Admin missing");
 
     let wallet = await WalletModel.findOne({ userId: admin._id });
@@ -77,7 +77,10 @@ async findSessionsByTutorId(
 ): Promise<ISession[]> {
 
   return await SessionModel.find({
-    tutorId,
+    $or: [
+      { tutorId },
+      { userId: tutorId }
+    ]
   })
     .populate(
       "userId",

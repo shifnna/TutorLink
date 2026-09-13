@@ -1,12 +1,15 @@
 import { Router } from "express";
-import { protect } from "../middlewares/authMiddleware";
-import { NotificationModel } from "../models/notifications";
+import { protect } from "../middlewares/authMiddleware.js";
+import container from "../container/inversify.config.js";
+import { INotificationController } from "../controllers/interfaces/INotificationController.js";
+import { TYPES } from "../types/types.js";
 
 const router = Router();
 
-router.get("/:userId", protect, async (req, res) => {
-  const notifications = await NotificationModel.find({ userId: req.params.userId }).sort({ createdAt: -1 });
-  res.json({ success: true, data: notifications });
-});
+const notificationController = container.get<INotificationController>(TYPES.INotificationController);
+
+router.get("/:userId", protect, notificationController.getUserNotifications);
+router.patch("/:notificationId/seen", protect, notificationController.markOneSeen);
+router.patch("/:userId/seen-all", protect, notificationController.markAllSeen);
 
 export default router;

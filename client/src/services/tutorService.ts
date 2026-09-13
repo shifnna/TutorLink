@@ -81,8 +81,8 @@ export const tutorService = {
       ifsc: formData.ifsc,
     };
     return tutorService.applyForTutor(payload as ITutorApplication);
-  } catch (err) {
-    console.error("Error applying for tutor:", err);
+  } catch (error: unknown) {
+  console.error(error instanceof Error ? error.message : error);
     return { success: false, message: "File upload failed", data: null };
   }
 },

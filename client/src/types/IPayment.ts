@@ -1,5 +1,3 @@
-import { BookingDetails } from "./ISession";
-
 export interface IRazorpayOrder {
   data:{
   id: string;

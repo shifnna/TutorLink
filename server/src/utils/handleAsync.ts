@@ -1,5 +1,5 @@
 import { NextFunction, Response } from "express";
-import { successResponse } from "./commonResponse";
+import { successResponse } from "./commonResponse.js";
 
 
 export const handleAsync = <T>(controllerFn: () => Promise<T>) =>
@@ -9,7 +9,7 @@ export const handleAsync = <T>(controllerFn: () => Promise<T>) =>
       if (!res.headersSent) {
         res.status(200).json(successResponse(data));
       }
-    } catch (err) {
+    } catch (err:unknown) {
       next(err);
     }
   };

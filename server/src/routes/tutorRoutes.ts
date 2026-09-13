@@ -1,10 +1,10 @@
 import { Router } from "express";
-import container from "../container/inversify.config";
-import { ITutorController } from "../controllers/interfaces/ITutorController";
-import { TYPES } from "../types/types";
-import { protect } from "../middlewares/authMiddleware";
-import { validate } from "../middlewares/validate";
-import { applyTutorSchema} from "../validators/tutorValidator";
+import container from "../container/inversify.config.js";
+import { ITutorController } from "../controllers/interfaces/ITutorController.js";
+import { TYPES } from "../types/types.js";
+import { protect } from "../middlewares/authMiddleware.js";
+import { validate } from "../middlewares/validate.js";
+import { applyTutorSchema} from "../validators/tutorValidator.js";
 
 const router = Router();
 

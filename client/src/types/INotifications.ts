@@ -3,9 +3,10 @@ export interface INotification {
   userId: string;
   title: string;
   message: string;
-  seen: boolean;
   link?: string;
+  seen: boolean;
   createdAt: string;
+  updatedAt?: string;
 }
 
 

@@ -13,7 +13,7 @@ export interface ISchedule {
   duration: number;
   durationUnit: string;
   amount: number;
-  isBooked: Boolean;
+  isBooked: boolean;
 }
 
 export interface ISlotRule extends Document {
