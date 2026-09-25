@@ -1,4 +1,4 @@
-import { ITutor } from "../models/tutor";
+import { ITutor } from "../models/tutor.js";
 
 export interface DashboardStatsResponseDTO {
   totalUsers: number;
@@ -10,8 +10,4 @@ export interface DashboardStatsResponseDTO {
 
 export interface rejectTutorDTO{
   message:string;
-}
-
-export interface generateLinkDTO{
-  sessionId : string;
 }

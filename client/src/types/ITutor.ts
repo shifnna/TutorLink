@@ -6,7 +6,7 @@ export interface ITutor {
   description: string;
   languages: string[];
   education: string;
-  skills: string[];
+  subjects: string[];
   experienceLevel: string;
   gender: string;
   occupation: string;
@@ -20,6 +20,8 @@ export interface ITutor {
 export interface ITutorSearch {
   search?: string;
   experienceLevels?: string[];
+  subjects?: string[];
+  languages?: string[]
   minPrice?: number;
   maxPrice?: number;
   sortBy?: string;

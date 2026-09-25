@@ -21,4 +21,12 @@ export interface ITutorService {
   getTutorById(
     tutorId: string
   ): Promise<ITutor | null>;
+
+  getTopSubjects(limit?: number): Promise<{ subject: string; count: number }[]>;
+
+  getFilterOptions(): Promise<{
+    subjects: string[];
+    languages: string[];
+    experienceLevels: string[];
+  }>;
 }

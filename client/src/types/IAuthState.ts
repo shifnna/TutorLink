@@ -40,12 +40,9 @@ export interface IAuthState {
   user: IUser | null;
   isLoading: boolean;
   isAuthenticated: boolean;
-  search: string;
   blocked: boolean;
   
   setUser: (user: IUser) => void,
-
-  setSearch: (term: string) => void;
 
   fetchUser: () => Promise<void>,
 

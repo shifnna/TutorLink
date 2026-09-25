@@ -46,8 +46,7 @@ export class SessionController implements ISessionController{
       );
     }
 
-    const sessions =
-      await this._sessionService.getSessionsByUserId(
+    const sessions = await this._sessionService.getSessionsByUserId(
         String(user._id),
         String(user.role)
       );

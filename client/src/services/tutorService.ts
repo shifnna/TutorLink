@@ -1,5 +1,6 @@
 import axiosClient from "../api/axiosClient";
 import { uploadToCloudinary } from "../api/uploadToCloudinary";
+import { FilterOptions, SubjectCount } from "../types/IFilter";
 import { ITutor,ITutorSearch } from "../types/ITutor";
 import { ITutorApplication, ITutorApplicationForm } from "../types/ITutorApplication";
 import { handleApi, ICommonResponse } from "../utils/apiHelper";
@@ -33,6 +34,14 @@ export const tutorService = {
       "experienceLevels",
       params.experienceLevels.join(",")
     );
+  }
+
+  if (params.subjects?.length) {
+    query.append("subjects", params.subjects.join(","));
+  }
+
+  if (params.languages?.length) {
+    query.append("languages", params.languages.join(","));
   }
 
   if (params.minPrice !== undefined) {
@@ -69,7 +78,7 @@ export const tutorService = {
       description: formData.description,
       languages: formData.languages,
       education: formData.education,
-      skills: formData.skills,
+      subjects: formData.subjects,
       experienceLevel: formData.experienceLevel,
       gender: formData.gender,
       occupation: formData.occupation,
@@ -87,5 +96,10 @@ export const tutorService = {
   }
 },
 
-
+  getTopSubjects: async (limit = 8): Promise<ICommonResponse<SubjectCount[]>> =>
+    handleApi(axiosClient.get(`${ROUTES.TUTOR_API}/top-subjects?limit=${limit}`)),
+ 
+  getFilterOptions: async (): Promise<ICommonResponse<FilterOptions>> =>
+    handleApi(axiosClient.get(`${ROUTES.TUTOR_API}/filter-options`)),
+   
 }

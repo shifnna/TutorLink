@@ -1,6 +1,7 @@
 import { Schema, Document, Types, model } from "mongoose";
 
 export interface ISession extends Document {
+  sessionId: string;
   tutorId: Types.ObjectId;
   userId: Types.ObjectId;
   amount: number;
@@ -22,6 +23,7 @@ export interface ISession extends Document {
 
 const SessionSchema = new Schema<ISession>(
   {
+    sessionId: {type: String, required: true},
     tutorId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     userId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     amount: { type: Number, required:true },

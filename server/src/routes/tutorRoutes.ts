@@ -14,6 +14,8 @@ router.post("/apply-for-tutor", protect,validate(applyTutorSchema), controller.a
 router.get("/get-tutors", protect,controller.getAllTutors);
 router.get("/get-tutor/:tutorId", protect,controller.getTutorById);
 router.get("/profile", protect,controller.getTutorProfile);
+router.get("/top-subjects", protect, controller.getTopSubjects);
+router.get("/filter-options", protect, controller.getFilterOptions);
 
 
 export default router;

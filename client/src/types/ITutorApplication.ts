@@ -10,7 +10,7 @@ export interface ITutorApplication {
   description: string;
   languages: string | string[];
   education: string;
-  skills: string | string[];
+  subjects: string | string[];
   experienceLevel: string;
   gender: string;
   occupation: string;
@@ -32,12 +32,12 @@ export interface ITutorApplicationForm {
   description: string;
   languages:string |  string[];
   education: string;
-  skills: string | string[];
+  subjects: string | string[];
   experienceLevel: string;
   gender: string;
   occupation: string;
-  profileImage: File | null;   //// Before upload
-  certificates: File[];        // //Before upload
+  profileImage: File | null;  
+  certificates: File[];       
   accountHolder: string;
   accountNumber: string;
   bankName: string;

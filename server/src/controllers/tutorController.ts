@@ -8,9 +8,7 @@ import { handleAsync } from "../utils/handleAsync.js";
 
 @injectable()
 export class TutorController implements ITutorController {
-  constructor(
-    @inject(TYPES.ITutorService) private readonly _tutorService: ITutorService
-  ) {}
+  constructor( @inject(TYPES.ITutorService) private readonly _tutorService: ITutorService ) {}
 
   applyForTutor = (req: Request, res: Response, next: NextFunction) => {
     return handleAsync(async () => {
@@ -44,10 +42,22 @@ export class TutorController implements ITutorController {
       return await this._tutorService.getAllTutors(authReq.user?._id as string, req.query);
     })(res,next);
 
+    
   getTutorById = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async()=>{
       const {tutorId} = req.params;
       return await this._tutorService.getTutorById(tutorId);
     })(res,next);
 
+
+  getTopSubjects = (req: Request, res: Response, next: NextFunction) =>
+    handleAsync(async () => {
+      const limit = req.query.limit ? Number(req.query.limit) : 8;
+      return await this._tutorService.getTopSubjects(limit);
+    })(res, next);
+
+  getFilterOptions = (req: Request, res: Response, next: NextFunction) =>
+    handleAsync(async () => {
+      return await this._tutorService.getFilterOptions();
+    })(res, next);
 }

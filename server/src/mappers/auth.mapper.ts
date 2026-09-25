@@ -1,4 +1,4 @@
-import { SignupRequestDTO } from "../dtos/auth.dto";
+import { SignupRequestDTO } from "../dtos/auth.dto.js";
 
 export class AuthMapper {
 

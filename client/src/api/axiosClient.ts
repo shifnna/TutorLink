@@ -24,7 +24,7 @@ axiosClient.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    //// If refresh also fails
+    //// If refresh token also fails
     if (error.response?.status === 403) {
       console.warn("🔒 Refresh token invalid. Logging out...");
       useAuthStore.getState().logout();

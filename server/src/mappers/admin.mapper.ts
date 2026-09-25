@@ -1,6 +1,6 @@
-import { IUserWithTutorDTO } from "../dtos/tutor.dto";
-import { ITutor } from "../models/tutor";
-import { IUser } from "../models/user";
+import { IUserWithTutorDTO } from "../dtos/tutor.dto.js";
+import { ITutor } from "../models/tutor.js";
+import { IUser } from "../models/user.js";
 
 export class AdminMapper {
 

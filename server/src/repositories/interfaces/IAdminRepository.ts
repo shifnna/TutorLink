@@ -6,3 +6,16 @@ export interface IAdminRepository {
   findPendingTutors(): Promise<ITutor[]>;
   
 }
+
+
+export interface PopulatedTutorUser {
+  name: string;
+  email: string;
+  tutorApplication?: {
+    status?: string;
+  };
+}
+
+export type PopulatedTutor = Omit<ITutor, "tutorId"> & {
+  tutorId?: PopulatedTutorUser;
+};

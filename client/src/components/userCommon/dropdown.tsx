@@ -186,11 +186,16 @@ const Dropdown = () => {
 
                 {/* <button className="w-full text-left px-4 py-2 text-sm hover:bg-[#1E2230] transition">
                   Messages
-                </button>
-
-                <button className="w-full text-left px-4 py-2 text-sm hover:bg-[#1E2230] transition">
-                  Settings
                 </button> */}
+
+                <button 
+                onClick={()=>{
+                  navigate("/settings-overview");
+                  setMenuOpen(false);
+                }}
+                className="w-full text-left px-4 py-2 text-sm hover:bg-[#1E2230] transition">
+                  Settings
+                </button>
 
                 <div className="border-t border-[#2A2E3D] my-1" />
 

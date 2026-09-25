@@ -1,9 +1,6 @@
 import nodemailer from "nodemailer";
 
-export async function sendOTP(
-  email: string,
-  otpCode: string
-): Promise<void> {
+export async function sendOTP( email: string, otpCode: string ): Promise<void> {
   try {
     const transporter =
       nodemailer.createTransport({
@@ -17,11 +14,9 @@ export async function sendOTP(
       });
 
     const mailOptions = {
-      from:
-        process.env.EMAIL_USER,
+      from: process.env.EMAIL_USER,
       to: email,
-      subject:
-        "Your OTP Code",
+      subject: "Your OTP Code",
       text: `Your OTP code is ${otpCode}. It will expire in 1 minute.`,
       html: `
         <h2>Your OTP Code</h2>
@@ -30,22 +25,11 @@ export async function sendOTP(
       `,
     };
 
-    await transporter.sendMail(
-      mailOptions
-    );
+    await transporter.sendMail( mailOptions );
+    console.log("OTP email sent to:",email);
 
-    console.log(
-      "OTP email sent to:",
-      email
-    );
   } catch (error: unknown) {
-  console.error(error instanceof Error ? `error sending otp email ${error.message}` : error);
-
-    throw new Error(
-      "Failed to send OTP email",
-      {
-        cause: error,
-      }
-    );
+    console.error(error instanceof Error ? `error sending otp email ${error.message}` : error);
+    throw new Error("Failed to send OTP email",{ cause: error,});
   }
 }

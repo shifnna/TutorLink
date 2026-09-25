@@ -610,10 +610,10 @@ const [debouncedSearch, setDebouncedSearch] = useState<string>("");
             </p>
 
             <p className="col-span-2">
-              <b className="text-[#F3F4F8]">Skills:</b>{" "}
-              {Array.isArray(tutor.skills)
-                ? tutor.skills.join(", ")
-                : tutor.skills}
+              <b className="text-[#F3F4F8]">Subjects:</b>{" "}
+              {Array.isArray(tutor.subjects)
+                ? tutor.subjects.join(", ")
+                : tutor.subjects}
             </p>
 
           </div>

@@ -57,12 +57,8 @@ export class AdminController implements IAdminController {
 
   releasePayment = async (req: Request, res: Response, next: NextFunction) =>
   handleAsync(() => this._adminService.releasePayment(req.body.sessionId))(res, next);
-
-  generateLink = async (req: Request, res: Response, next: NextFunction) =>
-    handleAsync(()=> this._adminService.generateLink(req.body))(res,next);
     
   adminLogin = async (req: Request,res: Response,next: NextFunction): Promise<void> => {
-
   const result = await this._adminService.adminLogin(req.body);
 
   res.cookie(

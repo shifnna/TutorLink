@@ -8,7 +8,6 @@ export interface ICommonResponse<T = unknown> {
 
 
 
-/**Success wrapper */
 export const successResponse = <T>(
   data: T | null = null,
   message = "Success",
@@ -22,7 +21,6 @@ export const successResponse = <T>(
 
 
 
-/**Error wrapper */
 export const errorResponse = (
   message = "Something went wrong",
   statusCode = 500,

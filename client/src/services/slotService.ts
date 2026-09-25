@@ -1,14 +1,19 @@
 import axiosClient from "../api/axiosClient";
-import { ISlotRule } from "../types/ISlotRules";
+import { IAvailableSlot, IBookedSlotResponse, IBookSlotPayload, ICreateSlotRulePayload, ISlotRule } from "../types/ISlotRules";
 import { handleApi, ICommonResponse } from "../utils/apiHelper";
 
 const BASE_URL = "/api/slots";
 
-export const createSlotRule = async (data: ISlotRule) =>
-  handleApi<ICommonResponse<null>>( axiosClient.post(`${BASE_URL}/tutor/create-slot-rule`,data));
+export const createSlotRule = async (data: ICreateSlotRulePayload) =>
+  handleApi<ICommonResponse<ISlotRule>>(axiosClient.post(`${BASE_URL}/tutor/create-slot-rule`, data));
 
-export const getSlotRule = async () =>
-  handleApi<ICommonResponse<ISlotRule>>( axiosClient.get(`${BASE_URL}/tutor/rule`));
+export const getSlotRules = async () =>
+  handleApi<ICommonResponse<ISlotRule[]>>(axiosClient.get(`${BASE_URL}/tutor/rules`));
 
-export const getTutorRuleForClient = async (tutorId: string) =>
-  handleApi<ICommonResponse<ISlotRule>>(axiosClient.get(`${BASE_URL}/client/rule/${tutorId}`));
+export const getAvailableSlots = async (tutorId: string, from = "", to = "") =>
+  handleApi<ICommonResponse<IAvailableSlot[]>>(
+    axiosClient.get(`${BASE_URL}/client/available-slots/${tutorId}`, { params: { from, to } })
+  );
+
+export const bookSlot = async (data: IBookSlotPayload) =>
+  handleApi<ICommonResponse<IBookedSlotResponse>>(axiosClient.post(`${BASE_URL}/client/book-slot`, data));

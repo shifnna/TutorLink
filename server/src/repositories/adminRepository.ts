@@ -1,21 +1,9 @@
 import { inject } from "inversify";
 import { ITutor, TutorModel } from "../models/tutor.js";
-import { IAdminRepository } from "./interfaces/IAdminRepository.js";
+import { IAdminRepository, PopulatedTutor } from "./interfaces/IAdminRepository.js";
 import { injectable } from "inversify";
 import { TYPES } from "../types/types.js";
 import { ISession, SessionModel } from "../models/session.js";
-
-interface PopulatedTutorUser {
-  name: string;
-  email: string;
-  tutorApplication?: {
-    status?: string;
-  };
-}
-
-type PopulatedTutor = Omit<ITutor, "tutorId"> & {
-  tutorId?: PopulatedTutorUser;
-};
 
 @injectable()
 export class AdminRepository implements IAdminRepository {

@@ -5,4 +5,7 @@ export interface ITutorController{
     getAllTutors(req: Request, res: Response, next: NextFunction): Promise<void>;
     getTutorById (req: Request, res: Response, next: NextFunction) : Promise<void>;
     getTutorProfile(req: Request, res: Response, next: NextFunction): Promise<void>;
+    getTopSubjects(req: Request, res: Response, next: NextFunction): void;
+    getFilterOptions(req: Request, res: Response, next: NextFunction): void;
+
 }

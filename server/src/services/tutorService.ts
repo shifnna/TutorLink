@@ -79,5 +79,11 @@ export class TutorService implements ITutorService {
   };
 }
 
+  async getTopSubjects(limit = 8): Promise<{ subject: string; count: number }[]> {
+    return this._tutorRepo.getTopSubjects(limit);
+  }
 
+  async getFilterOptions() {
+    return this._tutorRepo.getFilterOptions();
+  }
 }

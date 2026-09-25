@@ -12,4 +12,6 @@ export interface ITutorRepository{
   findById(userId: string): Promise<ITutor | null>;
   findOne(data:{tutorId:string}): Promise<ITutor | null>
   findOneAndUpdate(filter: Partial<ITutor>,updateData: Partial<ITutor>): Promise<ITutor | null>;
+  getTopSubjects(limit?: number): Promise<{ subject: string; count: number }[]>;
+  getFilterOptions(): Promise<{ subjects: string[]; languages: string[]; experienceLevels: string[]; }>;
 }

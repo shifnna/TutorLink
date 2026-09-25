@@ -1,3 +1,10 @@
+export type SortOption =
+  | "all"
+  | "price_low_high"
+  | "price_high_low"
+  | "name_asc"
+  | "name_desc";
+
 export interface PriceRange {
   min: number;
   max: number;
@@ -6,9 +13,19 @@ export interface PriceRange {
 export interface SelectedFilters {
   subjects: string[];
   languages: string[];
-  skills: string[];
   experienceLevels: string[];
   availableDays: string[];
   priceRange: PriceRange;
-  sortBy: "all" | "price_low_high" | "price_high_low" | "name_asc" | "name_desc";
+  sortBy: SortOption;
+}
+
+export interface SubjectCount {
+  subject: string;
+  count: number;
+}
+
+export interface FilterOptions {
+  subjects: string[];
+  languages: string[];
+  experienceLevels: string[];
 }

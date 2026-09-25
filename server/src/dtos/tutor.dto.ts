@@ -12,11 +12,6 @@ export interface IScheduleDto {
   isBooked?:boolean;
 }
 
-export interface CreateSlotRuleDto {
-  tutorId: string;
-  schedules: IScheduleDto[];
-}
-
 export interface PresignedUrlRequestDTO {
   fileName: string;
   fileType: string;
@@ -24,8 +19,8 @@ export interface PresignedUrlRequestDTO {
 
 export interface ApplyTutorRequestDTO {
   description: string;
-  languages: string; // comma separated
-  skills: string;
+  languages: string[];
+  subjects: string[];
   education: string;
   experienceLevel: string;
   gender: string;
@@ -65,7 +60,7 @@ export interface IUserWithTutorDTO {
     description: string;
     languages: string[];
     education: string;
-    skills: string[];
+    subjects: string[];
     experienceLevel: string;
     gender: string;
     occupation: string;
@@ -80,4 +75,40 @@ export interface TutorResponseDTO
     keyof Document
   > {
   startingPrice?: number;
+}
+
+
+
+export interface DurationOptionDto {
+  minutes: number;
+  amount: number;
+}
+
+export interface CreateSlotRuleDto {
+  tutorId: string;
+  weekdays: string[];
+  startDate: string;
+  endDate: string;
+  startTime: string;
+  endTime: string;
+  durations: DurationOptionDto[];
+}
+
+export interface AvailableSlotDto {
+  ruleId: string;
+  date: string;
+  day: string;
+  startTime: string;
+  endTime: string;
+  durations: DurationOptionDto[];
+}
+
+export interface BookedSlotResponseDto {
+  sessionId: string;
+  date: string;
+  day: string;
+  startTime: string;
+  endTime: string;
+  duration: number;
+  amount: number;
 }

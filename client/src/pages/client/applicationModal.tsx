@@ -8,9 +8,9 @@ import { IApplicationModal } from "../../types/ITutorApplication";
 import { useAuthStore } from "../../store/authStore";
 import { tutorService } from "../../services/tutorService";
 import { authService } from "../../services/authService";
+import TagInput from "../../components/ui/tag-input";
 
-const fieldClass =
-  "h-12 bg-[#1E2230] border-[#2A2E3D] text-[#F3F4F8] placeholder:text-[#9CA1B5] rounded-xl focus:ring-2 focus:ring-[#7C9CFF]/40 focus:border-[#7C9CFF] transition";
+const fieldClass = "h-12 bg-[#1E2230] border-[#2A2E3D] text-[#F3F4F8] placeholder:text-[#9CA1B5] rounded-xl focus:ring-2 focus:ring-[#7C9CFF]/40 focus:border-[#7C9CFF] transition";
 
 const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
   const { isLoading } = useAuthStore();
@@ -20,7 +20,7 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
     description: "",
     languages: [] as string[],
     education: "",
-    skills: [] as string[],
+    subjects: [] as string[],
     experienceLevel: "",
     gender: "",
     occupation: "",
@@ -50,7 +50,7 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
             description: t.description || "",
             languages: normalizeToArray(t.languages),
             education: t.education || "",
-            skills: normalizeToArray(t.skills),
+            subjects: normalizeToArray(t.subjects),
             experienceLevel: t.experienceLevel || "",
             gender: t.gender || "",
             occupation: t.occupation || "",
@@ -76,15 +76,13 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
     const { name, value } = e.target;
-    if (name === "languages" || name === "skills") {
-      setFormData({
-        ...formData,
-        [name]: value.split(",").map((v) => v.trim()).filter(Boolean),
-      });
-    } else {
-      setFormData({ ...formData, [name]: value });
-    }
+    setFormData({ ...formData, [name]: value });
     setErrors((prev) => ({ ...prev, [name]: "" }));
+  };
+
+  const handleTagsChange = (field: "languages" | "subjects", tags: string[]) => {
+    setFormData({ ...formData, [field]: tags });
+    setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
   const handleFileChange = (
@@ -117,7 +115,7 @@ const ApplicationModal: React.FC<IApplicationModal> = ({ isOpen, onClose }) => {
 
     if (step === 2) {
       if (!formData.education.trim()) newErrors.education = "Education is required";
-      if (formData.skills.length === 0) newErrors.skills = "At least one skill is required";
+      if (formData.subjects.length === 0) newErrors.subjects = "At least one subject is required";
       if (!formData.experienceLevel)
         newErrors.experienceLevel = "Experience level is required";
       if (formData.certificates.length === 0)
@@ -178,8 +176,7 @@ if (userResponse.success && userResponse.data) {
 }
 
     useAuthStore.setState({ isLoading: false });
-
-      onClose();
+    onClose();
   };
 
   return (
@@ -281,14 +278,11 @@ if (userResponse.success && userResponse.data) {
 
                     <div>
                       <label className="block font-medium text-[#F3F4F8] mb-2">Languages</label>
-                      <Input
-                        type="text"
-                        name="languages"
-                        placeholder="e.g., English, Hindi, French"
-                        value={formData.languages.join(", ")}
-                        onChange={handleChange}
-                        className={fieldClass}
-                      />
+                     <TagInput 
+                       value={formData.languages}
+                       onChange={(tags) => handleTagsChange("languages", tags)}
+                       placeholder="Type a language, press space"
+                     />
                       {errors.languages && (
                         <p className="text-red-400 text-sm mt-1">{errors.languages}</p>
                       )}
@@ -342,18 +336,15 @@ if (userResponse.success && userResponse.data) {
                     </div>
 
                     <div>
-                      <label className="block font-medium text-[#F3F4F8] mb-2">Skills</label>
-                      <Input
-                        type="text"
-                        name="skills"
-                        placeholder="e.g., Math, Science, Coding"
-                        value={formData.skills.join(", ")}
-                        onChange={handleChange}
-                        className={fieldClass}
-                      />
-                      {errors.skills && (
-                        <p className="text-red-400 text-sm mt-1">{errors.skills}</p>
-                      )}
+                     <label className="block font-medium text-[#F3F4F8] mb-2">Subjects</label>
+                     <TagInput
+                       value={formData.subjects}
+                       onChange={(tags) => handleTagsChange("subjects", tags)}
+                       placeholder="Type a subject, press space"
+                     />
+                     {errors.subjects && (
+                       <p className="text-red-400 text-sm mt-1">{errors.subjects}</p>
+                       )}
                     </div>
 
                     <div>

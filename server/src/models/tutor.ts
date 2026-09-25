@@ -8,7 +8,7 @@ export interface ITutor extends Document {
   description: string;
   languages: string[];
   education: string;
-  skills: string[];
+  subjects: string[];
   experienceLevel: string;
   gender: string;
   occupation: string;
@@ -27,7 +27,7 @@ const TutorSchema = new Schema<ITutor>(
     description: { type: String, required: true },
     languages: [String],
     education: String,
-    skills: [String],
+    subjects: [String],
     experienceLevel: String,
     gender: String,
     occupation: String,
@@ -41,5 +41,9 @@ const TutorSchema = new Schema<ITutor>(
   },
   { timestamps: true }
 );
+
+// Speeds up the tutor-listing filter queries
+TutorSchema.index({ adminApproved: 1, languages: 1 });
+TutorSchema.index({ adminApproved: 1, subjects: 1 });
 
 export const TutorModel = model<ITutor>("Tutor", TutorSchema);

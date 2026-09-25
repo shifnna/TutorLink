@@ -1,8 +1,11 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { Toaster } from "react-hot-toast";
 import { motion } from "framer-motion";
-import { Mail, Phone, Clock } from "lucide-react";
+import { Mail, Phone, Clock, Pencil } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
+import { FaCamera } from "react-icons/fa";
+import { editProfileData, editProfileImage } from "../../services/clientService";
+import { IUser } from "../../types/IUser";
 
 // Midnight theme type treatment — same Fraunces / Space Mono pairing as the homepage
 const fraunces = { fontFamily: "'Fraunces', Georgia, serif" };
@@ -25,6 +28,7 @@ interface ClientProfileUser {
   email?: string;
   phone?: string;
   bio?: string;
+  profileImage?: string | null;
   createdAt?: string;
 }
 
@@ -32,6 +36,18 @@ const ClientProfile: React.FC = () => {
   const { user } = useAuthStore();
 
   const u = user as ClientProfileUser | null;
+
+  const [isEditing, setIsEditing] = useState(false);
+
+  const [previewImage, setPreviewImage] = useState<string | null>( u?.profileImage || null);
+  useEffect(()=>{
+    const res = editProfileImage(previewImage);
+  },[previewImage])
+
+  const [formData,setFormData] = useState<IUser | null>(null)
+  useEffect(()=>{
+    const res = editProfileData(formData);
+  },[formData])
 
   const memberSince = (() => {
     if (!u?.createdAt) return "—";
@@ -92,10 +108,10 @@ const ClientProfile: React.FC = () => {
               </p>
             </div>
 
-            {/* <button className="inline-flex items-center gap-2 rounded-full border border-[#2A2E3D] px-5 py-2.5 text-sm font-medium text-[#F3F4F8] hover:bg-[#171A24] hover:border-[#7C9CFF] transition">
+            <button className="inline-flex items-center gap-2 rounded-full border border-[#2A2E3D] px-5 py-2.5 text-sm font-medium text-[#F3F4F8] hover:bg-[#171A24] hover:border-[#7C9CFF] transition">
               <Pencil className="w-4 h-4" />
               Edit profile
-            </button> */}
+            </button>
           </div>
 
           {/* Content grid */}
@@ -105,11 +121,33 @@ const ClientProfile: React.FC = () => {
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#7C9CFF] via-[#A78CF5] to-[#C08BFA]" />
 
               <div className="flex items-center gap-4 mb-6">
-                <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[#7C9CFF] to-[#C08BFA] flex items-center justify-center shrink-0">
-                  <span style={fraunces} className="text-xl font-bold text-[#0E1016]">
-                    {(u?.name?.[0] || "U").toUpperCase()}
-                  </span>
-                </div>
+                <div className="w-24 h-24 rounded-full overflow-hidden bg-[#1E2230] border-4 border-[#2A2E3D] flex items-center justify-center shrink-0">
+
+  {previewImage ? (
+    <img
+      src={previewImage}
+      alt="Profile"
+      className="w-full h-full object-cover"
+    />
+  ) : (
+    <label className="w-full h-full flex items-center justify-center cursor-pointer">
+      <FaCamera className="w-8 h-8 text-[#9CA1B5]" />
+
+      <input
+        type="file"
+        accept="image/*"
+        className="hidden"
+        onChange={(e) => {
+          const file = e.target.files?.[0];
+          if (!file) return;
+
+          setPreviewImage(URL.createObjectURL(file));
+        }}
+      />
+    </label>
+  )}
+
+</div>
                 <div className="min-w-0">
                   <h2 style={fraunces} className="text-2xl font-semibold truncate">
                     {u?.name || "Your name"}

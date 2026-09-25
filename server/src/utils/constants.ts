@@ -11,17 +11,6 @@ export enum COMMON_ERROR {
   USER_BLOCKED = "Your account has been blocked by admin"
 }
 
-export enum COMMON_SUCCESS {
-  REGISTERED = "User registered successfully",
-}
-
-
-export enum ALERT_MESSAGES {
-  CONNECT_TUTOR= "Do you really want to connect with this tutor?",
-  VIEW_TUTOR= "Do you want to view this tutor's details?",
-};
-
-
 export enum STATUS_CODES{
   SUCCESS= 200,
   CREATED= 201,

@@ -26,6 +26,8 @@ import TutorDetails from "../pages/common/tutorDetails";
 import AdminLogin from "../pages/admin/adminLogin";
 import Layout from "../components/userCommon/layout";
 import SidebarLayout from "../components/userCommon/sidebarLayout";
+import SettingsOverview from "../pages/settings/settingsOverview";
+import Settings from "../pages/settings/password";
 
 function RouteWrapper() {
 
@@ -41,6 +43,8 @@ function RouteWrapper() {
 
         <Route element={<SidebarLayout/>}>
           <Route path="/user-profile" element={<ProtectedRoute><UserProfile /></ProtectedRoute>} />
+          <Route path="/settings-overview" element={<ProtectedRoute><SettingsOverview /></ProtectedRoute>} />
+          <Route path="/settings/password" element={<ProtectedRoute><Settings /></ProtectedRoute>} />
           <Route path="/client/session-management" element={<ProtectedRoute role="client"><ClientSessionManagement /></ProtectedRoute>} />
           <Route path="/tutor/session-management" element={<ProtectedRoute role="tutor"><TutorSessionManagement /></ProtectedRoute>} />
           <Route path="/slot-management" element={<ProtectedRoute><SlotManagement /></ProtectedRoute>} />

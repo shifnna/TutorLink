@@ -103,10 +103,6 @@ const ClientSessionManagement: React.FC = () => {
               My Sessions
             </h1>
 
-            <p>completed sessions:</p>
-            <p>cancelled sessions:</p>
-            <p>upcoming sessions:</p>
-
             <p className="text-[#9CA1B5] mt-2 text-sm">
               View and manage all your booked sessions in one place.
             </p>

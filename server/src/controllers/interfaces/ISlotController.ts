@@ -1,7 +1,8 @@
-import { Request, Response, NextFunction } from "express";
+import { NextFunction, Request, Response } from "express";
 
 export interface ISlotController {
-  createSlotRules(req: Request, res: Response, next: NextFunction): void;
-  getSlotRule(req: Request, res: Response, next: NextFunction): void;
-  getTutorRuleForClient(req: Request, res: Response, next: NextFunction): void;
+  createSlotRule(req: Request, res: Response, next: NextFunction): void;
+  getSlotRules(req: Request, res: Response, next: NextFunction): void;
+  getAvailableSlots(req: Request, res: Response, next: NextFunction): void;
+  bookSlot(req: Request, res: Response, next: NextFunction): void;
 }

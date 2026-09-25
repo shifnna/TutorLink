@@ -9,12 +9,9 @@ export const useAuthStore = create<IAuthState>()(
     user: null,
     isLoading: false,
     isAuthenticated: false,
-    search: "",
     blocked: false,
 
     setUser: (user: IUser) => set({ user, blocked: !!user?.isBlocked }),
-
-    setSearch: (term) => set({ search: term }),
 
     fetchUser: async () => {
       set({ isLoading: true });
@@ -62,10 +59,7 @@ export const useAuthStore = create<IAuthState>()(
 
       const user = response.data?.user;
       set({ user , isAuthenticated: type === "signup" });
-      return {
-       user,
-       success: response.success,
-      };
+      return { user,success: response.success, };
     },
 
     resendOtp: async (email, type) => {
@@ -111,32 +105,14 @@ export const useAuthStore = create<IAuthState>()(
   adminLogin: async ( email: string,password: string) => {
   set({ isLoading: true });
   try {
-
-    const response =
-      await authService.adminLogin({
-        email,
-        password,
-      });
-
+    const response = await authService.adminLogin({ email, password, });
     set({ isLoading: false });
-
-    if (
-      !response.success ||
-      !response.data
-    ) {
-      throw new Error(
-        response.message
-      );
+    if (!response.success || !response.data) {
+      throw new Error(response.message);
     }
 
-    const user: IUser =
-      response.data;
-
-    set({
-      user,
-      isAuthenticated: true,
-      blocked: !!user?.isBlocked,
-    });
+    const user: IUser = response.data;
+    set({ user, isAuthenticated: true, blocked: !!user?.isBlocked });
 
     return {
       success: true,
@@ -144,17 +120,11 @@ export const useAuthStore = create<IAuthState>()(
     };
 
   } catch (error: unknown) {
-
-    set({
-      isLoading: false,
-      user: null,
-      isAuthenticated: false,
-    });
+    set({ isLoading: false, user: null, isAuthenticated: false,});
 
     return {
       success: false,
-      message:
-        error instanceof Error? error.message : "Admin login failed",
+      message: error instanceof Error? error.message : "Admin login failed",
     };
   }
 },

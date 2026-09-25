@@ -19,7 +19,7 @@ export interface ITutorProfile {
   description: string;
   languages: string[];
   education: string;
-  skills: string[];
+  subj: string[];
   experienceLevel: string;
   gender: string;
   occupation: string;

@@ -6,16 +6,17 @@ export const validate = (schema: ZodObject<ZodRawShape>) =>
   (req: Request, res: Response, next: NextFunction) => {
     if (!req.body) req.body = {};
     
-    //// Convert single string fields to arrays if necessary
     if (req.body.languages && typeof req.body.languages === "string") {
-  req.body.languages = req.body.languages.split(",").map((s: string) => s.trim());
-}
-if (req.body.skills && typeof req.body.skills === "string") {
-  req.body.skills = req.body.skills.split(",").map((s: string) => s.trim());
-}
-if (req.body.certificates && typeof req.body.certificates === "string") {
-  req.body.certificates = req.body.certificates.split(",").map((s: string) => s.trim());
-}
+      req.body.languages = req.body.languages.split(",").map((s: string) => s.trim());
+    }
+
+    if (req.body.subjects && typeof req.body.subjects === "string") {
+      req.body.subjects = req.body.subjects.split(",").map((s: string) => s.trim());
+    }
+
+    if (req.body.certificates && typeof req.body.certificates === "string") {
+      req.body.certificates = req.body.certificates.split(",").map((s: string) => s.trim());
+    }
 
 
     const result = schema.safeParse({

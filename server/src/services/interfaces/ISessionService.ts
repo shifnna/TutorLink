@@ -9,5 +9,4 @@ export interface ISessionService {
   verifyPayment(dto:verifyPaymentDTO, userId:string): Promise<ISession>;
   sentFeedback(body:FeedbackDTO):Promise<ISession>;
   getSessionById(sessionId: string):Promise<ISession |null>;
-  // getSessionCount():Promise<ISession>
 }

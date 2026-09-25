@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
+import { createPortal } from "react-dom";
 import { Button } from "../ui/button";
 import { Filter, Eye, Video } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
@@ -11,7 +12,7 @@ import { useAuthStore } from "../../store/authStore";
 const mono = { fontFamily: "'Space Mono', monospace" };
 
 export interface ISession {
-  _id: string;
+  sessionId: string;
   tutorId: { _id: string; name: string; email: string };
   userId: { _id: string; name: string; email: string };
   date: string;
@@ -55,6 +56,20 @@ const SessionTable: React.FC<SessionTableProps> = ({
 
   return () => clearTimeout(timer);
 }, [searchText]);
+
+  // Lock background scroll while the cancel-confirmation modal is open.
+  // Also prevents the modal's `fixed` box from measuring against a
+  // scrolling ancestor, which was contributing to the open/close flicker.
+  useEffect(() => {
+    if (!confirmModal) return;
+
+    const original = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [confirmModal]);
 
   function convertTo24Hour(time12h: string) {
     const [time, modifier] = time12h.split(" ");
@@ -187,7 +202,7 @@ const SessionTable: React.FC<SessionTableProps> = ({
             {filteredSessions.length > 0 ? (
               filteredSessions.map((s) => (
                 <tr
-                  key={s._id}
+                  key={s.sessionId}
                   className="border-t border-[#2A2E3D] hover:bg-[#1E2230] transition"
                 >
                   <td className="px-4 py-3 text-[#F3F4F8]">
@@ -241,17 +256,15 @@ const SessionTable: React.FC<SessionTableProps> = ({
   </a>
 )}
 
-                    {(s.status === "Confirmed" ||
-  s.status === "Upcoming") && (
+  {(s.status === "Confirmed" || s.status === "Upcoming") && (
   <>
-
     {s.tutorId._id !== user?._id && (
       <Button
         size="sm"
         variant="outline"
         className="border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#171A24] hover:border-[#7C9CFF] bg-transparent rounded-full transition"
         onClick={() => {
-          setSelectedSessionId(s._id);
+          setSelectedSessionId(s.sessionId);
           setConfirmModal(true);
         }}
       >
@@ -277,58 +290,87 @@ const SessionTable: React.FC<SessionTableProps> = ({
         </table>
       </div>
 
-      {/* Cancel confirmation modal */}
-      <AnimatePresence>
-        {confirmModal && (
-          <motion.div
-            className="fixed inset-0 bg-[#0E1016]/70 backdrop-blur-sm flex items-center justify-center z-50"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-          >
-            <motion.div
-              className="relative overflow-hidden bg-[#171A24] border border-[#2A2E3D] p-6 rounded-2xl shadow-xl w-full max-w-sm text-center"
-              initial={{ scale: 0.95 }}
-              animate={{ scale: 1 }}
-              exit={{ scale: 0.95 }}
-            >
-              <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#7C9CFF] via-[#A78CF5] to-[#C08BFA]" />
+      {/* Cancel confirmation modal — portaled to <body> so its `fixed`
+          positioning is always relative to the real viewport, not to
+          any transformed/animated ancestor (which was causing the
+          open/close flicker). */}
+      {createPortal(
+        // Mounted permanently — NOT gated by `confirmModal &&` — so React
+        // never inserts or removes this backdrop-blur node from the DOM.
+        // Some Chromium versions flash for a frame whenever a
+        // backdrop-filter element is freshly inserted or removed; keeping
+        // it always present and only toggling visibility avoids that.
+        // `isolate` keeps it from blending with the page's animated
+        // mix-blend-screen background.
+        <div
+          className="fixed inset-0 z-50 isolate flex items-center justify-center"
+          style={{ pointerEvents: confirmModal ? "auto" : "none" }}
+          aria-hidden={!confirmModal}
+        >
+          {/* Blur layer: opacity snaps instantly (no transition class), so
+              it's never mid-animation while backdrop-filter is active. */}
+          <div
+            className={`absolute inset-0 backdrop-blur-sm ${
+              confirmModal ? "opacity-100" : "opacity-0"
+            }`}
+            aria-hidden="true"
+          />
+          {/* Tint layer: plain color, no filter, so a smooth opacity
+              transition here is cheap and never triggers the flicker. */}
+          <div
+            className={`absolute inset-0 bg-[#0E1016]/70 transition-opacity duration-200 ${
+              confirmModal ? "opacity-100" : "opacity-0"
+            }`}
+            aria-hidden="true"
+          />
 
-              <h3 className="font-semibold text-[#F3F4F8] text-lg mb-3">
-                Cancel session?
-              </h3>
-              <p className="text-sm text-[#9CA1B5] mb-6">
-                This action cannot be undone.
-              </p>
-              <p className="text-sm text-rose-400 mb-6">
-                Sorry, Refund will not process for this action.
-              </p>
+          <AnimatePresence>
+            {confirmModal && (
+              <motion.div
+                className="relative overflow-hidden bg-[#171A24] border border-[#2A2E3D] p-6 rounded-2xl shadow-xl w-full max-w-sm text-center"
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+              >
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#7C9CFF] via-[#A78CF5] to-[#C08BFA]" />
 
-              <div className="flex justify-center gap-3">
-                <Button
-                  variant="outline"
-                  className="border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#1E2230] hover:border-[#7C9CFF] bg-transparent rounded-full transition"
-                  onClick={() => setConfirmModal(false)}
-                >
-                  No
-                </Button>
-                <Button
-                  className="bg-gradient-to-r from-rose-500 to-rose-600 text-white font-semibold rounded-full hover:scale-105 transition"
-                  onClick={() => {
-                    if (selectedSessionId) {
-                      handleCancelSession(selectedSessionId);
-                    }
-                    setConfirmModal(false);
-                    setSelectedSessionId(null);
-                  }}
-                >
-                  Yes, Cancel
-                </Button>
-              </div>
-            </motion.div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+                <h3 className="font-semibold text-[#F3F4F8] text-lg mb-3">
+                  Cancel session?
+                </h3>
+                <p className="text-sm text-[#9CA1B5] mb-6">
+                  This action cannot be undone.
+                </p>
+                <p className="text-sm text-rose-400 mb-6">
+                  Sorry, Refund will not process for this action.
+                </p>
+
+                <div className="flex justify-center gap-3">
+                  <Button
+                    variant="outline"
+                    className="border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#1E2230] hover:border-[#7C9CFF] bg-transparent rounded-full transition"
+                    onClick={() => setConfirmModal(false)}
+                  >
+                    No
+                  </Button>
+                  <Button
+                    className="bg-gradient-to-r from-rose-500 to-rose-600 text-white font-semibold rounded-full hover:scale-105 transition"
+                    onClick={() => {
+                      if (selectedSessionId) {
+                        handleCancelSession(selectedSessionId);
+                      }
+                      setConfirmModal(false);
+                      setSelectedSessionId(null);
+                    }}
+                  >
+                    Yes, Cancel
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>,
+        document.body
+      )}
 
       {/* Session details modal — shared component, reused by tutor & client sides */}
       <SessionDetailsModal

@@ -7,8 +7,7 @@ import { ISessionRepository } from "./interfaces/ISessionRepository.js";
 
 export class SessionRepository extends BaseRepository<ISession> implements ISessionRepository{
 
-  async createSession(session: Partial<ISession>): Promise<ISession> {
-    
+  async createSession(session: Partial<ISession>): Promise<ISession> { 
     return await SessionModel.create(session);
   }
 
@@ -58,9 +57,7 @@ export class SessionRepository extends BaseRepository<ISession> implements ISess
   userId: string
 ): Promise<ISession[]> {
 
-  return await SessionModel.find({
-    userId,
-  })
+  return await SessionModel.find({ userId })
     .populate(
       "userId",
       "name email profileImage"
@@ -72,9 +69,7 @@ export class SessionRepository extends BaseRepository<ISession> implements ISess
     .sort({ date: -1 });
 }
 
-async findSessionsByTutorId(
-  tutorId: string
-): Promise<ISession[]> {
+async findSessionsByTutorId( tutorId: string ): Promise<ISession[]> {
 
   return await SessionModel.find({
     $or: [
@@ -82,14 +77,8 @@ async findSessionsByTutorId(
       { userId: tutorId }
     ]
   })
-    .populate(
-      "userId",
-      "name email profileImage"
-    )
-    .populate(
-      "tutorId",
-      "name email profileImage"
-    )
+    .populate("userId","name email profileImage")
+    .populate("tutorId","name email profileImage")
     .sort({ date: -1 });
 }
 }

@@ -1,38 +1,25 @@
 import React from "react";
-import { SelectedFilters } from "../../types/IFilter";
+import { SelectedFilters, FilterOptions } from "../../types/IFilter";
 
 interface FilterSidebarProps {
   filters: SelectedFilters;
   onChange: (filters: SelectedFilters) => void;
+  options: FilterOptions;
+  priceBounds: { min: number; max: number };
 }
 
-const SUBJECT_OPTIONS = [
-  "Mathematics",
-  "Physics",
-  "Chemistry",
-  "Biology",
-  "Computer science",
-  "English literature",
-  "Spanish",
-  "Music theory",
-  "Economics",
-  "Essay writing",
-  "SAT / ACT prep",
-];
-
-const EXPERIENCE_OPTIONS = ["Beginner", "Intermediate", "Expert"];
 const DAY_OPTIONS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-const PRICE_MIN = 0;
-const PRICE_MAX = 2000;
+const capitalize = (value: string) =>
+  value.length ? value.charAt(0).toUpperCase() + value.slice(1) : value;
 
-const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onChange }) => {
+const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onChange, options, priceBounds }) => {
   const update = <K extends keyof SelectedFilters>(key: K, value: SelectedFilters[K]) => {
     onChange({ ...filters, [key]: value });
   };
 
   const toggleInArray = (
-    key: "subjects" | "experienceLevels" | "availableDays",
+    key: "subjects" | "languages" | "experienceLevels" | "availableDays",
     value: string
   ) => {
     const current = filters[key];
@@ -47,40 +34,64 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onChange }) => {
     onChange({
       subjects: [],
       languages: [],
-      skills: [],
       experienceLevels: [],
       availableDays: [],
-      priceRange: { min: PRICE_MIN, max: PRICE_MAX },
+      priceRange: { min: priceBounds.min, max: priceBounds.max },
       sortBy: filters.sortBy,
     });
   };
 
   return (
-    <aside className="w-full bg-[#171A24] border border-[#2A2E3D] rounded-2xl px-7 py-7 h-fit md:sticky md:top-6">
+    <aside className="w-full bg-[#171A24] border border-[#2A2E3D] rounded-2xl px-5 py-5 h-fit md:sticky md:top-6">
 
-      {/* subjects */}
-      <div className="pb-6 mb-6 border-b border-[#2A2E3D]">
-        <h4 className="text-[13px] font-semibold text-[#F3F4F8] mb-4">Subjects</h4>
+      {options.subjects.length > 0 && (
+        <div className="pb-4 mb-4 border-b border-[#2A2E3D]">
+          <h4 className="text-[13px] font-semibold text-[#F3F4F8] mb-4">Subjects</h4>
 
-        <div className="space-y-3">
-          {SUBJECT_OPTIONS.map((subject) => (
-            <label
-              key={subject}
-              className="flex items-center gap-3 text-[13.5px] text-[#9CA1B5] hover:text-[#F3F4F8] cursor-pointer transition-colors"
-            >
-              <input
-                type="checkbox"
-                checked={filters.subjects.includes(subject)}
-                onChange={() => toggleInArray("subjects", subject)}
-                className="w-[15px] h-[15px] accent-[#7C9CFF] cursor-pointer"
-              />
-              <span>{subject}</span>
-            </label>
-          ))}
+          <div className="space-y-2 max-h-40 overflow-y-auto pr-1">
+            {options.subjects.map((subject) => (
+              <label
+                key={subject}
+                className="flex items-center gap-3 text-[13.5px] text-[#9CA1B5] hover:text-[#F3F4F8] cursor-pointer transition-colors"
+              >
+                <input
+                  type="checkbox"
+                  checked={filters.subjects.includes(subject)}
+                  onChange={() => toggleInArray("subjects", subject)}
+                  className="w-[15px] h-[15px] accent-[#7C9CFF] cursor-pointer"
+                />
+                <span>{capitalize(subject)}</span>
+              </label>
+            ))}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* price */}
+      {/* languages — real distinct values from approved tutor profiles */}
+      {options.languages.length > 0 && (
+        <div className="pb-6 mb-6 border-b border-[#2A2E3D]">
+          <h4 className="text-[13px] font-semibold text-[#F3F4F8] mb-4">Languages</h4>
+
+          <div className="space-y-2 max-h-32 overflow-y-auto pr-1">
+            {options.languages.map((language) => (
+              <label
+                key={language}
+                className="flex items-center gap-3 text-[13.5px] text-[#9CA1B5] hover:text-[#F3F4F8] cursor-pointer transition-colors"
+              >
+                <input
+                  type="checkbox"
+                  checked={filters.languages.includes(language)}
+                  onChange={() => toggleInArray("languages", language)}
+                  className="w-[15px] h-[15px] accent-[#7C9CFF] cursor-pointer"
+                />
+                <span>{capitalize(language)}</span>
+              </label>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* price — bounds come from priceBounds prop; see note about slot-rule data */}
       <div className="pb-6 mb-6 border-b border-[#2A2E3D]">
         <div className="flex items-center justify-between mb-4">
           <h4 className="text-[13px] font-semibold text-[#F3F4F8]">Max price</h4>
@@ -89,8 +100,8 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onChange }) => {
 
         <input
           type="range"
-          min={PRICE_MIN}
-          max={PRICE_MAX}
+          min={priceBounds.min}
+          max={priceBounds.max}
           value={filters.priceRange.max}
           onChange={(e) =>
             update("priceRange", { ...filters.priceRange, max: Number(e.target.value) })
@@ -99,38 +110,42 @@ const FilterSidebar: React.FC<FilterSidebarProps> = ({ filters, onChange }) => {
         />
 
         <div className="flex justify-between mt-2">
-          <span className="text-[10px] text-[#6B7185]">₹{PRICE_MIN}</span>
-          <span className="text-[10px] text-[#6B7185]">₹{PRICE_MAX}</span>
+          <span className="text-[10px] text-[#6B7185]">₹{priceBounds.min}</span>
+          <span className="text-[10px] text-[#6B7185]">₹{priceBounds.max}</span>
         </div>
       </div>
 
-      {/* experience level */}
-      <div className="pb-6 mb-6 border-b border-[#2A2E3D]">
-        <h4 className="text-[13px] font-semibold text-[#F3F4F8] mb-4">Experience level</h4>
+      {/* experience level — real distinct values from approved tutor profiles */}
+      {options.experienceLevels.length > 0 && (
+        <div className="pb-6 mb-6 border-b border-[#2A2E3D]">
+          <h4 className="text-[13px] font-semibold text-[#F3F4F8] mb-4">Experience level</h4>
 
-        <div className="flex flex-wrap gap-2">
-          {EXPERIENCE_OPTIONS.map((level) => {
-            const active = filters.experienceLevels.includes(level);
+          <div className="flex flex-wrap gap-2">
+            {options.experienceLevels.map((level) => {
+              const active = filters.experienceLevels.includes(level);
 
-            return (
-              <button
-                key={level}
-                type="button"
-                onClick={() => toggleInArray("experienceLevels", level)}
-                className={`px-3 py-1.5 rounded-full text-[12px] border transition-all ${
-                  active
-                    ? "bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] border-transparent font-semibold"
-                    : "bg-transparent border-[#2A2E3D] text-[#9CA1B5] hover:border-[#7C9CFF] hover:text-[#F3F4F8]"
-                }`}
-              >
-                {level}
-              </button>
-            );
-          })}
+              return (
+                <button
+                  key={level}
+                  type="button"
+                  onClick={() => toggleInArray("experienceLevels", level)}
+                  className={`px-3 py-1.5 rounded-full text-[12px] border transition-all ${
+                    active
+                      ? "bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] border-transparent font-semibold"
+                      : "bg-transparent border-[#2A2E3D] text-[#9CA1B5] hover:border-[#7C9CFF] hover:text-[#F3F4F8]"
+                  }`}
+                >
+                  {level}
+                </button>
+              );
+            })}
+          </div>
         </div>
-      </div>
+      )}
 
-      {/* available days */}
+      {/* available days — Mon–Sun is the fixed calendar domain, not tutor-entered
+          data, so it stays static. Filtering to only days a tutor actually has open
+          slots needs the slot-rule collection. */}
       <div>
         <h4 className="text-[13px] font-semibold text-[#F3F4F8] mb-4">Available on</h4>
 

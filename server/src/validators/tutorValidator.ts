@@ -4,7 +4,7 @@ export const applyTutorSchema = z.object({
   body: z.object({
     description: z.string().min(10, "Description must be at least 10 characters"),
     languages: z.array(z.string().min(1)).nonempty("Provide at least one language"),
-    skills: z.array(z.string().min(1)).nonempty("Provide at least one skill"),
+    subjects: z.array(z.string().min(1)).nonempty("Provide at least one subject"),
     education: z.string().min(2, "Education is required"),
     experienceLevel: z.string().min(2, "Experience level is required"),
     gender: z.enum(["Male", "Female", "Other"], { message: "Gender must be male, female, or other" }),

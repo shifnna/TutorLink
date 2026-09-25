@@ -33,7 +33,6 @@ export class NotificationRepository
     return this.findByIdAndUpdate(notificationId, { $set: { seen: true } });
   }
 
-  // Bulk update isn't in BaseRepository, so this.model is used directly
   async markAllSeen(userId: string): Promise<number> {
     const result = await this.model.updateMany(
       { userId: new Types.ObjectId(userId), seen: false },

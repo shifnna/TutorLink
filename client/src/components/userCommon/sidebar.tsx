@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Calendar, Bell, LogOut, User, Home, Menu } from "lucide-react";
+import { Calendar, Bell, LogOut, User, Home, Menu, Settings } from "lucide-react";
 import { FaGraduationCap } from "react-icons/fa";
 import { Button } from "../ui/button";
 import { useNavigate, useLocation } from "react-router-dom";
@@ -48,6 +48,7 @@ const UserSidebar: React.FC = () => {
     { label: "Home", icon: <Home className="w-5 h-5" />, path: "/" },
     { label: "Profile", icon: <User className="w-5 h-5" />, path: "/user-profile" },
     { label: "Session Management", icon: <Calendar className="w-5 h-5" />, path: sessionPath },
+    { label: "Settings", icon: <Settings className="w-5 h-5" />, path: "/settings-overview" },
   ];
 
   if (user?.role === "tutor") {

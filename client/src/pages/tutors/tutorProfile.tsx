@@ -10,6 +10,7 @@ import {
   GraduationCap,
   Languages as LanguagesIcon,
   AlertCircle,
+  Pencil,
 } from "lucide-react";
 import { useAuthStore } from "../../store/authStore";
 import { tutorService } from "../../services/tutorService";
@@ -103,7 +104,7 @@ const TutorProfile: React.FC = () => {
     { label: "Gender", value: application?.gender },
   ];
 
-  const skills = application?.skills || [];
+  const subjects = application?.subjects || [];
   const languages = application?.languages || [];
 
   return (
@@ -147,10 +148,10 @@ const TutorProfile: React.FC = () => {
               </p>
             </div>
 
-            {/* <button className="inline-flex items-center gap-2 rounded-full border border-[#2A2E3D] px-5 py-2.5 text-sm font-medium text-[#F3F4F8] hover:bg-[#171A24] hover:border-[#7C9CFF] transition">
+            <button className="inline-flex items-center gap-2 rounded-full border border-[#2A2E3D] px-5 py-2.5 text-sm font-medium text-[#F3F4F8] hover:bg-[#171A24] hover:border-[#7C9CFF] transition">
               <Pencil className="w-4 h-4" />
               Edit profile
-            </button> */}
+            </button>
           </div>
 
           {/* Application status banner — only when there's a non-approved
@@ -265,16 +266,16 @@ const TutorProfile: React.FC = () => {
                     ))}
                   </div>
 
-                  {!!skills.length && (
+                  {!!subjects.length && (
                     <div className="mt-6">
-                      <p className="text-xs uppercase tracking-wide text-[#9CA1B5] mb-2">Skills</p>
+                      <p className="text-xs uppercase tracking-wide text-[#9CA1B5] mb-2">S</p>
                       <div className="flex flex-wrap gap-2">
-                        {skills.map((skill) => (
+                        {subjects.map((subject) => (
                           <span
-                            key={skill}
+                            key={subject}
                             className="text-[11px] px-2.5 py-1 rounded-full bg-[#1E2230] text-[#9CA1B5]"
                           >
-                            {skill}
+                            {subject}
                           </span>
                         ))}
                       </div>

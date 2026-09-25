@@ -1,20 +1,20 @@
 // This is where we wire everything together.
 import { Container } from "inversify";
-import { TYPES } from "../types/types";
+import { TYPES } from "../types/types.js";
 
-import { IClientRepository } from "../repositories/interfaces/IClientRepository";
-import { clientRepository } from "../repositories/clientRepository";
+import { IClientRepository } from "../repositories/interfaces/IClientRepository.js";
+import { clientRepository } from "../repositories/clientRepository.js";
 
-import { IAuthController } from "../controllers/interfaces/IAuthController";
-import { AuthController } from "../controllers/authController";
+import { IAuthController } from "../controllers/interfaces/IAuthController.js";
+import { AuthController } from "../controllers/authController.js";
 
-import { IAuthService } from "../services/interfaces/IAuthService";
-import { AuthService } from "../services/authServices";
+import { IAuthService } from "../services/interfaces/IAuthService.js";
+import { AuthService } from "../services/authServices.js";
 
 import { UserModel } from "../models/user.js";
 
-import { ITutorRepository } from "../repositories/interfaces/ITutorRepository";
-import { TutorRepository } from "../repositories/tutorRepository";
+import { ITutorRepository } from "../repositories/interfaces/ITutorRepository.js";
+import { TutorRepository } from "../repositories/tutorRepository.js";
 
 import { ITutorService } from "../services/interfaces/ITutorService.js";
 import { TutorService } from "../services/tutorService.js";
