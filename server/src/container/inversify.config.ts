@@ -49,6 +49,16 @@ import { INotificationController } from "../controllers/interfaces/INotification
 import { NotificationRepository } from "../repositories/notificationRepository.js";
 import { NotificationService } from "../services/notificationService.js";
 import { NotificationController } from "../controllers/notificationController.js";
+import { ConversationModel } from "../models/conversation.js";
+import { MessageModel } from "../models/message.js";
+import { IConversationRepository } from "../repositories/interfaces/IConversationRepository.js";
+import { ConversationRepository } from "../repositories/conversationRepository.js";
+import { IMessageRepository } from "../repositories/interfaces/IMessageRepository.js";
+import { MessageRepository } from "../repositories/messageRepository.js";
+import { IChatService } from "../services/interfaces/IChatService.js";
+import { ChatService } from "../services/chatService.js";
+import { IChatController } from "../controllers/interfaces/IChatController.js";
+import { ChatController } from "../controllers/chatController.js";
 
 const container = new Container();
 
@@ -79,5 +89,12 @@ container.bind<ISessionRepository>(TYPES.ISessionRepository).to(SessionRepositor
 container.bind<INotificationRepository>(TYPES.INotificationRepository).to(NotificationRepository);
 container.bind<INotificationService>(TYPES.INotificationService).to(NotificationService);
 container.bind<INotificationController>(TYPES.INotificationController).to(NotificationController);
+
+container.bind<typeof ConversationModel>(TYPES.IConversationModel).toConstantValue(ConversationModel);
+container.bind<typeof MessageModel>(TYPES.IMessageModel).toConstantValue(MessageModel);
+container.bind<IConversationRepository>(TYPES.IConversationRepository).to(ConversationRepository);
+container.bind<IMessageRepository>(TYPES.IMessageRepository).to(MessageRepository);
+container.bind<IChatService>(TYPES.IChatService).to(ChatService);
+container.bind<IChatController>(TYPES.IChatController).to(ChatController);
 
 export default container;

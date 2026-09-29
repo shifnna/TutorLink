@@ -9,4 +9,6 @@ export interface ISessionRepository {
   findSessionsByTutorId (userId:string): Promise<ISession[]>;
   findById (sessionId:string): Promise<ISession | null>;
   updateAdminWallet(userId: string, amount: number, sessionId: string): Promise<void>;
+  getAverageRatingsForTutors(tutorUserIds: string[]): Promise<Record<string, number>>;
+  getAverageRatingForTutor(tutorUserId: string): Promise<number | null>;
 }

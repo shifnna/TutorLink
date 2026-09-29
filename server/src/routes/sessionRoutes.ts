@@ -14,6 +14,7 @@ router.get("/client/sessions",protect, sessionController.getAllSessions);
 router.post("/client/sessions/feedback",protect, sessionController.sentFeedback);
 router.patch("/client/sessions/cancel/:id",protect, sessionController.cancelSession);
 router.get("/client/sessions/:id", protect, sessionController.getSessionById);
+router.patch("/client/sessions/complete/:id",protect, sessionController.completeSession);
 
 
 export default router;

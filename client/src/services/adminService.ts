@@ -34,4 +34,7 @@ refundAmount: async (sessionId: string, percent: number) =>
 
 releasePayment: async (sessionId: string) =>
   handleApi(axiosClient.post(`/api/admin/sessions/release`, { sessionId })),
+
+handleSortButton: async () =>
+  handleApi(axiosClient.get("/api/admin/sessions/sort")),
 };

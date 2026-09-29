@@ -125,6 +125,7 @@ const ExploreTutors: React.FC = () => {
     const loadFilterOptions = async () => {
       try {
         const response = await tutorService.getFilterOptions();
+
         if (response.success && response.data) {
           setFilterOptions(response.data);
         }
@@ -326,19 +327,29 @@ const ExploreTutors: React.FC = () => {
 
                         <div className="mt-5 pt-4 border-t border-[#2A2E3D] flex items-center justify-between">
                           <div className="flex items-center gap-2">
-                            <div className="flex items-center gap-1">
-                              <Star className="w-3.5 h-3.5 fill-current text-[#F3F4F8]" />
-                              <span className="text-[12px] font-semibold">4.9</span>
-                            </div>
+                            {tutor.averageRating != null && (
+                              <div className="flex items-center gap-1">
+                                <Star className="w-3.5 h-3.5 fill-current text-[#F3F4F8]" />
+                                <span className="text-[12px] font-semibold">{tutor.averageRating.toFixed(1)}</span>
+                              </div>
+                            )}
                             <span className="text-[11px] text-[#6B7185]">Tutor</span>
                           </div>
 
-                          <Button
-                            onClick={() => navigate(`/tutor/get-tutor/${tutor._id}`)}
-                            className="bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold hover:scale-105 transition rounded-full px-6"
-                          >
-                            View profile
-                          </Button>
+                          <div className="flex items-center gap-2">
+                            <Button
+                              onClick={() => navigate(`/messages?with=${tutor.tutorId?._id}`)}
+                              className="bg-transparent border border-[#2A2E3D] text-[#F3F4F8] hover:border-[#7C9CFF] transition rounded-full px-5"
+                            >
+                              Message
+                            </Button>
+                            <Button
+                              onClick={() => navigate(`/tutor/get-tutor/${tutor._id}`)}
+                              className="bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold hover:scale-105 transition rounded-full px-6"
+                            >
+                              View profile
+                            </Button>
+                          </div>
                         </div>
                       </motion.div>
                     );

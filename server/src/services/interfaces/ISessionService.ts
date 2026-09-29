@@ -7,6 +7,7 @@ export interface ISessionService {
   cancelSession(sessionId: string): Promise<void>;
   bookSession(amount:number): Promise<Orders.RazorpayOrder>;
   verifyPayment(dto:verifyPaymentDTO, userId:string): Promise<ISession>;
-  sentFeedback(body:FeedbackDTO):Promise<ISession>;
+  sentFeedback(body:FeedbackDTO, requesterId: string):Promise<ISession>;
   getSessionById(sessionId: string):Promise<ISession |null>;
+  completeSession(sessionId: string, requesterId: string): Promise<void>;
 }

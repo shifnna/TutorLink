@@ -17,3 +17,6 @@ export const createOrder = async (amount: number) =>
 
 export const verifyPayment = async (payload: IVerifyPayment) => 
   handleApi(axiosClient.post("/api/session/client/verify-payment", payload));
+
+export const completeSession = (sessionId: string) =>
+  handleApi(axiosClient.patch(`/api/session/client/sessions/complete/${sessionId}`));

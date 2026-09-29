@@ -35,4 +35,5 @@ export const authService = {
 
   adminLogin: async (data: LoginData) =>
   handleApi<IUser>(axiosClient.post(`${ROUTES.ADMIN_API}/login`, data)),
+  
 };

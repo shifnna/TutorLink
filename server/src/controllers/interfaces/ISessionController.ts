@@ -7,4 +7,5 @@ export interface ISessionController{
   verifyPayment(req: Request, res: Response, next: NextFunction): void;
   sentFeedback (req: Request, res: Response, next: NextFunction): void;
   getSessionById: (req: Request, res: Response, next: NextFunction) => Promise<void>;
+  completeSession(req: Request, res: Response, next: NextFunction): void;
 }

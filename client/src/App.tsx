@@ -7,6 +7,10 @@ import { io, Socket } from "socket.io-client";
 import axiosClient from "./api/axiosClient";
 import { playNotificationSound } from "./utils/playNotificationSound";
 import { INotification } from "./types/INotifications";
+import { useChatStore } from "./store/chatStore";
+import { chatService } from "./services/chatService";
+import { IChatMessage } from "./types/IChat";
+
 
 declare global {
   interface ImportMetaEnv {
@@ -21,6 +25,7 @@ function App() {
   const loading = useAuthInit();
   const { user } = useAuthStore();
   const { addNotification, setNotifications } = useNotificationStore();
+  const { setConversations, receiveMessage } = useChatStore()
 
   useEffect(() => {
     if (!user?._id) return;
@@ -29,11 +34,16 @@ function App() {
 
     socket.emit("register-user", user._id);
 
-    // Lives at the app root, so this fires no matter which page is open.
+    //// Lives at the app root, so this fires no matter which page is open.
     socket.on("new-notification", (noti: INotification) => {
       addNotification(noti);
       playNotificationSound();
     });
+
+    socket.on("new-message", (message: IChatMessage) => {
+      receiveMessage(message);
+    });
+
 
     async function loadNotifications() {
       try {
@@ -54,10 +64,16 @@ function App() {
 
     loadNotifications();
 
+    const loadConversations = async () => {
+      const res = await chatService.getConversations();
+      if (res.success && res.data) setConversations(res.data);
+    };
+    loadConversations();
+
     return () => {
       socket.disconnect();
     };
-  }, [user, addNotification, setNotifications]);
+  }, [user, addNotification, setNotifications, receiveMessage, setConversations]);
 
   if (loading)
     return (

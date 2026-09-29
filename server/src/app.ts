@@ -14,6 +14,7 @@ import passport from "passport";
 import "./config/passport.js"; ////ensures the Google strategy is registered before you call passport.authenticate("google").
 import { consoleLogger, fileLogger } from "./middlewares/logger.js";
 import { errorHandler } from "./middlewares/errorHandler.js";
+import chatRoutes from "./routes/chatRoutes.js";
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use("/api/tutor", tutorRoutes);
 app.use("/api/slots", slotRoutes);
 app.use("/api/session", sessionRoutes);
 app.use("/api/notifications", notificationRoutes);
+app.use("/api/chat", chatRoutes);
 
 ////error handler for consistent JSON
 app.use(errorHandler);

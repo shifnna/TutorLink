@@ -1,17 +1,18 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { Button } from "../ui/button";
-import { Filter, Eye, Video } from "lucide-react";
+import { Filter, Eye, Video, Star } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "react-hot-toast";
 import { cancelSession } from "../../services/sessionService";
+import { sentFeedback } from "../../services/clientService";
 import SessionDetailsModal from "../../pages/common/sessionDetailsModal";
 import { useAuthStore } from "../../store/authStore";
 
-// Midnight theme type treatment — same Fraunces / Space Mono pairing as the homepage
 const mono = { fontFamily: "'Space Mono', monospace" };
 
 export interface ISession {
+  _id: string;
   sessionId: string;
   tutorId: { _id: string; name: string; email: string };
   userId: { _id: string; name: string; email: string };
@@ -25,9 +26,8 @@ export interface ISession {
   videoRoomUrl?: string;
   createdAt?: string;
   updatedAt?: string;
-  // Shapes not confirmed yet — kept loose so nothing breaks if/when you read from these.
   payment?: Record<string, unknown>;
-  feedback?: Record<string, unknown>;
+  feedback?: { message: string; rating: number; unsatisfied: boolean };
 }
 
 interface SessionTableProps {
@@ -36,11 +36,15 @@ interface SessionTableProps {
   role: "tutor" | "client";
 }
 
+const hasFeedback = (s: ISession) => Boolean(s.feedback?.message || s.feedback?.rating);
+
 const SessionTable: React.FC<SessionTableProps> = ({
   sessions,
   refreshSessions,
   role,
 }) => {
+  const { user } = useAuthStore();
+
   const [searchText, setSearchText] = useState("");
   const [debouncedSearchText, setDebouncedSearchText] = useState("");
   const [filterStatus, setFilterStatus] = useState<string>("All");
@@ -49,19 +53,22 @@ const SessionTable: React.FC<SessionTableProps> = ({
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [detailsSession, setDetailsSession] = useState<ISession | null>(null);
 
-  useEffect(() => {
-  const timer = setTimeout(() => {
-    setDebouncedSearchText(searchText);
-  }, 300);
+  const [feedbackSession, setFeedbackSession] = useState<ISession | null>(null);
+  const [rating, setRating] = useState(0);
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [unsatisfied, setUnsatisfied] = useState(false);
+  const [submittingFeedback, setSubmittingFeedback] = useState(false);
 
-  return () => clearTimeout(timer);
-}, [searchText]);
-
-  // Lock background scroll while the cancel-confirmation modal is open.
-  // Also prevents the modal's `fixed` box from measuring against a
-  // scrolling ancestor, which was contributing to the open/close flicker.
   useEffect(() => {
-    if (!confirmModal) return;
+    const timer = setTimeout(() => {
+      setDebouncedSearchText(searchText);
+    }, 300);
+
+    return () => clearTimeout(timer);
+  }, [searchText]);
+
+  useEffect(() => {
+    if (!confirmModal && !feedbackSession) return;
 
     const original = document.body.style.overflow;
     document.body.style.overflow = "hidden";
@@ -69,7 +76,7 @@ const SessionTable: React.FC<SessionTableProps> = ({
     return () => {
       document.body.style.overflow = original;
     };
-  }, [confirmModal]);
+  }, [confirmModal, feedbackSession]);
 
   function convertTo24Hour(time12h: string) {
     const [time, modifier] = time12h.split(" ");
@@ -105,39 +112,60 @@ const SessionTable: React.FC<SessionTableProps> = ({
   }, [sessions, filterStatus, debouncedSearchText, sortOrder]);
 
   const handleCancelSession = async (id: string) => {
+    try {
+      const res = await cancelSession(id);
 
-  try {
+      if (!res.success) {
+        toast.error("Failed to cancel");
+        return;
+      }
 
-    const res = await cancelSession(id);
-
-    if (!res.success) {
-      toast.error(
-        "Failed to cancel"
-      );
-
-      return;
+      toast.success("Session cancelled");
+      await refreshSessions();
+    } catch {
+      toast.error("Failed to cancel");
     }
+  };
 
-    toast.success(
-      "Session cancelled"
-    );
+  const openFeedbackModal = (s: ISession) => {
+    setFeedbackSession(s);
+    setRating(0);
+    setFeedbackMessage("");
+    setUnsatisfied(false);
+  };
 
-    await refreshSessions();
+  const handleSubmitFeedback = async () => {
+    if (!feedbackSession) return;
 
-  } catch {
+    setSubmittingFeedback(true);
+    try {
+      const res = await sentFeedback({
+        sessionId: feedbackSession._id,
+        rating,
+        message: feedbackMessage,
+        unsatisfied,
+      });
 
-    toast.error(
-      "Failed to cancel"
-    );
-  }
-};
+      if (!res.success) {
+        toast.error(res.message || "Failed to submit feedback");
+        return;
+      }
+
+      toast.success("Feedback submitted. Thank you!");
+      setFeedbackSession(null);
+      await refreshSessions();
+    } catch {
+      toast.error("Failed to submit feedback");
+    } finally {
+      setSubmittingFeedback(false);
+    }
+  };
 
   const statusStyles: Record<string, string> = {
     Upcoming: "bg-amber-500/15 text-amber-300 border-amber-400/20",
     Completed: "bg-emerald-500/15 text-emerald-300 border-emerald-400/20",
     Cancelled: "bg-rose-500/15 text-rose-300 border-rose-400/20",
   };
-  const {user} = useAuthStore();
 
   return (
     <motion.section
@@ -145,7 +173,6 @@ const SessionTable: React.FC<SessionTableProps> = ({
       animate={{ opacity: 1 }}
       className="space-y-6"
     >
-      {/* Controls */}
       <div className="flex flex-wrap items-center gap-4">
         <input
           type="text"
@@ -183,7 +210,6 @@ const SessionTable: React.FC<SessionTableProps> = ({
         </select>
       </div>
 
-      {/* Table */}
       <div className="overflow-hidden rounded-xl border border-[#2A2E3D] bg-[#171A24]">
         <table className="w-full text-sm">
           <thead className="bg-[#1E2230] text-[#9CA1B5]">
@@ -194,92 +220,114 @@ const SessionTable: React.FC<SessionTableProps> = ({
               <th style={mono} className="px-4 py-3 text-left text-xs uppercase tracking-wide">Date</th>
               <th style={mono} className="px-4 py-3 text-left text-xs uppercase tracking-wide">Time</th>
               <th style={mono} className="px-4 py-3 text-left text-xs uppercase tracking-wide">Status</th>
+              <th style={mono} className="px-4 py-3 text-left text-xs uppercase tracking-wide">Rating</th>
               <th style={mono} className="px-4 py-3 text-right text-xs uppercase tracking-wide">Actions</th>
             </tr>
           </thead>
 
           <tbody>
             {filteredSessions.length > 0 ? (
-              filteredSessions.map((s) => (
-                <tr
-                  key={s.sessionId}
-                  className="border-t border-[#2A2E3D] hover:bg-[#1E2230] transition"
-                >
-                  <td className="px-4 py-3 text-[#F3F4F8]">
-                    {role === "tutor"
-                      ? s.userId?.name
-                      : s.tutorId?.name}
-                  </td>
-                  <td style={mono} className="px-4 py-3 text-[#9CA1B5]">
-                    {new Date(s.date).toLocaleDateString()}
-                  </td>
-                  <td style={mono} className="px-4 py-3 text-[#9CA1B5]">
-                    {s.startTime} - {s.endTime}
-                  </td>
-                  <td className="px-4 py-3">
-                    <span
-                      style={mono}
-                      className={`text-[11px] px-2.5 py-1 rounded-full uppercase tracking-wide border ${
-                        statusStyles[s.status] ??
-                        "bg-[#1E2230] text-[#9CA1B5] border-[#2A2E3D]"
-                      }`}
-                    >
-                      {s.status}
-                    </span>
-                  </td>
+              filteredSessions.map((s) => {
+                const isStudentInSession = s.userId?._id === user?._id;
 
-                  <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="inline-flex items-center gap-1.5 border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#171A24] hover:border-[#7C9CFF] bg-transparent rounded-full transition"
-                      onClick={() => setDetailsSession(s)}
-                    >
-                      <Eye className="w-3.5 h-3.5" />
-                      View Details
-                    </Button>
+                return (
+                  <tr
+                    key={s.sessionId}
+                    className="border-t border-[#2A2E3D] hover:bg-[#1E2230] transition"
+                  >
+                    <td className="px-4 py-3 text-[#F3F4F8]">
+                      {role === "tutor"
+                        ? s.userId?.name
+                        : s.tutorId?.name}
+                    </td>
+                    <td style={mono} className="px-4 py-3 text-[#9CA1B5]">
+                      {new Date(s.date).toLocaleDateString()}
+                    </td>
+                    <td style={mono} className="px-4 py-3 text-[#9CA1B5]">
+                      {s.startTime} - {s.endTime}
+                    </td>
+                    <td className="px-4 py-3">
+                      <span
+                        style={mono}
+                        className={`text-[11px] px-2.5 py-1 rounded-full uppercase tracking-wide border ${
+                          statusStyles[s.status] ??
+                          "bg-[#1E2230] text-[#9CA1B5] border-[#2A2E3D]"
+                        }`}
+                      >
+                        {s.status}
+                      </span>
+                    </td>
+                    <td className="px-4 py-3">
+                      {hasFeedback(s) ? (
+                        <span className="inline-flex items-center gap-1 text-amber-300">
+                          <Star className="w-3.5 h-3.5 fill-current" />
+                          <span className="text-sm font-medium">{s.feedback?.rating.toFixed(1)}</span>
+                        </span>
+                      ) : (
+                        <span className="text-[#6B7185] text-sm">—</span>                      
+                      )}
+                    </td>
 
-                    {s.videoRoomUrl && s.status == "Upcoming" && (
-  <a
-    href={s.videoRoomUrl}
-    target="_blank"
-    rel="noopener noreferrer"
-  >
-    <Button
-      size="sm"
-        variant="outline"
-        className="border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#171A24] hover:border-[#7C9CFF] bg-transparent rounded-full transition"
-    >
-      <Video className="w-4 h-4" />
-      Join Session
-    </Button>
-  </a>
-)}
+                    <td className="px-4 py-3 text-right space-x-2 whitespace-nowrap">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        className="inline-flex items-center gap-1.5 border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#171A24] hover:border-[#7C9CFF] bg-transparent rounded-full transition"
+                        onClick={() => setDetailsSession(s)}
+                      >
+                        <Eye className="w-3.5 h-3.5" />
+                        View Details
+                      </Button>
 
-  {(s.status === "Confirmed" || s.status === "Upcoming") && (
-  <>
-    {s.tutorId._id !== user?._id && (
-      <Button
-        size="sm"
-        variant="outline"
-        className="border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#171A24] hover:border-[#7C9CFF] bg-transparent rounded-full transition"
-        onClick={() => {
-          setSelectedSessionId(s.sessionId);
-          setConfirmModal(true);
-        }}
-      >
-        Cancel
-      </Button>
-    )}
-  </>
-)}
-                  </td>
-                </tr>
-              ))
+                      {s.videoRoomUrl && s.status === "Upcoming" && (
+                        
+                        <a href={s.videoRoomUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#171A24] hover:border-[#7C9CFF] bg-transparent rounded-full transition"
+                          >
+                            <Video className="w-4 h-4" />
+                            Join Session
+                          </Button>
+                        </a>
+                      )}
+
+                      {(s.status === "Confirmed" || s.status === "Upcoming") &&
+                        s.tutorId._id !== user?._id && (
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            className="border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#171A24] hover:border-[#7C9CFF] bg-transparent rounded-full transition"
+                            onClick={() => {
+                              setSelectedSessionId(s._id);
+                              setConfirmModal(true);
+                            }}
+                          >
+                            Cancel
+                          </Button>
+                        )}
+
+                      {isStudentInSession && s.status === "Completed" && !hasFeedback(s) && (
+                        <Button
+                          size="sm"
+                          className="bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold rounded-full transition"
+                          onClick={() => openFeedbackModal(s)}
+                        >
+                          Give Feedback
+                        </Button>
+                      )}
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
                 <td
-                  colSpan={5}
+                  colSpan={6}
                   className="text-center py-10 text-[#9CA1B5]/70 italic"
                 >
                   No sessions available yet
@@ -290,33 +338,18 @@ const SessionTable: React.FC<SessionTableProps> = ({
         </table>
       </div>
 
-      {/* Cancel confirmation modal — portaled to <body> so its `fixed`
-          positioning is always relative to the real viewport, not to
-          any transformed/animated ancestor (which was causing the
-          open/close flicker). */}
       {createPortal(
-        // Mounted permanently — NOT gated by `confirmModal &&` — so React
-        // never inserts or removes this backdrop-blur node from the DOM.
-        // Some Chromium versions flash for a frame whenever a
-        // backdrop-filter element is freshly inserted or removed; keeping
-        // it always present and only toggling visibility avoids that.
-        // `isolate` keeps it from blending with the page's animated
-        // mix-blend-screen background.
         <div
           className="fixed inset-0 z-50 isolate flex items-center justify-center"
           style={{ pointerEvents: confirmModal ? "auto" : "none" }}
           aria-hidden={!confirmModal}
         >
-          {/* Blur layer: opacity snaps instantly (no transition class), so
-              it's never mid-animation while backdrop-filter is active. */}
           <div
             className={`absolute inset-0 backdrop-blur-sm ${
               confirmModal ? "opacity-100" : "opacity-0"
             }`}
             aria-hidden="true"
           />
-          {/* Tint layer: plain color, no filter, so a smooth opacity
-              transition here is cheap and never triggers the flicker. */}
           <div
             className={`absolute inset-0 bg-[#0E1016]/70 transition-opacity duration-200 ${
               confirmModal ? "opacity-100" : "opacity-0"
@@ -372,7 +405,98 @@ const SessionTable: React.FC<SessionTableProps> = ({
         document.body
       )}
 
-      {/* Session details modal — shared component, reused by tutor & client sides */}
+      {createPortal(
+        <div
+          className="fixed inset-0 z-50 isolate flex items-center justify-center"
+          style={{ pointerEvents: feedbackSession ? "auto" : "none" }}
+          aria-hidden={!feedbackSession}
+        >
+          <div
+            className={`absolute inset-0 backdrop-blur-sm ${
+              feedbackSession ? "opacity-100" : "opacity-0"
+            }`}
+            aria-hidden="true"
+          />
+          <div
+            className={`absolute inset-0 bg-[#0E1016]/70 transition-opacity duration-200 ${
+              feedbackSession ? "opacity-100" : "opacity-0"
+            }`}
+            aria-hidden="true"
+          />
+
+          <AnimatePresence>
+            {feedbackSession && (
+              <motion.div
+                className="relative overflow-hidden bg-[#171A24] border border-[#2A2E3D] p-6 rounded-2xl shadow-xl w-full max-w-md"
+                initial={{ scale: 0.95, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                exit={{ scale: 0.95, opacity: 0 }}
+              >
+                <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#7C9CFF] via-[#A78CF5] to-[#C08BFA]" />
+
+                <h3 className="font-semibold text-[#F3F4F8] text-lg mb-1">
+                  Rate your session
+                </h3>
+                <p className="text-sm text-[#9CA1B5] mb-5">
+                  With {feedbackSession.tutorId.name}
+                </p>
+
+                <div className="flex gap-2 mb-4">
+                  {[1, 2, 3, 4, 5].map((i) => (
+                    <span
+                      key={i}
+                      onClick={() => setRating(i)}
+                      className={`cursor-pointer text-2xl transition ${
+                        i <= rating ? "text-amber-400" : "text-[#2A2E3D]"
+                      }`}
+                    >
+                      ★
+                    </span>
+                  ))}
+                </div>
+
+                <textarea
+                  placeholder="Share your experience..."
+                  value={feedbackMessage}
+                  onChange={(e) => setFeedbackMessage(e.target.value)}
+                  className="w-full p-3 rounded-xl bg-[#0E1016] text-[#F3F4F8] border border-[#2A2E3D] focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40 placeholder-[#6B7185]"
+                  rows={4}
+                />
+
+                <label className="flex items-center gap-3 mt-4 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={unsatisfied}
+                    onChange={(e) => setUnsatisfied(e.target.checked)}
+                  />
+                  <span className="text-sm text-rose-400">
+                    I'm unsatisfied (refund/split requested)
+                  </span>
+                </label>
+
+                <div className="flex justify-end gap-3 mt-6">
+                  <Button
+                    variant="outline"
+                    className="border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#1E2230] hover:border-[#7C9CFF] bg-transparent rounded-full transition"
+                    onClick={() => setFeedbackSession(null)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button
+                    className="bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold rounded-full hover:scale-105 transition disabled:opacity-50 disabled:hover:scale-100"
+                    onClick={handleSubmitFeedback}
+                    disabled={submittingFeedback || rating === 0}
+                  >
+                    Submit review
+                  </Button>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>,
+        document.body
+      )}
+
       <SessionDetailsModal
         session={detailsSession}
         onClose={() => setDetailsSession(null)}

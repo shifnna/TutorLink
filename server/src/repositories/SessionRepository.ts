@@ -70,7 +70,6 @@ export class SessionRepository extends BaseRepository<ISession> implements ISess
 }
 
 async findSessionsByTutorId( tutorId: string ): Promise<ISession[]> {
-
   return await SessionModel.find({
     $or: [
       { tutorId },
@@ -81,4 +80,28 @@ async findSessionsByTutorId( tutorId: string ): Promise<ISession[]> {
     .populate("tutorId","name email profileImage")
     .sort({ date: -1 });
 }
+
+async getAverageRatingsForTutors(tutorUserIds: string[]): Promise<Record<string, number>> {
+    const results = await SessionModel.aggregate([
+      {
+        $match: {
+          tutorId: { $in: tutorUserIds.map((id) => new Types.ObjectId(id)) },
+          "feedback.rating": { $ne: null },
+        },
+      },
+      { $group: { _id: "$tutorId", avgRating: { $avg: "$feedback.rating" } } },
+    ]);
+
+    const map: Record<string, number> = {};
+    results.forEach((r) => { map[r._id.toString()] = r.avgRating; });
+    return map;
+  }
+
+  async getAverageRatingForTutor(tutorUserId: string): Promise<number | null> {
+    const result = await SessionModel.aggregate([
+      { $match: { tutorId: new Types.ObjectId(tutorUserId), "feedback.rating": { $ne: null } } },
+      { $group: { _id: null, avgRating: { $avg: "$feedback.rating" } } },
+    ]);
+    return result.length ? result[0].avgRating : null;
+  }
 }

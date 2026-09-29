@@ -4,129 +4,125 @@ import { authService } from "../services/authService";
 import { IUser } from "../types/IUser";
 import { ITutorApplicationForm } from "../types/ITutorApplication";
 
-export const useAuthStore = create<IAuthState>()(
-  (set) => ({
-    user: null,
-    isLoading: false,
-    isAuthenticated: false,
-    blocked: false,
+const FORGOT_PASSWORD_TYPE = "forgot-password";
 
-    setUser: (user: IUser) => set({ user, blocked: !!user?.isBlocked }),
+export const useAuthStore = create<IAuthState>()((set, get) => ({
+  user: null,
+  isLoading: false,
+  isAuthenticated: false,
+  blocked: false,
 
-    fetchUser: async () => {
-      set({ isLoading: true });
-      const response = await authService.fetchUser();
-      set({ isLoading: false });
+  setUser: (user: IUser) => set({ user, blocked: !!user?.isBlocked }),
 
-      if (!response.success || !response.data || !response.data) {
-        set({ user: null, isAuthenticated: false, blocked: false });
-        throw new Error(response.message);
-      }
-
-      const user : IUser = response.data;
-      const blocked : boolean = !!user?.isBlocked;
-      set({ user, blocked, isAuthenticated: !blocked });
-    },
-
-    signup: async (name, email, password, confirmPassword) => {
-      set({ isLoading: true });
-      const response = await authService.signup({ name, email, password, confirmPassword });
-      set({ isLoading: false });
-
-      if (!response.success || !response.data) throw new Error(response.message);
-
-      set({ user: response.data, isAuthenticated: true });
-      return response;
-    },
-
-    login: async (email, password) => {
-      set({ isLoading: true });
-      const response = await authService.login({ email, password });
-      set({ isLoading: false });
-
-      if (!response.success || !response.data) throw new Error(response.message);
-
-      set({ user: response.data, isAuthenticated: true });
-      return response;
-    },
-
-    verifyOtp: async (email, otp, type) => {
-      set({ isLoading: true });
-      const response = await authService.verifyOtp({ email, otp, type });
-      set({ isLoading: false });
-
-      if (!response.success) throw new Error(response.message);
-
-      const user = response.data?.user;
-      set({ user , isAuthenticated: type === "signup" });
-      return { user,success: response.success, };
-    },
-
-    resendOtp: async (email, type) => {
-      set({ isLoading: true });
-      const response = await authService.resendOtp({ email, type });
-      set({ isLoading: false });
-
-      if (!response.success) throw new Error(response.message);
-      return response.data!;
-    },
-
-    requestPasswordReset: async (email, type) => {
-      const response = await authService.resendOtp({ email, type });
-      if (!response.success) throw new Error(response.message);
-      return response.data!;
-    },
-
-    resetPassword: async (email, password, confirmPassword) => {
-      set({ isLoading: true });
-      const response = await authService.resetPassword({ email, password, confirmPassword });
-      set({ isLoading: false });
-
-      if (!response.success) throw new Error(response.message);
-      return response.data!;
-    },
-
-    logout: async () => {
-      const response = await authService.logout();
-      if (!response.success) throw new Error(response.message);
-      set({ user: null, isAuthenticated: false });
-    },
-
-    applyForTutor: async (payload: ITutorApplicationForm) => {
-      set({ isLoading: true });
-      const response = await authService.applyForTutor(payload);
-      set({ isLoading: false });
-
-      if (!response.success) throw new Error(response.message);
-      return response.data!;
-    },
-
-  
-  adminLogin: async ( email: string,password: string) => {
-  set({ isLoading: true });
-  try {
-    const response = await authService.adminLogin({ email, password, });
+  fetchUser: async () => {
+    set({ isLoading: true });
+    const response = await authService.fetchUser();
     set({ isLoading: false });
+
     if (!response.success || !response.data) {
+      set({ user: null, isAuthenticated: false, blocked: false });
       throw new Error(response.message);
     }
 
     const user: IUser = response.data;
-    set({ user, isAuthenticated: true, blocked: !!user?.isBlocked });
+    const blocked: boolean = !!user?.isBlocked;
+    set({ user, blocked, isAuthenticated: !blocked });
+  },
 
-    return {
-      success: true,
-      user,
-    };
+  signup: async (name, email, password, confirmPassword) => {
+    set({ isLoading: true });
+    const response = await authService.signup({ name, email, password, confirmPassword });
+    set({ isLoading: false });
 
-  } catch (error: unknown) {
-    set({ isLoading: false, user: null, isAuthenticated: false,});
+    if (!response.success || !response.data) throw new Error(response.message);
 
-    return {
-      success: false,
-      message: error instanceof Error? error.message : "Admin login failed",
-    };
-  }
-},
-  })
-);
+    set({ user: response.data, isAuthenticated: true });
+    return response;
+  },
+
+  login: async (email, password) => {
+    set({ isLoading: true });
+    const response = await authService.login({ email, password });
+    set({ isLoading: false });
+
+    if (!response.success || !response.data) throw new Error(response.message);
+
+    set({ user: response.data, isAuthenticated: true });
+    return response;
+  },
+
+  verifyOtp: async (email, otp, type) => {
+    set({ isLoading: true });
+    const response = await authService.verifyOtp({ email, otp, type });
+    set({ isLoading: false });
+
+    if (!response.success) throw new Error(response.message);
+
+    const user = response.data?.user;
+    set({ user, isAuthenticated: type === "signup" });
+    return { user, success: response.success };
+  },
+
+  resendOtp: async (email, type) => {
+    set({ isLoading: true });
+    const response = await authService.resendOtp({ email, type });
+    set({ isLoading: false });
+
+    if (!response.success) throw new Error(response.message);
+    return response.data!;
+  },
+
+  requestPasswordReset: async (email, type) => {
+    const response = await authService.resendOtp({ email, type });
+    if (!response.success) throw new Error(response.message);
+    return response.data!;
+  },
+
+  resetPassword: async (email, password, confirmPassword) => {
+    set({ isLoading: true });
+    const response = await authService.resetPassword({ email, password, confirmPassword });
+    set({ isLoading: false });
+
+    if (!response.success) throw new Error(response.message);
+    return response.data!;
+  },
+
+  changePassword: async (currentPassword, newPassword, confirmPassword) => {
+    const response = await authService.changePassword({ currentPassword, newPassword, confirmPassword });
+    if (!response.success) throw new Error(response.message);
+    return response.data!;
+  },
+
+  forgotPassword: (email) => get().requestPasswordReset(email, FORGOT_PASSWORD_TYPE),
+
+  logout: async () => {
+    const response = await authService.logout();
+    if (!response.success) throw new Error(response.message);
+    set({ user: null, isAuthenticated: false });
+  },
+
+  applyForTutor: async (payload: ITutorApplicationForm) => {
+    set({ isLoading: true });
+    const response = await authService.applyForTutor(payload);
+    set({ isLoading: false });
+
+    if (!response.success) throw new Error(response.message);
+    return response.data!;
+  },
+
+  adminLogin: async (email: string, password: string) => {
+    set({ isLoading: true });
+    try {
+      const response = await authService.adminLogin({ email, password });
+      set({ isLoading: false });
+      if (!response.success || !response.data) throw new Error(response.message);
+
+      const user: IUser = response.data;
+      set({ user, isAuthenticated: true, blocked: !!user?.isBlocked });
+      return { success: true, user };
+    } catch (error: unknown) {
+      set({ isLoading: false, user: null, isAuthenticated: false });
+      return { success: false, message: error instanceof Error ? error.message : "Admin login failed" };
+    }
+  },
+}));

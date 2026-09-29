@@ -5,7 +5,6 @@ import { getAllSessions } from "../../services/sessionService";
 import { motion } from "framer-motion";
 import { Toaster } from "react-hot-toast";
 
-// Midnight theme type treatment — same Fraunces / Space Mono pairing as the homepage
 const fraunces = { fontFamily: "'Fraunces', Georgia, serif" };
 const mono = { fontFamily: "'Space Mono', monospace" };
 

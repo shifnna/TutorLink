@@ -6,7 +6,6 @@ import { useNotificationStore } from "../../store/notificationStore";
 import { INotification } from "../../types/INotifications";
 import { useAuthStore } from "../../store/authStore";
 
-// Midnight theme type treatment — same Fraunces / Space Mono pairing as the homepage
 const fraunces = { fontFamily: "'Fraunces', Georgia, serif" };
 const mono = { fontFamily: "'Space Mono', monospace" };
 
@@ -19,13 +18,12 @@ const toastDarkOptions = {
 };
 
 const NotificationPage: React.FC = () => {
-const { user } = useAuthStore(); // add this import at top: import { useAuthStore } from "../../store/authStore";
+const { user } = useAuthStore(); 
 const { notifications, unreadCount, markAllSeen, markOneSeen } = useNotificationStore();
 
   return (
     <div className="relative flex min-h-screen bg-[#0E1016] text-[#F3F4F8]">
 
-      {/* Ambient background, same treatment as the homepage */}
       <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
         <div
           className="absolute top-[-10%] right-[-5%] w-[60vmax] h-[60vmax] rounded-full opacity-25 animate-blob mix-blend-screen blur-3xl"
@@ -40,11 +38,8 @@ const { notifications, unreadCount, markAllSeen, markOneSeen } = useNotification
 
       <Toaster position="top-center" toastOptions={toastDarkOptions} />
 
-      {/* <UserSidebar /> */}
-
       <main className="relative flex-1 px-8 py-10 overflow-y-auto">
 
-        {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
@@ -74,7 +69,6 @@ const { notifications, unreadCount, markAllSeen, markOneSeen } = useNotification
 )}
         </motion.div>
 
-        {/* Content */}
         <div className="space-y-4 max-w-3xl">
 
           {notifications.length === 0 && (

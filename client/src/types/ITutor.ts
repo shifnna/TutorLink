@@ -15,6 +15,7 @@ export interface ITutor {
   adminApproved: boolean;
   slotRule?: ISlotRule;
   createdAt?: Date | string;
+  averageRating?: number | null;
 }
 
 export interface ITutorSearch {

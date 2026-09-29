@@ -67,6 +67,14 @@ export class SessionController implements ISessionController{
     return { success: true, message: "Fetched session", data: session };
   })(res, next);
   
+  completeSession = (req: Request, res: Response, next: NextFunction) =>
+    handleAsync(async () => {
+      const { id } = req.params;
+      const { user } = req as AuthRequest;
+      await this._sessionService.completeSession(id, String(user!._id));
+      return { success: true, message: "Session marked as completed" };
+    })(res, next);
+
   cancelSession = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async () => {
       const { id } = req.params;
@@ -76,6 +84,7 @@ export class SessionController implements ISessionController{
 
   sentFeedback = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(async()=>{ 
-      return this._sessionService.sentFeedback(req.body);
+      const { user } = req as AuthRequest;
+      return this._sessionService.sentFeedback(req.body,String(user!._id));
     })(res, next);
 }

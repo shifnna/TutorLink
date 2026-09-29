@@ -28,6 +28,7 @@ import Layout from "../components/userCommon/layout";
 import SidebarLayout from "../components/userCommon/sidebarLayout";
 import SettingsOverview from "../pages/settings/settingsOverview";
 import Settings from "../pages/settings/password";
+import Messages from "../pages/common/messages";
 
 function RouteWrapper() {
 
@@ -39,6 +40,7 @@ function RouteWrapper() {
           <Route path="/" element={<Home />} />
           <Route path="/explore-tutors" element={<ProtectedRoute><ExploreTutors /></ProtectedRoute>} />
           <Route path="/tutor/get-tutor/:tutorId" element={<ProtectedRoute><TutorDetails /></ProtectedRoute>} />
+          <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
         </Route>
 
         <Route element={<SidebarLayout/>}>
@@ -50,6 +52,7 @@ function RouteWrapper() {
           <Route path="/slot-management" element={<ProtectedRoute><SlotManagement /></ProtectedRoute>} />
           <Route path="/tutor/notifications" element={<ProtectedRoute role="tutor"><NotificationPage /></ProtectedRoute>} />
           <Route path="/client/notifications" element={<ProtectedRoute role="client"><NotificationPage /></ProtectedRoute>} />
+          <Route path="/user/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
         </Route>
 
         <Route path="/unauthorized" element={<Unauthorized />} />

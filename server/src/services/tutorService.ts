@@ -8,13 +8,15 @@ import { Types } from "mongoose";
 import { TutorMapper } from "../mappers/tutor.mapper.js";
 import { ApplyTutorRequestDTO, TutorResponseDTO } from "../dtos/tutor.dto.js";
 import { ParsedQs } from "qs";
+import { ISessionRepository } from "../repositories/interfaces/ISessionRepository.js";
 
 
 @injectable()
 export class TutorService implements ITutorService {
   constructor(
     @inject(TYPES.ITutorRepository) private readonly _tutorRepo: ITutorRepository,
-    @inject(TYPES.IClientRepository) private readonly _userRepo: IClientRepository
+    @inject(TYPES.IClientRepository) private readonly _userRepo: IClientRepository,
+    @inject(TYPES.ISessionRepository) private readonly _sessionRepo: ISessionRepository,
   ) {}
 
   async getTutorProfile(userId: string): Promise<ITutor | null> {
@@ -54,28 +56,38 @@ export class TutorService implements ITutorService {
     query
   );
 
+    const getTutorUserId = (t: typeof tutors[number]) =>
+    ((t.tutorId as unknown as { _id?: Types.ObjectId })?._id ?? t.tutorId).toString();
+
+  const tutorUserIds = tutors.map(getTutorUserId);
+  const ratingsMap = tutorUserIds.length
+    ? await this._sessionRepo.getAverageRatingsForTutors(tutorUserIds)
+    : {};
+
   return tutors.map((tutor) => ({
     ...tutor,
-
-    profileImage:
-      tutor.profileImage || "",
-
-    certificates:
-      tutor.certificates || [],
+    profileImage: tutor.profileImage || "",
+    certificates: tutor.certificates || [],
+    averageRating: ratingsMap[getTutorUserId(tutor)] ?? null,
   }));
 }
+
 
   async getTutorById(tutorId: string): Promise<ITutor | null> {
   const tutor = await this._tutorRepo.findById(tutorId);
   if (!tutor) return null;
 
   const profileImage: string | null = null;
-
   const certificates: string[] = [];
+
+  const tutorUserId = ((tutor.tutorId as unknown as { _id?: Types.ObjectId })?._id ?? tutor.tutorId).toString();
+  const averageRating = await this._sessionRepo.getAverageRatingForTutor(tutorUserId);
+
   return {
     ...tutor.toObject(),
     profileImage: profileImage,
     certificates,
+    averageRating,
   };
 }
 

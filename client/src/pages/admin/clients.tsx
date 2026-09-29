@@ -10,7 +10,6 @@ import { ChevronLeft, ChevronRight, Filter } from "lucide-react";
 import { FaArrowLeft } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 
-// Midnight theme type treatment — matches Home / ExploreTutors
 const fraunces = { fontFamily: "'Fraunces', Georgia, serif" };
 const mono = { fontFamily: "'Space Mono', monospace" };
 
@@ -28,6 +27,9 @@ const ClientsPage: React.FC = () => {
   const [totalCount, setTotalCount] = useState(0);
   const [debouncedSearch, setDebouncedSearch] = useState<string>("");
 
+  function handleSorting(){
+    const res = adminService.handleSortButton();
+  }
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search);
@@ -212,7 +214,7 @@ const ClientsPage: React.FC = () => {
               Page {currentPage} of {totalPages || 1}
             </div>
           </div>
-
+<div><button onClick={()=>handleSorting()}>Sort now</button></div>
           <div className="p-6">
             <TableList
               users={users}

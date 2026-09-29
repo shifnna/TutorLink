@@ -60,7 +60,6 @@ export class SessionService implements ISessionService {
       throw new Error("Cannot book a slot on a past date");
     }
 
-    // Re-derive everything from the rule itself — never trust price/time from the client
     const rule = await this._slotRepo.getRuleById(ruleId);
     if (!rule) throw new Error("Slot rule not found");
 
@@ -94,8 +93,6 @@ export class SessionService implements ISessionService {
     session.videoRoomUrl = videoRoomUrl;
     await this._sessionRepo.saveSession(session);
 
-    // Booked atomically with the session, using the session's own _id —
-    // this is what makes available-slots filtering and BookedSlot pricing reliable
     try {
       await this._slotRepo.bookSlot({
         ruleId,
@@ -152,15 +149,19 @@ export class SessionService implements ISessionService {
     await session.save();
   }
 
-  async sentFeedback(body: FeedbackDTO) {
+  async sentFeedback(body: FeedbackDTO, requesterId: string) {
     const session = await SessionModel.findById(body.sessionId);
 
     if (!session) {
       throw new Error("Session not found");
     }
 
+    if (String(session.userId) !== requesterId) {
+      throw new Error("Only the person who booked this session can leave feedback");
+    }
+
     if (session.feedback?.message) {
-      throw new Error("feedback already submited");
+      throw new Error("Feedback already submited");
     }
 
     session.feedback = {
@@ -169,8 +170,20 @@ export class SessionService implements ISessionService {
       unsatisfied: body.unsatisfied,
     };
 
-    session.status = "Completed";
-
     return await session.save();
+  }
+
+  async completeSession(sessionId: string, requesterId: string): Promise<void> {
+    const session = await this._sessionRepo.findSessionById(sessionId);
+    if (!session) throw new Error("Session not found");
+
+    const isParticipant =
+      String(session.userId) === requesterId || String(session.tutorId) === requesterId;
+    if (!isParticipant) throw new Error("You are not a participant in this session");
+
+    if (session.status === "Cancelled") return;
+
+    session.status = "Completed";
+    await session.save();
   }
 }

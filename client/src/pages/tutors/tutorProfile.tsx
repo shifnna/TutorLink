@@ -268,7 +268,7 @@ const TutorProfile: React.FC = () => {
 
                   {!!subjects.length && (
                     <div className="mt-6">
-                      <p className="text-xs uppercase tracking-wide text-[#9CA1B5] mb-2">S</p>
+                      <p className="text-xs uppercase tracking-wide text-[#9CA1B5] mb-2">Subjects</p>
                       <div className="flex flex-wrap gap-2">
                         {subjects.map((subject) => (
                           <span

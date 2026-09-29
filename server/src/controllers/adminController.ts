@@ -32,7 +32,6 @@ export class AdminController implements IAdminController {
   getAllTutors = (req: Request, res: Response, next: NextFunction) =>
     handleAsync(() => this._adminService.getAllTutors())(res,next);
 
-
   getAllTutorApplications = (req: Request,res: Response, next: NextFunction) => 
     handleAsync(()=> this._adminService.getAllTutorApplications())(res,next);
 

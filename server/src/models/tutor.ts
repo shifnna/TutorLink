@@ -5,6 +5,7 @@ export interface ITutor extends Document {
   hasSlots?: boolean;
   startingPrice?: number;
   tutorId: Types.ObjectId;
+  averageRating?: number | null;
   description: string;
   languages: string[];
   education: string;
@@ -24,6 +25,7 @@ export interface ITutor extends Document {
 const TutorSchema = new Schema<ITutor>(
   {
     tutorId: { type: Schema.Types.ObjectId, ref: "User", required: true },
+    averageRating: Number,
     description: { type: String, required: true },
     languages: [String],
     education: String,

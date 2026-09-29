@@ -25,6 +25,13 @@ export const TYPES = {
 
   INotificationController : Symbol.for("INotificationControler"),
   INotificationService : Symbol.for("INotificationService"),
-  INotificationRepository : Symbol.for("INotificationRepository")
+  INotificationRepository : Symbol.for("INotificationRepository"),
+
+  IConversationModel: Symbol.for("IConversationModel"),
+  IMessageModel: Symbol.for("IMessageModel"),
+  IConversationRepository: Symbol.for("IConversationRepository"),
+  IMessageRepository: Symbol.for("IMessageRepository"),
+  IChatService: Symbol.for("IChatService"),
+  IChatController: Symbol.for("IChatController"),
 
 };

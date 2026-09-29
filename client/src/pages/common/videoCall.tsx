@@ -1,18 +1,8 @@
 import React, { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
-import {
-  Mic,
-  MicOff,
-  Video as VideoIcon,
-  VideoOff,
-  Maximize2,
-  Minimize2,
-  PhoneOff,
-  Copy,
-  MonitorX,
-} from "lucide-react";
+import { Mic,MicOff,Video as VideoIcon,VideoOff,Maximize2,Minimize2,PhoneOff,Copy,MonitorX,} from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
-import { sentFeedback } from "../../services/clientService";
+import { completeSession } from "../../services/sessionService";
 import { useNavigate } from "react-router-dom";
 import axiosClient from "../../api/axiosClient";
 import { useAuthStore } from "../../store/authStore";
@@ -187,22 +177,11 @@ const VideoCallPage: React.FC = () => {
   const [callDuration, setCallDuration] = useState(0);
   const [participantName, setParticipantName] = useState<string | null>(null);
 
-  // Whether the *current* logged-in user is the tutor for this session.
-  // Used to decide who sees the post-call feedback modal — only the
-  // client (the person who booked) should be asked to rate the session.
-  const [isTutorSide, setIsTutorSide] = useState(false);
-
   const [duplicateTab, setDuplicateTab] = useState(false);
   const [forceTakeover, setForceTakeover] = useState(false);
 
-  const [showModal, setShowModal] = useState(false);
-  const [rating, setRating] = useState(0);
-  const [message, setMessage] = useState("");
-  const [unsatisfied, setUnsatisfied] = useState(false);
-
   const navigate = useNavigate();
 
-  // Load the Fraunces / Space Mono pairing used across the app
   useEffect(() => {
     const id = "tutorlink-midnight-fonts";
     if (!document.getElementById(id)) {
@@ -215,28 +194,19 @@ const VideoCallPage: React.FC = () => {
     }
   }, []);
 
-  // Look up who the "other side" of this call actually is, so the tile
-  // can show their real name instead of the generic "Participant" label,
-  // and so we know whether the current user is the tutor or the client.
   useEffect(() => {
     if (!sessionId) return;
 
     const loadParticipantName = async () => {
       try {
-        // Make sure this matches a real backend route that returns a single
-        // populated session, e.g. GET /client/sessions/:id
         const res = await axiosClient.get(`/api/client/sessions/${sessionId}`);
         const data: SessionParticipants | undefined = res.data?.data;
         if (!data) return;
 
-        const isTutor = data.tutorId?._id === user?._id;
-        const other = isTutor ? data.userId : data.tutorId;
-
-        setIsTutorSide(isTutor);
+        const other = data.tutorId?._id === user?._id ? data.userId : data.tutorId;
         if (other?.name) setParticipantName(other.name);
       } catch (error) {
-        console.error("Couldn't load participant name:", error);
-        // Not fatal — the tile just falls back to the generic label below.
+        console.error(error instanceof Error ? error.message : error);
       }
     };
 
@@ -260,9 +230,7 @@ const VideoCallPage: React.FC = () => {
     const writeLock = () => {
       try {
         localStorage.setItem(lockKey, JSON.stringify({ tabId, updatedAt: Date.now() }));
-      } catch {
-        /* localStorage unavailable — fail open rather than block the call */
-      }
+      } catch {}
     };
 
     const releaseLock = () => {
@@ -270,9 +238,7 @@ const VideoCallPage: React.FC = () => {
       if (current?.tabId === tabId) {
         try {
           localStorage.removeItem(lockKey);
-        } catch {
-          /* ignore */
-        }
+        } catch {}
       }
     };
 
@@ -288,8 +254,6 @@ const VideoCallPage: React.FC = () => {
 
     setDuplicateTab(false);
     writeLock();
-    // Assigned exactly once, right here, so this can stay a const —
-    // nothing before this point in the effect needs a reference to it.
     const heartbeatId = window.setInterval(writeLock, LOCK_HEARTBEAT_MS);
 
     const pc = new RTCPeerConnection({
@@ -317,9 +281,7 @@ const VideoCallPage: React.FC = () => {
           setDuplicateTab(true);
           teardown();
         }
-      } catch {
-        /* ignore malformed value */
-      }
+      } catch {}
     };
 
     window.addEventListener("storage", handleStorage);
@@ -346,8 +308,6 @@ const VideoCallPage: React.FC = () => {
       }
 
       if (state === "disconnected") {
-        // Ordinary network blips briefly report "disconnected" too — wait
-        // a few seconds before treating this as an actual hangup.
         if (!leaveTimeoutRef.current) {
           leaveTimeoutRef.current = window.setTimeout(() => {
             leaveTimeoutRef.current = undefined;
@@ -496,27 +456,13 @@ const VideoCallPage: React.FC = () => {
     }
   };
 
-  const endCall = () => {
-    if (isTutorSide) {
-      navigate("/");
-    } else {
-      setShowModal(true);
-    }
-  };
-
-  const submitFeedback = async () => {
+  const endCall = async () => {
     try {
-      const res = await sentFeedback({ sessionId, rating, message, unsatisfied });
-      if (res.success) {
-        toast.success("Feedback submitted. Thank you!");
-      } else {
-        toast.error(res.message);
-      }
-      navigate("/");
-    } catch (error: unknown) {
+      await completeSession(sessionId);
+    } catch (error) {
       console.error(error instanceof Error ? error.message : error);
-      toast.error("Error submitting feedback");
     }
+    navigate("/");
   };
 
   const handleUseThisTab = () => {
@@ -585,8 +531,7 @@ const VideoCallPage: React.FC = () => {
     <div className="relative w-full h-screen bg-[#0E1016] text-[#F3F4F8] overflow-hidden">
       <BackgroundGlow />
 
-      <div className={`relative w-full h-full transition-all duration-300 ${showModal ? "blur-sm pointer-events-none" : ""}`}>
-        {/* header */}
+      <div className="relative w-full h-full">
         <div className="absolute top-0 left-0 right-0 z-20 flex items-center justify-between px-6 py-4">
           <div className="flex items-center gap-2.5 bg-[#171A24]/80 backdrop-blur-md border border-[#2A2E3D] rounded-full px-4 py-2">
             <span className={`w-2 h-2 rounded-full ${status.dot}`} />
@@ -614,7 +559,6 @@ const VideoCallPage: React.FC = () => {
           </div>
         </div>
 
-        {/* main stage */}
         <div className="relative w-full h-full">
           {!remoteLeft && (
             <VideoTile
@@ -639,7 +583,6 @@ const VideoCallPage: React.FC = () => {
           />
         </div>
 
-        {/* controls */}
         <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex items-center gap-3 bg-[#171A24]/90 backdrop-blur-md border border-[#2A2E3D] px-5 py-3 rounded-full shadow-2xl">
           <button
             onClick={toggleMic}
@@ -682,68 +625,6 @@ const VideoCallPage: React.FC = () => {
           </button>
         </div>
       </div>
-
-      {showModal && (
-        <div className="fixed inset-0 flex items-center justify-center z-50 bg-black/70 backdrop-blur-md">
-          <div className="bg-[#171A24] border border-[#2A2E3D] p-8 rounded-3xl w-11/12 max-w-lg shadow-2xl">
-            <h2 style={fraunces} className="text-2xl font-bold mb-1 text-[#F3F4F8]">
-              Rate your session
-            </h2>
-            <p className="text-sm text-[#9CA1B5] mb-5">
-              Your feedback helps keep sessions running smoothly.
-            </p>
-
-            <div className="flex gap-2 mb-4">
-              {[1, 2, 3, 4, 5].map((i) => (
-                <span
-                  key={i}
-                  onClick={() => setRating(i)}
-                  className={`cursor-pointer text-2xl transition ${
-                    i <= rating ? "text-amber-400" : "text-[#2A2E3D]"
-                  }`}
-                >
-                  ★
-                </span>
-              ))}
-            </div>
-
-            <textarea
-              placeholder="Share your experience..."
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              className="w-full p-3 rounded-xl bg-[#0E1016] text-[#F3F4F8] border border-[#2A2E3D] focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40 placeholder-[#6B7185]"
-              rows={4}
-            />
-
-            <label className="flex items-center gap-3 mt-4 cursor-pointer">
-              <input
-                type="checkbox"
-                checked={unsatisfied}
-                onChange={(e) => setUnsatisfied(e.target.checked)}
-              />
-              <span className="text-sm text-rose-400">
-                I'm unsatisfied (refund/split requested)
-              </span>
-            </label>
-
-            <div className="flex justify-end gap-3 mt-6">
-              <button
-                onClick={() => setShowModal(false)}
-                className="border border-[#2A2E3D] text-[#F3F4F8] hover:bg-[#1E2230] hover:border-[#7C9CFF] bg-transparent rounded-full px-4 py-2 transition"
-              >
-                Cancel
-              </button>
-
-              <button
-                onClick={submitFeedback}
-                className="bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold rounded-full px-5 py-2 hover:scale-105 transition"
-              >
-                Submit review
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
 
       <Toaster
         position="top-center"

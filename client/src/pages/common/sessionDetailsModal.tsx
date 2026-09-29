@@ -24,12 +24,6 @@ const paymentStatusStyles: Record<string, string> = {
   CANCELLED: "bg-rose-500/15 text-rose-300 border-rose-400/20",
 };
 
-interface SessionFeedback {
-  message: string;
-  rating: number;
-  unsatisfied: boolean;
-}
-
 interface SessionDetailsModalProps {
   session: ISession | null;
   onClose: () => void;
@@ -135,14 +129,9 @@ const SessionDetailsModal: React.FC<SessionDetailsModalProps> = ({
   const showJoin = Boolean(session?.videoRoomUrl);
   const status = session?.status;
 
-  const feedback = session?.feedback as
-    | SessionFeedback
-    | undefined;
-
-  const hasFeedback =
-    Boolean(feedback) &&
-    Boolean(feedback?.message || feedback?.rating);
-
+  const feedback = session?.feedback;
+  const hasFeedback = Boolean(feedback?.message || feedback?.rating);
+  
   return createPortal(
     <div
       className={`

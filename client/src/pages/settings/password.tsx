@@ -8,7 +8,6 @@ import {
   EyeOff,
   KeyRound,
   Loader2,
-  Mail,
   ShieldCheck,
   X,
 } from "lucide-react";
