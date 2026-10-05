@@ -25,6 +25,7 @@ export interface BookingDetails {
   endTime: string;
   amount: number;
 }
+// bookingDetails: { ruleId: string; date: string; minutes: number; subject?: string; language?: string }
 
 export interface Feedback {
   sessionId:string,

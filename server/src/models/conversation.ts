@@ -2,6 +2,7 @@ import { Schema, model, Document, Types } from "mongoose";
 
 export interface IConversation extends Document {
   participants: Types.ObjectId[]; // always exactly 2
+  pairKey: string;
   lastMessage: string;
   lastMessageAt: Date;
   lastMessageSender: Types.ObjectId;
@@ -10,6 +11,7 @@ export interface IConversation extends Document {
 const ConversationSchema = new Schema<IConversation>(
   {
     participants: [{ type: Schema.Types.ObjectId, ref: "User", required: true }],
+    pairKey: { type: String, unique: true, sparse: true },
     lastMessage: { type: String, default: "" },
     lastMessageAt: { type: Date, default: Date.now },
     lastMessageSender: { type: Schema.Types.ObjectId, ref: "User" },

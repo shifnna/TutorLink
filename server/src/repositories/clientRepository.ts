@@ -3,6 +3,7 @@ import { IClientRepository } from "./interfaces/IClientRepository.js";
 import { injectable, inject } from "inversify";
 import { TYPES } from "../types/types.js";
 import { BaseRepository } from "./baseRepository.js";
+import { TutorModel } from "../models/tutor.js";
 
 @injectable()
 export class clientRepository extends BaseRepository<IUser> implements IClientRepository {
@@ -14,17 +15,15 @@ export class clientRepository extends BaseRepository<IUser> implements IClientRe
         return this.model.find({ role: "tutor" }).populate("tutorProfile");
     }
 
-    async findClientsPaginated(
-  filter: Record<string, unknown>,
-  sort: Record<string, 1 | -1>,
-  skip: number,
-  limit: number
-): Promise<{ users: IUser[]; total: number }> {
-  const [users, total] = await Promise.all([
-    UserModel.find(filter).sort(sort).skip(skip).limit(limit),
-    UserModel.countDocuments(filter),
-  ]);
+    async findClientsPaginated(filter: Record<string, unknown>,sort: Record<string, 1 | -1>,skip: number,limit: number ): Promise<{ users: IUser[]; total: number }> {
+      const [users, total] = await Promise.all([
+        UserModel.find(filter).sort(sort).skip(skip).limit(limit),
+        UserModel.countDocuments(filter),
+      ]);
+      return { users: users as IUser[], total };
+    }
 
-  return { users: users as IUser[], total };
-}
+    async getSubjects(): Promise<string[]> {
+      return await TutorModel.distinct("subjects");
+    }
 }

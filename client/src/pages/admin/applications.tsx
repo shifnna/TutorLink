@@ -1,907 +1,326 @@
 import { useEffect, useMemo, useState } from "react";
-import { toast, Toaster } from "react-hot-toast";
-import { motion } from "framer-motion";
-import {
-  ChevronLeft,
-  ChevronRight,
-  Filter,
-} from "lucide-react";
-
+import toast from "react-hot-toast";
+import { FileText, Clock, XCircle } from "lucide-react";
 import { ITutorApplication } from "../../types/ITutorApplication";
 import { adminService } from "../../services/adminService";
-
+import Header from "../../components/adminCommon/header";
 import SearchBar from "../../components/adminCommon/searchBar";
-import TableList from "../../components/adminCommon/tableList";
+import StatCard from "../../components/adminCommon/statCard";
+import StatusBadge from "../../components/adminCommon/statusBadge";
+import { FilterBar, FilterSelect } from "../../components/adminCommon/filterSelect";
+import { ConfirmDialog, Modal } from "../../components/adminCommon/modal";
+import { Column, DataTable, Pagination, TableCard, UserCell } from "../../components/adminCommon/dataTable";
 import { Button } from "../../components/ui/button";
-import { FaArrowLeft } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useDebounce } from "../../hooks/useDebounce";
 
-// Midnight theme type treatment — matches Home / ExploreTutors
-const fraunces = { fontFamily: "'Fraunces', Georgia, serif" };
-const mono = { fontFamily: "'Space Mono', monospace" };
-
-interface IConfirmModal {
-  isOpen: boolean;
-  type: "approve" | "reject" | null;
-  userId: string | null;
-}
-
-interface IReasonModal {
-  isOpen: boolean;
-  message: string;
-}
-
-type FilterStatus =
-  | "all"
-  | "pending"
-  | "rejected";
-
-type SortType =
-  | "latest"
-  | "oldest"
-  | "az"
-  | "za";
+type FilterStatus = "all" | "pending" | "rejected";
+type SortType = "latest" | "oldest" | "az" | "za";
 
 const ITEMS_PER_PAGE = 5;
 
+const getStatus = (app: ITutorApplication) => app.tutorId?.tutorApplication?.status || "Pending";
+const formatDate = (d?: string) =>
+  d ? new Date(d).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric" }) : "—";
+
+const Field = ({ label, value }: { label: string; value?: React.ReactNode }) => (
+  <div>
+    <p className="text-[10px] uppercase tracking-wider text-[#6B7185] mb-1" >{label}</p>
+    <p className="text-sm text-[#F3F4F8]">{value || "—"}</p>
+  </div>
+);
+
+const join = (v?: string[] | string) => (Array.isArray(v) ? v.join(", ") : v);
+
 const TutorApplications: React.FC = () => {
+  const [applications, setApplications] = useState<ITutorApplication[]>([]);
+  const [search, setSearch] = useState("");
+  const debouncedSearch = useDebounce(search);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filterStatus, setFilterStatus] = useState<FilterStatus>("all");
+  const [sortType, setSortType] = useState<SortType>("latest");
 
-  const [applications, setApplications] =
-    useState<ITutorApplication[]>([]);
-const [debouncedSearch, setDebouncedSearch] = useState<string>("");
+  const [viewing, setViewing] = useState<ITutorApplication | null>(null);
+  const [action, setAction] = useState<{ type: "approve" | "reject"; userId: string } | null>(null);
+  const [rejectReason, setRejectReason] = useState("");
+  const [busy, setBusy] = useState(false);
 
-  const [search, setSearch] =
-    useState<string>("");
-
-  const [currentPage, setCurrentPage] =
-    useState<number>(1);
-
-  const [filterStatus, setFilterStatus] =
-    useState<FilterStatus>("all");
-
-  const [sortType, setSortType] =
-    useState<SortType>("latest");
-
-  const [reasonModal, setReasonModal] =
-    useState<IReasonModal>({
-      isOpen: false,
-      message: "",
-    });
-
-  const [confirmModal, setConfirmModal] =
-    useState<IConfirmModal>({
-      isOpen: false,
-      type: null,
-      userId: null,
-    });
-
-  const [rejectReason, setRejectReason] =
-    useState<string>("");
-
-    useEffect(() => {
-  const timer = setTimeout(() => {
-    setDebouncedSearch(search);
-  }, 300);
-
-  return () => clearTimeout(timer);
-}, [search]);
-
-    useEffect(() => {
-    const id = "tutorlink-midnight-fonts";
-    if (!document.getElementById(id)) {
-      const link = document.createElement("link");
-      link.id = id;
-      link.rel = "stylesheet";
-      link.href =
-        "https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,450;9..144,550;9..144,650&family=Space+Mono:wght@400;700&display=swap";
-      document.head.appendChild(link);
+  const loadApplications = async () => {
+    try {
+      const res = await adminService.getAllTutorApplications();
+      setApplications(res.success && res.data ? res.data : []);
+    } catch (error: unknown) {
+      console.error(error instanceof Error ? error.message : error);
+      toast.error("Failed to fetch applications");
     }
+  };
+
+  useEffect(() => {
+    loadApplications();
   }, []);
 
   useEffect(() => {
+    setCurrentPage(1);
+  }, [debouncedSearch, filterStatus, sortType]);
 
-    const fetchApplications =
-      async (): Promise<void> => {
+  const closeAction = () => {
+    setAction(null);
+    setRejectReason("");
+  };
 
-        try {
-
-          const res =
-            await adminService.getAllTutorApplications();
-
-          if (
-            res.success &&
-            res.data
-          ) {
-
-            setApplications(
-              res.data
-            );
-          }
-
-        } catch (error: unknown) {
-  if (error instanceof Error) {
-    console.error(error.message);
-  } else {
-    console.error(error);
-  }
-          toast.error(
-            "Failed to fetch applications"
-          );
-        }
-      };
-
-    fetchApplications();
-
-  }, []);
-
-  const refreshList =
-    async (): Promise<void> => {
-
-      try {
-
-        const updated =
-          await adminService.getAllTutorApplications();
-
-        setApplications(
-          updated.success &&
-          updated.data
-            ? updated.data
-            : []
-        );
-
-      } catch (error: unknown) {
-  if (error instanceof Error) {
-    console.error(error.message);
-  } else {
-    console.error(error);
-  }
+  const handleApprove = async () => {
+    if (!action) return;
+    setBusy(true);
+    try {
+      const res = await adminService.approveTutor(action.userId);
+      if (res.success) {
+        toast.success("Tutor approved successfully!");
+        setViewing(null);
+        await loadApplications();
       }
-    };
+    } catch (error: unknown) {
+      console.error(error instanceof Error ? error.message : error);
+      toast.error("Failed to approve tutor");
+    } finally {
+      setBusy(false);
+      closeAction();
+    }
+  };
 
-  const handleApprove =
-    async (): Promise<void> => {
-
-      if (!confirmModal.userId)
-        return;
-
-      try {
-
-        const res =
-          await adminService.approveTutor(
-            confirmModal.userId
-          );
-
-        if (res.success) {
-
-          toast.success(
-            "Tutor approved successfully!"
-          );
-
-          await refreshList();
-        }
-
-      }catch (error: unknown) {
-  if (error instanceof Error) {
-    console.error(error.message);
-  } else {
-    console.error(error);
-  }
-
-        toast.error(
-          "Failed to approve tutor"
-        );
-
-      } finally {
-
-        setConfirmModal({
-          isOpen: false,
-          type: null,
-          userId: null,
-        });
+  const handleReject = async () => {
+    if (!action || !rejectReason.trim()) {
+      toast.error("Enter rejection reason");
+      return;
+    }
+    setBusy(true);
+    try {
+      const res = await adminService.rejectTutor(action.userId, rejectReason);
+      if (res.success) {
+        toast.success("Tutor rejected successfully!");
+        setViewing(null);
+        await loadApplications();
       }
-    };
+    } catch (error: unknown) {
+      console.error(error instanceof Error ? error.message : error);
+      toast.error("Failed to reject tutor");
+    } finally {
+      setBusy(false);
+      closeAction();
+    }
+  };
 
-  const handleReject =
-    async (): Promise<void> => {
+  const filtered = useMemo(() => {
+    const query = debouncedSearch.toLowerCase();
 
-      if (
-        !confirmModal.userId ||
-        !rejectReason.trim()
-      ) {
+    const list = applications.filter((app) => {
+      const name = app.tutorId?.name?.toLowerCase() || "";
+      const email = app.tutorId?.email?.toLowerCase() || "";
+      const matchesSearch = name.includes(query) || email.includes(query);
+      const matchesStatus = filterStatus === "all" || getStatus(app).toLowerCase() === filterStatus;
+      return matchesSearch && matchesStatus;
+    });
 
-        toast.error(
-          "Enter rejection reason"
-        );
+    const time = (a: ITutorApplication) => new Date(a.createdAt || "").getTime();
+    const name = (a: ITutorApplication) => a.tutorId?.name || "";
+    list.sort((a, b) => {
+      if (sortType === "latest") return time(b) - time(a);
+      if (sortType === "oldest") return time(a) - time(b);
+      if (sortType === "az") return name(a).localeCompare(name(b));
+      return name(b).localeCompare(name(a));
+    });
 
-        return;
-      }
+    return list;
+  }, [applications, debouncedSearch, filterStatus, sortType]);
 
-      try {
+  const paginated = filtered.slice((currentPage - 1) * ITEMS_PER_PAGE, currentPage * ITEMS_PER_PAGE);
+  const pendingCount = applications.filter((a) => getStatus(a) === "Pending").length;
+  const rejectedCount = applications.filter((a) => getStatus(a) === "Rejected").length;
 
-        const res =
-          await adminService.rejectTutor(
-            confirmModal.userId,
-            rejectReason
-          );
+  const columns: Column<ITutorApplication>[] = [
+    {
+      key: "applicant",
+      header: "Applicant",
+      render: (a) => <UserCell name={a.tutorId?.name} sub={a.tutorId?.email} image={a.profileImage} />,
+    },
+    { key: "education", header: "Education", render: (a) => a.education || "—" },
+    { key: "experience", header: "Experience", render: (a) => a.experienceLevel || "—" },
+    { key: "applied", header: "Applied on", render: (a) => <span className="whitespace-nowrap">{formatDate(a.createdAt)}</span> },
+    {
+      key: "status",
+      header: "Status",
+      render: (a) => <StatusBadge label={getStatus(a)} tone={getStatus(a) === "Rejected" ? "red" : "amber"} />,
+    },
+    {
+      key: "actions",
+      header: "Action",
+      align: "right",
+      render: (a) => (
+        <Button
+          onClick={() => setViewing(a)}
+          className="rounded-lg px-4 h-9 text-sm bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold hover:scale-[1.03] transition"
+        >
+          Review
+        </Button>
+      ),
+    },
+  ];
 
-        if (res.success) {
+  const userIdOf = (a: ITutorApplication) => a.tutorId?._id || a._id;
 
-          toast.success(
-            "Tutor rejected successfully!"
-          );
-
-          await refreshList();
-        }
-
-      }catch (error: unknown) {
-  if (error instanceof Error) {
-    console.error(error.message);
-  } else {
-    console.error(error);
-  }
-
-        toast.error(
-          "Failed to reject tutor"
-        );
-
-      } finally {
-
-        setRejectReason("");
-
-        setConfirmModal({
-          isOpen: false,
-          type: null,
-          userId: null,
-        });
-      }
-    };
-
-  const filteredApplications =
-    useMemo(() => {
-
-      const filtered =
-        applications.filter((app) => {
-
-          const name =
-            app.tutorId?.name?.toLowerCase() ||
-            "";
-
-          const email =
-            app.tutorId?.email?.toLowerCase() ||
-            "";
-
-          const status =
-            app.tutorId
-              ?.tutorApplication
-              ?.status || "Pending";
-
-          const matchesSearch =
-            name.includes(
-              debouncedSearch.toLowerCase()
-            ) ||
-            email.includes(
-              debouncedSearch.toLowerCase()
-            );
-
-          const matchesStatus =
-            filterStatus === "all"
-              ? true
-              : status.toLowerCase() ===
-                filterStatus;
-
-          return (
-            matchesSearch &&
-            matchesStatus
-          );
-        });
-
-      filtered.sort((a, b) => {
-
-        const dateA =
-          new Date(
-            a.createdAt || ""
-          ).getTime();
-
-        const dateB =
-          new Date(
-            b.createdAt || ""
-          ).getTime();
-
-        if (sortType === "latest") {
-          return dateB - dateA;
-        }
-
-        if (sortType === "oldest") {
-          return dateA - dateB;
-        }
-
-        if (sortType === "az") {
-
-          return (
-            a.tutorId?.name || ""
-          ).localeCompare(
-            b.tutorId?.name || ""
-          );
-        }
-
-        if (sortType === "za") {
-
-          return (
-            b.tutorId?.name || ""
-          ).localeCompare(
-            a.tutorId?.name || ""
-          );
-        }
-
-        return 0;
-      });
-
-      return filtered;
-
-    }, [
-      applications,
-      debouncedSearch,
-      filterStatus,
-      sortType,
-    ]);
-
-  const totalPages =
-    Math.ceil(
-      filteredApplications.length /
-      ITEMS_PER_PAGE
-    );
-
-  const paginatedApplications =
-    filteredApplications.slice(
-      (currentPage - 1) *
-      ITEMS_PER_PAGE,
-
-      currentPage *
-      ITEMS_PER_PAGE
-    );
-
-    const navigate = useNavigate();
   return (
-    <div className="relative px-10 py-10 bg-[#0E1016] text-[#F3F4F8] min-h-screen overflow-hidden">
+    <div className="space-y-6">
+      <Header title="Tutor Applications" subtitle="Review and manage tutor requests" />
 
-      {/* background glow — matches Home / ExploreTutors */}
-      <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
-        <div
-          className="absolute top-[-15%] right-[-10%] w-[45vmax] h-[45vmax] rounded-full opacity-20 blur-3xl mix-blend-screen"
-          style={{ background: "radial-gradient(circle, rgba(124,156,255,0.5) 0%, transparent 70%)" }}
-        />
-        <div
-          className="absolute bottom-[-15%] left-[-10%] w-[40vmax] h-[40vmax] rounded-full opacity-20 blur-3xl mix-blend-screen"
-          style={{ background: "radial-gradient(circle, rgba(192,139,250,0.5) 0%, transparent 70%)" }}
-        />
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <StatCard label="Total applications" value={applications.length} icon={FileText} tone="blue" />
+        <StatCard label="Pending review" value={pendingCount} icon={Clock} tone="amber" />
+        <StatCard label="Rejected" value={rejectedCount} icon={XCircle} tone="purple" />
       </div>
 
-      <div className="max-w-7xl mx-auto space-y-8">
+      <FilterBar>
+        <SearchBar value={search} onChange={(e) => setSearch(e.target.value)} placeholder="Search by applicant name or email" />
+        <FilterSelect
+          label="Status"
+          value={filterStatus}
+          onChange={(v) => setFilterStatus(v as FilterStatus)}
+          options={[
+            { value: "all", label: "All" },
+            { value: "pending", label: "Pending" },
+            { value: "rejected", label: "Rejected" },
+          ]}
+        />
+        <FilterSelect
+          label="Sort by"
+          value={sortType}
+          onChange={(v) => setSortType(v as SortType)}
+          options={[
+            { value: "latest", label: "Newest first" },
+            { value: "oldest", label: "Oldest first" },
+            { value: "az", label: "Name A–Z" },
+            { value: "za", label: "Name Z–A" },
+          ]}
+        />
+      </FilterBar>
 
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: -20,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          className="flex items-center justify-between flex-wrap gap-4"
-        >
+      <TableCard title="Applications" subtitle={`${filtered.length} applications found`}>
+        <DataTable columns={columns} rows={paginated} rowKey={(a) => a._id} emptyTitle="No applications found" />
+        <Pagination page={currentPage} perPage={ITEMS_PER_PAGE} total={filtered.length} onChange={setCurrentPage} />
+      </TableCard>
 
-          <div>
-            <p className="text-[11px] uppercase tracking-wider text-[#9CA1B5] mb-2" style={mono}>Admin</p>
-
-            <h1 className="text-4xl font-black" style={fraunces}>
-              Tutor Applications
-            </h1>
-
-            <p className="text-[#9CA1B5] mt-1">
-              Review and manage tutor requests
-            </p>
-          </div>
-
-          <Button className="flex items-center gap-2 bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] rounded-xl font-bold hover:scale-105 transition"
-        onClick={()=>navigate("/admin-dashboard")}>
-          <FaArrowLeft />Back to Dashboard
-        </Button>
-
-        </motion.div>
-
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 20,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          className="bg-[#171A24] rounded-3xl border border-[#2A2E3D] p-6 shadow-sm"
-        >
-
-          <div className="flex flex-col lg:flex-row gap-4 lg:items-center lg:justify-between">
-
-            <div className="flex-1">
-
-              <SearchBar
-                value={search}
-                onChange={(
-                  e: React.ChangeEvent<HTMLInputElement>
-                ) =>
-                  setSearch(
-                    e.target.value
-                  )
-                }
-              />
-            </div>
-
-            <div className="flex gap-3 flex-wrap">
-
-              <div className="relative">
-
-                <Filter className="w-4 h-4 absolute left-3 top-3 text-[#9CA1B5]" />
-
-                <select
-                  value={
-                    filterStatus
-                  }
-                  onChange={(
-                    e: React.ChangeEvent<HTMLSelectElement>
-                  ) =>
-                    setFilterStatus(
-                      e.target.value as FilterStatus
-                    )
-                  }
-                  className="border border-[#2A2E3D] rounded-xl pl-9 pr-4 py-2 bg-[#0E1016] text-[#F3F4F8] text-sm focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40"
-                >
-                  <option value="all">
-                    All
-                  </option>
-
-                  <option value="pending">
-                    Pending
-                  </option>
-
-                  <option value="rejected">
-                    Rejected
-                  </option>
-
-                </select>
+      <Modal open={!!viewing} onClose={() => setViewing(null)} title="Tutor application" width="max-w-2xl">
+        {viewing && (
+          <div className="space-y-6">
+            <div className="flex items-center gap-4">
+              <a href={viewing.profileImage} target="_blank" rel="noopener noreferrer" className="flex-shrink-0">
+                <img
+                  src={viewing.profileImage}
+                  alt={viewing.tutorId?.name || "Tutor"}
+                  className="w-20 h-20 rounded-2xl object-cover border border-[#2A2E3D] hover:opacity-90 transition"
+                />
+              </a>
+              <div className="min-w-0">
+                <p className="text-lg font-bold truncate">{viewing.tutorId?.name}</p>
+                <p className="text-sm text-[#9CA1B5] truncate">{viewing.tutorId?.email}</p>
+                <div className="mt-2">
+                  <StatusBadge label={getStatus(viewing)} tone={getStatus(viewing) === "Rejected" ? "red" : "amber"} />
+                </div>
               </div>
-
-              <select
-                value={sortType}
-                onChange={(
-                  e: React.ChangeEvent<HTMLSelectElement>
-                ) =>
-                  setSortType(
-                    e.target.value as SortType
-                  )
-                }
-                className="border border-[#2A2E3D] rounded-xl px-4 py-2 bg-[#0E1016] text-[#F3F4F8] text-sm focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40"
-              >
-                <option value="latest">
-                  Latest
-                </option>
-
-                <option value="oldest">
-                  Oldest
-                </option>
-
-                <option value="az">
-                  A-Z
-                </option>
-
-                <option value="za">
-                  Z-A
-                </option>
-              </select>
-
             </div>
-          </div>
-        </motion.div>
 
-        <motion.div
-          initial={{
-            opacity: 0,
-            y: 30,
-          }}
-          animate={{
-            opacity: 1,
-            y: 0,
-          }}
-          className="bg-[#171A24] rounded-3xl p-8 shadow-sm border border-[#2A2E3D]"
-        >
-
-          <div className="flex items-center justify-between mb-6">
+            <div className="grid grid-cols-2 gap-x-6 gap-y-4 rounded-2xl border border-[#2A2E3D] bg-[#0E1016] p-5">
+              <Field label="Education" value={viewing.education} />
+              <Field label="Experience" value={viewing.experienceLevel} />
+              <Field label="Occupation" value={viewing.occupation} />
+              <Field label="Gender" value={viewing.gender} />
+              <Field label="Applied on" value={formatDate(viewing.createdAt)} />
+              <Field label="Languages" value={join(viewing.languages)} />
+              <div className="col-span-2">
+                <Field label="Subjects" value={join(viewing.subjects)} />
+              </div>
+            </div>
 
             <div>
-
-              <h2 className="text-xl font-bold" style={fraunces}>
-                Applications
-              </h2>
-
-              <p className="text-sm text-[#9CA1B5] mt-1">
-                {filteredApplications.length} applications found
-              </p>
-
-            </div>
-
-            <div className="text-sm text-[#6B7185]" style={mono}>
-              Page {currentPage} of {totalPages || 1}
-            </div>
-
-          </div>
-
-          <TableList
-            users={paginatedApplications}
-
-           renderModalContent={(item) => {
-
-  const tutor =
-    item as ITutorApplication;
-
-  return (
-
-    <div className="max-h-[85vh] overflow-y-auto pr-2">
-
-      <div className="space-y-6 text-[#D7D9E2]">
-
-        <h2 className="text-2xl font-bold text-[#F3F4F8]" style={fraunces}>
-          Tutor Application
-        </h2>
-
-        <div className="flex gap-5">
-
-          <a
-            href={tutor.profileImage}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex-shrink-0"
-          >
-
-            <img
-              src={tutor.profileImage}
-              alt="Tutor"
-              className="w-28 h-28 rounded-2xl object-cover border border-[#2A2E3D] hover:opacity-90 transition"
-            />
-
-          </a>
-
-          <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm flex-1">
-
-            <p>
-              <b className="text-[#F3F4F8]">Name:</b>{" "}
-              {tutor.tutorId?.name}
-            </p>
-
-            <p>
-              <b className="text-[#F3F4F8]">Email:</b>{" "}
-              {tutor.tutorId?.email}
-            </p>
-
-            <p>
-              <b className="text-[#F3F4F8]">Education:</b>{" "}
-              {tutor.education}
-            </p>
-
-            <p>
-              <b className="text-[#F3F4F8]">Experience:</b>{" "}
-              {tutor.experienceLevel}
-            </p>
-
-            <p>
-              <b className="text-[#F3F4F8]">Occupation:</b>{" "}
-              {tutor.occupation}
-            </p>
-
-            <p>
-              <b className="text-[#F3F4F8]">Gender:</b>{" "}
-              {tutor.gender}
-            </p>
-
-            <p className="col-span-2">
-              <b className="text-[#F3F4F8]">Languages:</b>{" "}
-              {Array.isArray(tutor.languages)
-                ? tutor.languages.join(", ")
-                : tutor.languages}
-            </p>
-
-            <p className="col-span-2">
-              <b className="text-[#F3F4F8]">Subjects:</b>{" "}
-              {Array.isArray(tutor.subjects)
-                ? tutor.subjects.join(", ")
-                : tutor.subjects}
-            </p>
-
-          </div>
-
-        </div>
-
-        <div>
-
-          <p className="font-semibold text-[#F3F4F8] mb-2">
-            Description
-          </p>
-
-          <div className="bg-[#0E1016] border border-[#2A2E3D] rounded-2xl p-4 text-sm leading-relaxed">
-            {tutor.description}
-          </div>
-
-        </div>
-
-        <div>
-
-          <p className="font-semibold text-[#F3F4F8] mb-3">
-            Certificates
-          </p>
-
-          {!tutor.certificates?.length ? (
-
-            <p className="text-[#9CA1B5] text-sm">
-              No certificates uploaded
-            </p>
-
-          ) : (
-
-            <div className="flex flex-wrap gap-3">
-
-              {tutor.certificates.map(
-                (
-                  certificate: string,
-                  index: number
-                ) => (
-
-                  <a
-                    key={index}
-                    href={certificate}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="px-4 py-2 rounded-xl border border-[#2A2E3D] bg-[#0E1016] hover:bg-[#1E2230] text-sm font-medium transition"
-                  >
-                    Certificate {index + 1}
-                  </a>
-                )
-              )}
-
-            </div>
-          )}
-
-        </div>
-
-        <div className="flex gap-3 pt-2 sticky bottom-0 bg-[#171A24]">
-
-          <button
-            onClick={() =>
-              setConfirmModal({
-                isOpen: true,
-                type: "approve",
-                userId:
-                  tutor.tutorId?._id ||
-                  tutor._id,
-              })
-            }
-            className="px-5 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-medium transition"
-          >
-            Approve
-          </button>
-
-          <button
-            onClick={() =>
-              setConfirmModal({
-                isOpen: true,
-                type: "reject",
-                userId:
-                  tutor.tutorId?._id ||
-                  tutor._id,
-              })
-            }
-            className="px-5 py-2.5 bg-red-600 hover:bg-red-500 text-white rounded-xl font-medium transition"
-          >
-            Reject
-          </button>
-
-        </div>
-
-      </div>
-
-    </div>
-  );
-}}
-
-
-          />
-
-          {totalPages > 1 && (
-
-            <div className="flex items-center justify-between mt-8">
-
-              <button
-                disabled={
-                  currentPage === 1
-                }
-                onClick={() =>
-                  setCurrentPage(
-                    (prev) => prev - 1
-                  )
-                }
-                className="flex items-center gap-2 px-4 py-2 border border-[#2A2E3D] rounded-xl text-[#F3F4F8] hover:border-[#7C9CFF] transition disabled:opacity-50"
-              >
-                <ChevronLeft className="w-4 h-4" />
-                Previous
-              </button>
-
-              <div className="flex gap-2">
-
-                {Array.from({
-                  length: totalPages,
-                }).map(
-                  (_, index) => (
-
-                    <button
-                      key={index}
-                      onClick={() =>
-                        setCurrentPage(
-                          index + 1
-                        )
-                      }
-                      className={`w-10 h-10 rounded-xl text-sm font-semibold transition ${
-                        currentPage === index + 1
-                          ? "bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016]"
-                          : "bg-[#1E2230] text-[#9CA1B5] hover:text-[#F3F4F8]"
-                      }`}
-                    >
-                      {index + 1}
-                    </button>
-                  )
-                )}
-
+              <p className="text-[10px] uppercase tracking-wider text-[#6B7185] mb-2" >About</p>
+              <div className="rounded-2xl border border-[#2A2E3D] bg-[#0E1016] p-4 text-sm leading-relaxed text-[#D7D9E2]">
+                {viewing.description || "No description"}
               </div>
-
-              <button
-                disabled={
-                  currentPage === totalPages
-                }
-                onClick={() =>
-                  setCurrentPage(
-                    (prev) => prev + 1
-                  )
-                }
-                className="flex items-center gap-2 px-4 py-2 border border-[#2A2E3D] rounded-xl text-[#F3F4F8] hover:border-[#7C9CFF] transition disabled:opacity-50"
-              >
-                Next
-                <ChevronRight className="w-4 h-4" />
-              </button>
-
             </div>
-          )}
-        </motion.div>
-      </div>
 
-      {confirmModal.isOpen && (
-
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-
-          <div className="bg-[#171A24] border border-[#2A2E3D] rounded-3xl w-[400px] p-8 shadow-xl">
-
-            {confirmModal.type === "approve" ? (
-
-              <>
-                <h2 className="text-2xl font-bold text-[#F3F4F8] mb-3" style={fraunces}>
-                  Approve Tutor
-                </h2>
-
-                <p className="text-[#9CA1B5] mb-6">
-                  Are you sure you want to approve this tutor?
-                </p>
-
-                <div className="flex justify-end gap-3">
-
-                  <button
-                    onClick={() =>
-                      setConfirmModal({
-                        isOpen: false,
-                        type: null,
-                        userId: null,
-                      })
-                    }
-                    className="px-4 py-2 border border-[#2A2E3D] rounded-xl text-[#F3F4F8] hover:border-[#7C9CFF] transition"
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    onClick={handleApprove}
-                    className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl transition"
-                  >
-                    Confirm
-                  </button>
-
+            <div>
+              <p className="text-[10px] uppercase tracking-wider text-[#6B7185] mb-2" >Certificates</p>
+              {!viewing.certificates?.length ? (
+                <p className="text-sm text-[#9CA1B5]">No certificates uploaded</p>
+              ) : (
+                <div className="flex flex-wrap gap-2">
+                  {viewing.certificates.map((certificate: string, index: number) => (
+                    <a
+                      key={index}
+                      href={certificate}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-4 py-2 rounded-xl border border-[#2A2E3D] bg-[#0E1016] hover:bg-[#1E2230] hover:border-[#7C9CFF] text-sm font-medium transition"
+                    >
+                      Certificate {index + 1}
+                    </a>
+                  ))}
                 </div>
-              </>
+              )}
+            </div>
 
-            ) : (
-
-              <>
-                <h2 className="text-2xl font-bold text-[#F3F4F8] mb-3" style={fraunces}>
-                  Reject Tutor
-                </h2>
-
-                <textarea
-                  value={rejectReason}
-                  onChange={(
-                    e: React.ChangeEvent<HTMLTextAreaElement>
-                  ) =>
-                    setRejectReason(
-                      e.target.value
-                    )
-                  }
-                  placeholder="Enter rejection reason..."
-                  className="w-full border border-[#2A2E3D] rounded-xl p-3 min-h-[120px] mb-5 bg-[#0E1016] text-[#F3F4F8] placeholder:text-[#6B7185] focus:outline-none focus:ring-2 focus:ring-[#7C9CFF]/40"
-                />
-
-                <div className="flex justify-end gap-3">
-
-                  <button
-                    onClick={() =>
-                      setConfirmModal({
-                        isOpen: false,
-                        type: null,
-                        userId: null,
-                      })
-                    }
-                    className="px-4 py-2 border border-[#2A2E3D] rounded-xl text-[#F3F4F8] hover:border-[#7C9CFF] transition"
-                  >
-                    Cancel
-                  </button>
-
-                  <button
-                    onClick={handleReject}
-                    className="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded-xl transition"
-                  >
-                    Confirm
-                  </button>
-
-                </div>
-              </>
-            )}
+            <div className="flex justify-end gap-3 pt-2 border-t border-[#2A2E3D]">
+              <button
+                onClick={() => setAction({ type: "reject", userId: userIdOf(viewing) })}
+                className="px-5 py-2.5 mt-4 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition"
+              >
+                Reject
+              </button>
+              <button
+                onClick={() => setAction({ type: "approve", userId: userIdOf(viewing) })}
+                className="px-5 py-2.5 mt-4 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium transition"
+              >
+                Approve
+              </button>
+            </div>
           </div>
+        )}
+      </Modal>
+
+      <ConfirmDialog
+        open={action?.type === "approve"}
+        title="Approve tutor"
+        message="Are you sure you want to approve this tutor?"
+        tone="success"
+        confirmLabel="Approve"
+        busy={busy}
+        onConfirm={handleApprove}
+        onClose={closeAction}
+      />
+
+      <Modal open={action?.type === "reject"} onClose={closeAction} title="Reject tutor">
+        <label className="block text-[10px] uppercase tracking-wider text-[#6B7185] mb-1.5" >
+          Reason (the tutor will see this)
+        </label>
+        <textarea
+          value={rejectReason}
+          onChange={(e) => setRejectReason(e.target.value)}
+          placeholder="Write why this application is rejected..."
+          className="w-full min-h-[120px] bg-[#0E1016] border border-[#2A2E3D] rounded-xl p-3 text-sm text-[#F3F4F8] placeholder:text-[#6B7185] outline-none focus:border-[#7C9CFF] focus:ring-2 focus:ring-[#7C9CFF]/30 transition"
+        />
+        <div className="flex justify-end gap-3 mt-6">
+          <button
+            onClick={closeAction}
+            className="px-4 py-2.5 rounded-xl border border-[#2A2E3D] text-sm hover:bg-[#1E2230] hover:border-[#7C9CFF] transition"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleReject}
+            disabled={busy}
+            className="px-5 py-2.5 rounded-xl bg-red-600 hover:bg-red-500 text-white text-sm font-medium transition disabled:opacity-60"
+          >
+            {busy ? "Please wait…" : "Reject"}
+          </button>
         </div>
-      )}
-
-      {reasonModal.isOpen && (
-
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50">
-
-          <div className="bg-[#171A24] border border-[#2A2E3D] rounded-3xl w-[400px] p-8 shadow-xl">
-
-            <h2 className="text-2xl font-bold text-[#F3F4F8] mb-4" style={fraunces}>
-              Rejection Reason
-            </h2>
-
-            <p className="text-[#D7D9E2]">
-              {reasonModal.message}
-            </p>
-
-            <button
-              onClick={() =>
-                setReasonModal({
-                  isOpen: false,
-                  message: "",
-                })
-              }
-              className="mt-6 px-4 py-2 bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] font-semibold rounded-xl"
-            >
-              Close
-            </button>
-
-          </div>
-        </div>
-      )}
-
-      <Toaster position="top-center" toastOptions={{ style: { background: "#171A24", color: "#F3F4F8", border: "1px solid #2A2E3D" } }} />
+      </Modal>
     </div>
   );
 };

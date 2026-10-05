@@ -17,8 +17,7 @@ export class ChatService implements IChatService {
   ) {}
 
   async getOrCreateConversation(currentUserId: string, otherUserId: string): Promise<IConversation> {
-    const existing = await this._conversationRepo.findBetween(currentUserId, otherUserId);
-    return existing ?? this._conversationRepo.createBetween(currentUserId, otherUserId);
+    return this._conversationRepo.findOrCreateBetween(currentUserId, otherUserId);
   }
 
   async getConversationsForUser(userId: string): Promise<ConversationSummaryDTO[]> {

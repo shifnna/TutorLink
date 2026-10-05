@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { io, Socket } from "socket.io-client";
-import { Mic,MicOff,Video as VideoIcon,VideoOff,Maximize2,Minimize2,PhoneOff,Copy,MonitorX,} from "lucide-react";
+import { Mic, MicOff, Video as VideoIcon, VideoOff, Maximize2, Minimize2, PhoneOff, Copy, MonitorX } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
 import { completeSession } from "../../services/sessionService";
 import { useNavigate } from "react-router-dom";
@@ -77,15 +77,7 @@ interface VideoTileProps {
   overlay?: React.ReactNode;
 }
 
-const VideoTile: React.FC<VideoTileProps> = ({
-  isMain,
-  videoRef,
-  mirrored,
-  muted,
-  label,
-  onClick,
-  overlay,
-}) => (
+const VideoTile: React.FC<VideoTileProps> = ({ isMain, videoRef, mirrored, muted, label, onClick, overlay }) => (
   <div
     onClick={onClick}
     className={
@@ -244,8 +236,7 @@ const VideoCallPage: React.FC = () => {
 
     const existing = readLock();
     const existingIsStale = !existing || Date.now() - existing.updatedAt > LOCK_STALE_MS;
-    const blockedByAnotherTab =
-      !!existing && existing.tabId !== tabId && !existingIsStale && !forceTakeover;
+    const blockedByAnotherTab = !!existing && existing.tabId !== tabId && !existingIsStale && !forceTakeover;
 
     if (blockedByAnotherTab) {
       setDuplicateTab(true);
@@ -357,10 +348,7 @@ const VideoCallPage: React.FC = () => {
     };
 
     const init = async () => {
-      const stream = await navigator.mediaDevices.getUserMedia({
-        video: true,
-        audio: true,
-      });
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
 
       if (!isMounted) {
         stream.getTracks().forEach((t) => t.stop());
@@ -482,8 +470,7 @@ const VideoCallPage: React.FC = () => {
             Session already open
           </h2>
           <p className="text-sm text-[#9CA1B5] mb-6">
-            This call is already open in another tab in this browser. Only one tab
-            can join at a time.
+            This call is already open in another tab in this browser. Only one tab can join at a time.
           </p>
           <button
             type="button"
@@ -564,7 +551,7 @@ const VideoCallPage: React.FC = () => {
             <VideoTile
               isMain={!isSwapped}
               videoRef={remoteVideoRef}
-              label={displayParticipantName}
+              label={remoteConnected ? displayParticipantName : undefined}
               overlay={remoteOverlay}
               onClick={isSwapped && canSwap ? () => setIsSwapped(false) : undefined}
             />
@@ -577,9 +564,7 @@ const VideoCallPage: React.FC = () => {
             muted
             label="You"
             overlay={localOverlay}
-            onClick={
-              !remoteLeft && !isSwapped && canSwap ? () => setIsSwapped(true) : undefined
-            }
+            onClick={!remoteLeft && !isSwapped && canSwap ? () => setIsSwapped(true) : undefined}
           />
         </div>
 

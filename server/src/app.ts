@@ -4,6 +4,7 @@ import express from "express";
 import cors from "cors";
 import authRoutes from "./routes/authRoutes.js";
 import adminRoutes from "./routes/adminRoutes.js";
+import clientRoutes from "./routes/clientRoutes.js";
 import cookieParser from "cookie-parser";
 import tutorRoutes from "./routes/tutorRoutes.js";
 import slotRoutes from "./routes/slotRoutes.js";
@@ -51,6 +52,7 @@ app.use(passport.session());
 app.use("/api/auth", authRoutes);
 app.use("/api/admin", adminRoutes);
 app.use("/api/tutor", tutorRoutes);
+app.use("/api/client", clientRoutes)
 app.use("/api/slots", slotRoutes);
 app.use("/api/session", sessionRoutes);
 app.use("/api/notifications", notificationRoutes);

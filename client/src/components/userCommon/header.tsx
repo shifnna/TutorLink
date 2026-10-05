@@ -16,7 +16,6 @@ const {user} = useAuthStore();
 
   return (
     <div>
-       {/* NAVBAR (FIXED PREMIUM) */}
       <motion.header
         initial={{ y: -25, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
@@ -26,12 +25,18 @@ const {user} = useAuthStore();
         shadow-[0_8px_30px_rgba(0,0,0,0.35)]"
       >
         <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate("/")}>
-          <div className="p-2 rounded-xl shadow-lg bg-gradient-to-br from-[#7C9CFF] to-[#C08BFA]">
-            <FaGraduationCap className="w-6 h-6 text-[#0E1016]" />
-          </div>
-          <h1 className="text-2xl md:text-3xl font-extrabold tracking-tight" style={fraunces}>
-            Tutor<span className="bg-gradient-to-r from-[#7C9CFF] to-[#C08BFA] bg-clip-text text-transparent">Link</span>
-          </h1>
+          <div className="p-2 rounded-xl shadow-lg bg-gradient-to-br from-[#8EA9FF] via-[#A99BFF] to-[#D0A7FF]">
+  <FaGraduationCap className="w-6 h-6 text-[#171A24]" />
+</div>
+          <h1
+  className="text-2xl md:text-3xl font-extrabold tracking-tight text-[#F8FAFF] drop-shadow-sm"
+  style={fraunces}
+>
+  Tutor
+  <span className="bg-gradient-to-r from-[#8EA9FF] via-[#A99BFF] to-[#D0A7FF] bg-clip-text text-transparent">
+    Link
+  </span>
+</h1>
         </div>
 
         <nav className="hidden md:flex items-center gap-8 font-medium text-[#9CA1B5]">

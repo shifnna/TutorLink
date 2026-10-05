@@ -12,3 +12,6 @@ export const editProfileImage = async (data:string|null)=>
 
 export const editProfileData = async (data:IUser|null)=>
     handleApi<ICommonResponse<null>>(axiosClient.post(`/api/client/setProfileImage`,data));
+
+export const getSubjects = async ()=>
+    handleApi<string[]>(axiosClient.get(`/api/client/getSubjects`));

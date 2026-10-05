@@ -59,6 +59,8 @@ import { IChatService } from "../services/interfaces/IChatService.js";
 import { ChatService } from "../services/chatService.js";
 import { IChatController } from "../controllers/interfaces/IChatController.js";
 import { ChatController } from "../controllers/chatController.js";
+import { IClientController } from "../controllers/interfaces/IClientController.js";
+import { clientController } from "../controllers/clientController.js";
 
 const container = new Container();
 
@@ -96,5 +98,7 @@ container.bind<IConversationRepository>(TYPES.IConversationRepository).to(Conver
 container.bind<IMessageRepository>(TYPES.IMessageRepository).to(MessageRepository);
 container.bind<IChatService>(TYPES.IChatService).to(ChatService);
 container.bind<IChatController>(TYPES.IChatController).to(ChatController);
+
+container.bind<IClientController>(TYPES.IClientController).to(clientController);
 
 export default container;

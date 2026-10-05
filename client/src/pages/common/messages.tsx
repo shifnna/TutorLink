@@ -26,6 +26,46 @@ const formatTime = (iso?: string) => {
     : date.toLocaleDateString([], { month: "short", day: "numeric" });
 };
 
+// Shows the profile picture. Falls back to initials if there is no image or it fails to load.
+interface AvatarProps {
+  name?: string;
+  src?: string;
+  sizeClass?: string; // e.g. "w-10 h-10"
+  textClass?: string; // e.g. "text-sm"
+  gradient?: string;
+}
+
+const Avatar: React.FC<AvatarProps> = ({
+  name,
+  src,
+  sizeClass = "w-10 h-10",
+  textClass = "text-sm",
+  gradient = "from-[#7C9CFF] to-[#C08BFA]",
+}) => {
+  const [failed, setFailed] = useState(false);
+
+  useEffect(() => setFailed(false), [src]);
+
+  if (src && !failed) {
+    return (
+      <img
+        src={src}
+        alt={name || "User"}
+        onError={() => setFailed(true)}
+        className={`${sizeClass} rounded-full object-cover flex-shrink-0 border border-[#2A2E3D]`}
+      />
+    );
+  }
+
+  return (
+    <div
+      className={`${sizeClass} ${textClass} rounded-full flex items-center justify-center font-bold bg-gradient-to-br ${gradient} text-[#0E1016] flex-shrink-0`}
+    >
+      {getInitials(name)}
+    </div>
+  );
+};
+
 const Messages: React.FC = () => {
   const { user } = useAuthStore();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -74,7 +114,6 @@ const Messages: React.FC = () => {
       setSearchParams({}, { replace: true });
     };
     openWithContact();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [withUserId]);
 
   useEffect(() => {
@@ -115,23 +154,21 @@ const Messages: React.FC = () => {
   return (
     <div className="min-h-[calc(100vh-80px)] bg-[#0E1016] text-[#F3F4F8] px-6 flex items-center justify-center pt-[80px]">
       <motion.div
-  initial={{ opacity: 0, y: 30, scale: 0.98 }}
-  animate={{ opacity: 1, y: 0, scale: 1 }}
-  transition={{
-    duration: 0.6,
-    ease: [0.22, 1, 0.36, 1],
-  }}
-  className="w-full max-w-5xl flex h-[560px] bg-[#171A24] border border-[#2A2E3D] rounded-3xl overflow-hidden"
->
-
+        initial={{ opacity: 0, y: 30, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+        className="w-full max-w-5xl flex h-[560px] bg-[#171A24] border border-[#2A2E3D] rounded-3xl overflow-hidden"
+      >
         <div className={`w-full sm:w-[300px] flex-shrink-0 border-r border-[#2A2E3D] flex-col ${mobileChatOpen ? "hidden sm:flex" : "flex"}`}>
           <div className="p-5 pb-3"><h1 style={fraunces} className="text-lg font-bold">Messages</h1></div>
           <div className="flex-1 overflow-y-auto">
             {user?.role !== "admin" && supportContact && !hasSupportThread && (
               <div onClick={startSupportChat} className="flex items-center gap-3 px-5 py-3 cursor-pointer hover:bg-[#1E2230] border-b border-[#2A2E3D]">
-                <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-gradient-to-br from-[#6B7185] to-[#9CA1B5] text-[#0E1016]">
-                  {getInitials(supportContact.name)}
-                </div>
+                <Avatar
+                  name={supportContact.name}
+                  src={supportContact.profileImage}
+                  gradient="from-[#6B7185] to-[#9CA1B5]"
+                />
                 <div>
                   <div className="text-sm font-semibold">{supportContact.name}</div>
                   <div className="text-xs text-[#6B7185]">Contact support</div>
@@ -146,9 +183,7 @@ const Messages: React.FC = () => {
                 className={`flex items-center gap-3 px-5 py-3 cursor-pointer border-b border-[#2A2E3D] border-l-2 ${
                   c._id === activeConversationId ? "bg-[#1E2230] border-l-[#7C9CFF]" : "border-l-transparent hover:bg-[#1E2230]"
                 }`}>
-                <div className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm bg-gradient-to-br from-[#7C9CFF] to-[#C08BFA] text-[#0E1016] flex-shrink-0">
-                  {getInitials(c.otherUser.name)}
-                </div>
+                <Avatar name={c.otherUser.name} src={c.otherUser.profileImage} />
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center justify-between gap-2">
                     <span className="flex items-center gap-1.5 text-sm font-semibold truncate">
@@ -172,9 +207,12 @@ const Messages: React.FC = () => {
             <>
               <div className="flex items-center gap-3 px-5 py-4 border-b border-[#2A2E3D]">
                 <button onClick={() => setMobileChatOpen(false)} className="sm:hidden text-[#9CA1B5] hover:text-[#F3F4F8]">←</button>
-                <div className="w-9 h-9 rounded-full flex items-center justify-center font-bold text-xs bg-gradient-to-br from-[#7C9CFF] to-[#C08BFA] text-[#0E1016]">
-                  {getInitials(activeConversation.otherUser.name)}
-                </div>
+                <Avatar
+                  name={activeConversation.otherUser.name}
+                  src={activeConversation.otherUser.profileImage}
+                  sizeClass="w-9 h-9"
+                  textClass="text-xs"
+                />
                 <div className="flex items-center gap-1.5 text-sm font-semibold">
                   {activeConversation.otherUser.name}
                   <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-medium capitalize ${roleTagClass[activeConversation.otherUser.role] || ""}`}>{activeConversation.otherUser.role}</span>

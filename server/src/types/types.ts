@@ -34,4 +34,6 @@ export const TYPES = {
   IChatService: Symbol.for("IChatService"),
   IChatController: Symbol.for("IChatController"),
 
+  IClientController: Symbol.for("IClientController"),
+  IClientService: Symbol.for("IClientService"),
 };

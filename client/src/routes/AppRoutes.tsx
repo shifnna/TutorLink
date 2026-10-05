@@ -29,6 +29,7 @@ import SidebarLayout from "../components/userCommon/sidebarLayout";
 import SettingsOverview from "../pages/settings/settingsOverview";
 import Settings from "../pages/settings/password";
 import Messages from "../pages/common/messages";
+import AdminLayout from "../components/adminCommon/adminLayout";
 
 function RouteWrapper() {
 
@@ -65,11 +66,14 @@ function RouteWrapper() {
         <Route path="/forgot-password" element={<ForgotPassword />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
-        <Route path="/admin-dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
-        <Route path="/admin-dashboard/sessions" element={<ProtectedRoute role="admin"><Sessions /></ProtectedRoute>} />
-        <Route path="/admin-dashboard/applications" element={<ProtectedRoute role="admin"><TutorApplications /></ProtectedRoute>} />
-        <Route path="/admin-dashboard/clients" element={<ProtectedRoute role="admin"><ClientsPage /></ProtectedRoute>} />
-        <Route path="/admin-dashboard/tutors" element={<ProtectedRoute role="admin"><TutorsPage /></ProtectedRoute>} />
+        <Route element={<AdminLayout/>}>
+          <Route path="/admin-dashboard" element={<ProtectedRoute role="admin"><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin-dashboard/sessions" element={<ProtectedRoute role="admin"><Sessions /></ProtectedRoute>} />
+          <Route path="/admin-dashboard/applications" element={<ProtectedRoute role="admin"><TutorApplications /></ProtectedRoute>} />
+          <Route path="/admin-dashboard/messages" element={<ProtectedRoute role="admin"><Messages /></ProtectedRoute>} />
+          <Route path="/admin-dashboard/clients" element={<ProtectedRoute role="admin"><ClientsPage /></ProtectedRoute>} />
+          <Route path="/admin-dashboard/tutors" element={<ProtectedRoute role="admin"><TutorsPage /></ProtectedRoute>} />
+        </Route>
 
         <Route path="/session/video/:sessionId/:roomId" element={<VideoCallPage />} />
       </Routes>
