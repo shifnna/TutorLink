@@ -7,7 +7,6 @@ import { FaCamera } from "react-icons/fa";
 import { editProfileData, editProfileImage } from "../../services/clientService";
 import { IUser } from "../../types/IUser";
 
-// Midnight theme type treatment — same Fraunces / Space Mono pairing as the homepage
 const fraunces = { fontFamily: "'Fraunces', Georgia, serif" };
 const mono = { fontFamily: "'Space Mono', monospace" };
 
@@ -19,10 +18,6 @@ const toastDarkOptions = {
   },
 };
 
-// Fields this page actually reads off the logged-in user.
-// Ideally this should just be imported from wherever your real
-// User/IUser type lives (e.g. authStore.ts or types/IUser.ts) —
-// this local version is a stand-in until then.
 interface ClientProfileUser {
   name?: string;
   email?: string;
@@ -70,7 +65,6 @@ const ClientProfile: React.FC = () => {
   return (
     <div className="relative flex min-h-screen bg-[#0E1016] text-[#F3F4F8]">
 
-      {/* Ambient background, same treatment as the homepage */}
       <div className="fixed inset-0 pointer-events-none -z-10 overflow-hidden">
         <div
           className="absolute top-[-10%] right-[-5%] w-[60vmax] h-[60vmax] rounded-full opacity-25 animate-blob mix-blend-screen blur-3xl"
@@ -93,7 +87,6 @@ const ClientProfile: React.FC = () => {
           transition={{ duration: 0.4 }}
           className="max-w-5xl"
         >
-          {/* Header */}
           <div className="flex flex-wrap items-start justify-between gap-4 mb-8">
             <div>
               <span
@@ -114,9 +107,7 @@ const ClientProfile: React.FC = () => {
             </button>
           </div>
 
-          {/* Content grid */}
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            {/* Personal details */}
             <div className="lg:col-span-2 relative overflow-hidden rounded-2xl border border-[#2A2E3D] bg-[#171A24] p-8 shadow-xl">
               <div className="absolute top-0 left-0 right-0 h-1 bg-gradient-to-r from-[#7C9CFF] via-[#A78CF5] to-[#C08BFA]" />
 
