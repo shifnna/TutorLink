@@ -8,6 +8,7 @@ import { useAuthStore } from "../../store/authStore";
 import ApplicationModal from "../../pages/client/applicationModal";
 import { useNotificationStore } from "../../store/notificationStore";
 import { motion, AnimatePresence } from "framer-motion";
+import PostJobModal from "../jobs/postJobModal";
 
 const toastDarkOptions = {
   style: {
@@ -19,9 +20,13 @@ const toastDarkOptions = {
 
 const Dropdown = () => {
   const { unreadCount, markAllSeen } = useNotificationStore();
+
   const [menuOpen, setMenuOpen] = useState(false);
   const [showAdminMsg, setShowAdminMsg] = useState(false);
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  // Post Job Modal state
+  const [postOpen, setPostOpen] = useState(false);
 
   const { user, logout } = useAuthStore();
   const navigate = useNavigate();
@@ -33,7 +38,9 @@ const Dropdown = () => {
         setMenuOpen(false);
       }
     };
+
     document.addEventListener("mousedown", handleClick);
+
     return () => document.removeEventListener("mousedown", handleClick);
   }, []);
 
@@ -58,14 +65,23 @@ const Dropdown = () => {
       {/* Notification */}
       <div className="relative">
         <FaBell
-  className="w-5 h-5 text-[#9CA1B5] cursor-pointer hover:text-[#F3F4F8] transition"
-  onClick={() => {
-    const role = user?.role;
-    if (role === "tutor") navigate(`/tutor/notifications`);
-    if (role === "client") navigate(`/client/notifications`);
-    if (user?._id) markAllSeen(user._id);
-  }}
-/>
+          className="w-5 h-5 text-[#9CA1B5] cursor-pointer hover:text-[#F3F4F8] transition"
+          onClick={() => {
+            const role = user?.role;
+
+            if (role === "tutor") {
+              navigate("/tutor/notifications");
+            }
+
+            if (role === "client") {
+              navigate("/client/notifications");
+            }
+
+            if (user?._id) {
+              markAllSeen(user._id);
+            }
+          }}
+        />
 
         {unreadCount > 0 && (
           <span className="absolute -top-1 -right-1 text-[10px] font-semibold bg-[#C08BFA] text-white px-1.5 rounded-full border-2 border-[#0E1016]">
@@ -96,6 +112,7 @@ const Dropdown = () => {
                 <p className="text-sm font-semibold text-[#F3F4F8]">
                   {user?.name}
                 </p>
+
                 <p className="text-xs text-[#9CA1B5] capitalize">
                   {user?.role}
                 </p>
@@ -113,6 +130,7 @@ const Dropdown = () => {
 
                   {user.tutorApplication?.status === "Rejected" && (
                     <div className="space-y-1">
+
                       <p className="text-xs text-red-400">
                         Application rejected
                       </p>
@@ -126,7 +144,9 @@ const Dropdown = () => {
                               setShowAdminMsg(!showAdminMsg);
                             }}
                           >
-                            {showAdminMsg ? "Hide reason" : "View reason"}
+                            {showAdminMsg
+                              ? "Hide reason"
+                              : "View reason"}
                           </button>
 
                           {showAdminMsg && (
@@ -173,6 +193,8 @@ const Dropdown = () => {
 
               {/* MENU */}
               <div className="py-2">
+
+                {/* Profile */}
                 <button
                   onClick={() => {
                     navigate("/user-profile");
@@ -183,40 +205,72 @@ const Dropdown = () => {
                   Profile
                 </button>
 
-                <button 
+                {/* Messages */}
+                <button
                   onClick={() => {
                     navigate("/messages");
                     setMenuOpen(false);
                   }}
-                  className="w-full text-left px-4 py-2 text-sm hover:bg-[#1E2230] transition">
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-[#1E2230] transition"
+                >
                   Messages
                 </button>
 
-                <button 
-                onClick={()=>{
-                  navigate("/settings-overview");
-                  setMenuOpen(false);
-                }}
-                className="w-full text-left px-4 py-2 text-sm hover:bg-[#1E2230] transition">
+                {/* Settings */}
+                <button
+                  onClick={() => {
+                    navigate("/settings-overview");
+                    setMenuOpen(false);
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-[#1E2230] transition"
+                >
                   Settings
+                </button>
+
+                {/* Post Requirements */}
+                <button
+                  onClick={() => {
+                    setMenuOpen(false);   // close dropdown
+                    setPostOpen(true);    // open PostJobModal
+                  }}
+                  className="w-full text-left px-4 py-2 text-sm hover:bg-[#1E2230] transition"
+                >
+                  Post Requirements
                 </button>
 
                 <div className="border-t border-[#2A2E3D] my-1" />
 
+                {/* Logout */}
                 <button
                   onClick={handleLogout}
                   className="w-full text-left px-4 py-2 text-sm text-red-400 hover:bg-red-500/10 transition"
                 >
                   Logout
                 </button>
+
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      <ApplicationModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-      <Toaster position="top-center" toastOptions={toastDarkOptions} />
+      {/* Become Tutor / Reapply Modal */}
+      <ApplicationModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
+
+      {/* Post Requirement Modal */}
+      <PostJobModal
+        open={postOpen}
+        onClose={() => setPostOpen(false)}
+        onSaved={() => navigate("/client/requirements")}
+      />
+
+      <Toaster
+        position="top-center"
+        toastOptions={toastDarkOptions}
+      />
     </div>
   );
 };

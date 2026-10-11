@@ -36,4 +36,8 @@ export const TYPES = {
 
   IClientController: Symbol.for("IClientController"),
   IClientService: Symbol.for("IClientService"),
+
+  IJobpostService: Symbol.for("IJobpostService"),
+  IJobpostRepository: Symbol.for("IJobpostRepository"),
+  IJobpostController: Symbol.for("IJobpostController"),
 };

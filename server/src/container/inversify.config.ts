@@ -61,6 +61,11 @@ import { IChatController } from "../controllers/interfaces/IChatController.js";
 import { ChatController } from "../controllers/chatController.js";
 import { IClientController } from "../controllers/interfaces/IClientController.js";
 import { clientController } from "../controllers/clientController.js";
+import { IJobPostRepository } from "../repositories/interfaces/IJobpostRepository.js";
+import { IJobPostService } from "../services/interfaces/IJobpostService.js";
+import { JobPostService } from "../services/jobpostService.js";
+import { JobPostRepository } from "../repositories/jobpostRepository.js";
+import { JobPostController } from "../controllers/jobpostController.js";
 
 const container = new Container();
 
@@ -100,5 +105,9 @@ container.bind<IChatService>(TYPES.IChatService).to(ChatService);
 container.bind<IChatController>(TYPES.IChatController).to(ChatController);
 
 container.bind<IClientController>(TYPES.IClientController).to(clientController);
+
+container.bind<IJobPostRepository>(TYPES.IJobpostRepository).to(JobPostRepository).inSingletonScope();
+container.bind<IJobPostService>(TYPES.IJobpostService).to(JobPostService).inSingletonScope();
+container.bind<JobPostController>(TYPES.IJobpostController).to(JobPostController).inSingletonScope();
 
 export default container;

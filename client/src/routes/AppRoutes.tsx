@@ -30,6 +30,8 @@ import SettingsOverview from "../pages/settings/settingsOverview";
 import Settings from "../pages/settings/password";
 import Messages from "../pages/common/messages";
 import AdminLayout from "../components/adminCommon/adminLayout";
+import MyRequirements from "../pages/client/myRequirements";
+import FindJob from "../pages/tutors/findJob";
 
 function RouteWrapper() {
 
@@ -76,6 +78,10 @@ function RouteWrapper() {
         </Route>
 
         <Route path="/session/video/:sessionId/:roomId" element={<VideoCallPage />} />
+
+        <Route path="/post-requirements" element={<ProtectedRoute><MyRequirements /></ProtectedRoute>} />
+        <Route path="/find-job" element={<ProtectedRoute role="tutor"><FindJob /></ProtectedRoute>} />
+
       </Routes>
     </>
   );
